@@ -13,11 +13,9 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
 import com.example.foodorder.R
 import com.example.foodorder.databinding.FragmentCartBinding
-import com.example.foodorder.di.ServiceLocator
 import com.example.foodorder.ui.order.OrderEvent
+import com.example.foodorder.ui.order.OrderUiState
 import com.example.foodorder.ui.order.OrderViewModel
-import com.example.foodorder.ui.order.OrderViewModelFactory
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 /**
@@ -29,7 +27,7 @@ class CartFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: OrderViewModel by navGraphViewModels(R.id.nav_graph) {
-        OrderViewModelFactory(ServiceLocator.foodRepository)
+        OrderViewModel.Factory
     }
 
     private lateinit var adapter: CartAdapter
@@ -46,7 +44,7 @@ class CartFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
-        setupObservers()
+        observeViewModel()
 
         binding.buttonPlaceOrder.setOnClickListener { viewModel.placeOrder() }
     }
@@ -59,21 +57,21 @@ class CartFragment : Fragment() {
         binding.recyclerCart.adapter = adapter
     }
 
-    private fun setupObservers() {
-        viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            adapter.submitList(state.cart)
-            binding.textEmpty.visibility = if (state.isCartEmpty) View.VISIBLE else View.GONE
-            binding.recyclerCart.visibility = if (state.isCartEmpty) View.GONE else View.VISIBLE
-            binding.buttonPlaceOrder.isEnabled = !state.isCartEmpty
-            binding.textTotal.text = getString(R.string.cart_total, state.cartTotal)
-        }
-
-        // Collect one-shot events only while the view is at least STARTED.
+    private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.events.collect { event -> handleEvent(event) }
+                launch { viewModel.uiState.collect { render(it) } }
+                launch { viewModel.events.collect { handleEvent(it) } }
             }
         }
+    }
+
+    private fun render(state: OrderUiState) {
+        adapter.submitList(state.cart)
+        binding.textEmpty.visibility = if (state.isCartEmpty) View.VISIBLE else View.GONE
+        binding.recyclerCart.visibility = if (state.isCartEmpty) View.GONE else View.VISIBLE
+        binding.buttonPlaceOrder.isEnabled = !state.isCartEmpty
+        binding.textTotal.text = getString(R.string.cart_total, state.cartTotal)
     }
 
     private fun handleEvent(event: OrderEvent) {

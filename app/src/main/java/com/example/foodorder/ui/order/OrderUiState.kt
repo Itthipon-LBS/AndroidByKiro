@@ -2,6 +2,7 @@ package com.example.foodorder.ui.order
 
 import com.example.foodorder.data.model.CartItem
 import com.example.foodorder.data.model.MenuItem
+import java.math.BigDecimal
 
 /**
  * Single source of truth for the ordering screens' UI state.
@@ -16,8 +17,8 @@ data class OrderUiState(
     val cartCount: Int
         get() = cart.sumOf { it.quantity }
 
-    val cartTotal: Double
-        get() = cart.sumOf { it.lineTotal }
+    val cartTotal: BigDecimal
+        get() = cart.fold(BigDecimal.ZERO) { acc, item -> acc + item.lineTotal }
 
     val isCartEmpty: Boolean
         get() = cart.isEmpty()
@@ -29,5 +30,5 @@ data class OrderUiState(
  * so they are not re-triggered on configuration change.
  */
 sealed interface OrderEvent {
-    data class OrderPlaced(val total: Double) : OrderEvent
+    data class OrderPlaced(val total: BigDecimal) : OrderEvent
 }

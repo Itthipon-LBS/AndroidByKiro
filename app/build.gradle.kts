@@ -48,9 +48,9 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
 
-    // Lifecycle - ViewModel & LiveData
+    // Lifecycle - ViewModel, LiveData, SavedState
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
-    implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.savedstate)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
     // Activity & Fragment KTX
