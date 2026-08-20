@@ -200,6 +200,18 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   - ปรับ sequence diagram: เอา `->` และวงเล็บใน alias/ข้อความออก ใช้คำอธิบายแทน
     เพื่อไม่ให้ชนกับไวยากรณ์ของ Mermaid
 
+## 14. ขยายส่วน Test ใน presentation.html + เพิ่ม Data Flow Diagram
+
+**Changed**
+- เขียน `docs/presentation.html` ใหม่ ขยายส่วนการเขียน test ให้ละเอียดขึ้นมาก:
+  เพิ่มตัวอย่างโค้ดจริง (`MainDispatcherRule`, `FakeFoodRepository`, เทสต์ AAA,
+  Turbine), sequence diagram การควบคุม coroutine (`advanceUntilIdle`) และการทดสอบ
+  event, โครงไฟล์เทสต์, ตารางแมปเทสต์กับพฤติกรรม, best practices และวิธีรันเทสต์
+
+**Added**
+- **Data Flow Diagram (DFD)** 2 ภาพ: ภาพรวม data flow ของแอป (ผู้ใช้ ↔ View ↔
+  ViewModel ↔ data store) และ DFD แสดงขอบเขตที่ unit test ครอบคลุม
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
