@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FoodOrder — Presentation</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/white.css" />
+
+  <style>
+    :root { --brand: #FF6D00; --brand-dark: #E65100; }
+    .reveal { font-family: 'Sarabun', system-ui, sans-serif; }
+    .reveal h1, .reveal h2, .reveal h3 { font-family: 'Sarabun', sans-serif; color: var(--brand-dark); text-transform: none; }
+    .reveal h1 { font-size: 2.0em; }
+    .reveal h2 { font-size: 1.4em; }
+    .reveal section { text-align: left; }
+    .reveal .center { text-align: center; }
+    .reveal .title-slide { text-align: center; }
+    .reveal .title-slide h1 { color: var(--brand); }
+    .reveal ul { display: block; }
+    .reveal table { font-size: 0.7em; }
+    .reveal th { background: var(--brand); color: #fff; }
+    .reveal pre.mermaid { box-shadow: none; background: transparent; text-align: center; }
+    .reveal .mermaid svg { max-height: 460px; height: auto; width: auto; max-width: 100%; }
+    .reveal code { color: var(--brand-dark); }
+    .reveal .small { font-size: 0.8em; color: #555; }
+    .reveal .divider h1 { color: var(--brand); border-top: 4px solid var(--brand); border-bottom: 4px solid var(--brand); padding: 0.3em 0; }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- Title -->
+      <section class="title-slide">
+        <h1>FoodOrder</h1>
+        <h3>แอปสั่งอาหาร (MVVM) — Presentation</h3>
+        <p class="small">1) ภาพรวมของระบบ &nbsp;•&nbsp; 2) การเขียน Test ตั้งแต่ต้นจนจบ (พร้อม diagram)</p>
+      </section>
+
+      <!-- Part 1 divider -->
+      <section class="divider center">
+        <h1>ส่วนที่ 1</h1>
+        <h3>ภาพรวมของระบบ</h3>
+      </section>
+
+      <section>
+        <h2>ระบบนี้คืออะไร</h2>
+        <ul>
+          <li>แอป <strong>สั่งอาหารอย่างง่าย</strong> บน Android เขียนด้วย <strong>Kotlin</strong></li>
+          <li>สถาปัตยกรรม <strong>MVVM</strong> ตาม best practice</li>
+          <li>หน้าจอ (View) เป็น <strong>XML</strong> + <strong>ViewBinding</strong></li>
+          <li>2 หน้าจอหลัก: <strong>เมนูอาหาร</strong> และ <strong>ตะกร้าสินค้า</strong></li>
+        </ul>
+        <p><strong>ความสามารถ:</strong> ดูเมนู, เพิ่มลงตะกร้า, เพิ่ม/ลดจำนวน, ดูยอดรวม, สั่งอาหารแล้วเคลียร์ตะกร้า</p>
+      </section>
+
+      <section>
+        <h2>สถาปัตยกรรม MVVM</h2>
+        <pre class="mermaid">
+flowchart TD
+    subgraph UI["ชั้น UI (View - XML)"]
+        A[MenuFragment]
+        B[CartFragment]
+    end
+    subgraph VML["ViewModel"]
+        C["OrderViewModel<br/>uiState: StateFlow(OrderUiState)<br/>events: Flow(OrderEvent)"]
+    end
+    subgraph DATA["ชั้น Data"]
+        D["FoodRepository<br/>(interface)"]
+        E[FoodRepositoryImpl]
+        F["FoodDataSource<br/>เมนู in-memory"]
+    end
+    A -- "observe / action" --> C
+    B -- "observe / action" --> C
+    C -- "getMenu() suspend" --> D
+    D --> E --> F
+    C -. "persist ตะกร้า" .-> G[(SavedStateHandle)]
+        </pre>
+      </section>
+
+      <section>
+        <h2>Flow การทำงานของผู้ใช้</h2>
+        <pre class="mermaid">
+flowchart LR
+    S([เปิดแอป]) --> M[หน้าเมนู]
+    M -->|กด เพิ่ม| M
+    M -->|ดูตะกร้า| C[หน้าตะกร้า]
+    C -->|กด + / -| C
+    C -->|กด สั่งอาหาร| O{ตะกร้าว่าง?}
+    O -->|ไม่ว่าง| T[Toast สำเร็จ + กลับหน้าเมนู]
+    O -->|ว่าง| C
+        </pre>
+      </section>
+
+      <section>
+        <h2>Tech stack</h2>
+        <table>
+          <tr><th>ด้าน</th><th>เทคโนโลยี</th></tr>
+          <tr><td>ภาษา</td><td>Kotlin</td></tr>
+          <tr><td>UI</td><td>XML + ViewBinding, Material 3</td></tr>
+          <tr><td>สถาปัตยกรรม</td><td>MVVM (StateFlow + one-shot events)</td></tr>
+          <tr><td>Navigation</td><td>Navigation Component (single-activity)</td></tr>
+          <tr><td>Async</td><td>Coroutines + Flow</td></tr>
+          <tr><td>State survival</td><td>SavedStateHandle (รอด process death)</td></tr>
+          <tr><td>เงิน</td><td>BigDecimal (เลี่ยง float error)</td></tr>
+          <tr><td>Build</td><td>Gradle Kotlin DSL + Version Catalog</td></tr>
+        </table>
+      </section>
+
+      <section>
+        <h2>โครงสร้างแพ็กเกจ</h2>
+        <pre><code>com.example.foodorder
+├── data
+│   ├── model         MenuItem, CartItem
+│   ├── source        FoodDataSource
+│   └── repository    FoodRepository (+Impl)
+├── di                ServiceLocator
+└── ui
+    ├── MainActivity
+    ├── order         OrderViewModel, OrderUiState, OrderEvent
+    ├── menu          MenuFragment, MenuAdapter
+    └── cart          CartFragment, CartAdapter</code></pre>
+      </section>
+
+      <!-- Part 2 divider -->
+      <section class="divider center">
+        <h1>ส่วนที่ 2</h1>
+        <h3>การเขียน Test (ต้นจนจบ)</h3>
+      </section>
+
+      <section>
+        <h2>ทำไมต้องเทสต์ &amp; เลือกระดับไหน</h2>
+        <pre class="mermaid">
+flowchart TD
+    U["Unit tests (JVM)<br/>เร็ว • คุ้มสุด • ไม่ต้อง emulator ⬅ โฟกัส"]
+    I["Integration tests"]
+    E2E["UI / Instrumented tests<br/>ช้า • ต้องใช้ emulator"]
+    U --> I --> E2E
+        </pre>
+        <ul>
+          <li>เริ่มที่ <strong>Unit test (JVM)</strong> — เร็วและคุ้มสุด</li>
+          <li>เป้าหมายหลัก: <strong>OrderViewModel</strong> (business logic ตะกร้า/ยอดรวม/event)</li>
+          <li>เทสต์ง่ายเพราะ MVVM แยก layer + ฉีด dependency ผ่าน constructor</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>ภาพรวม 6 ขั้นตอน</h2>
+        <pre class="mermaid">
+flowchart TD
+    S1["1. เลือกระดับเทสต์<br/>Unit test + เป้า OrderViewModel"]
+    S2["2. เพิ่ม dependencies<br/>coroutines-test, Turbine"]
+    S3["3. สร้าง test infrastructure<br/>MainDispatcherRule, FakeFoodRepository"]
+    S4["4. เขียนเทสต์ OrderViewModel<br/>ไล่ทีละพฤติกรรม"]
+    S5["5. เทสต์ model / state<br/>CartItem, OrderUiState"]
+    S6["6. ปรับ black-box + ปิดงาน<br/>round-trip, commit, push"]
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6
+        </pre>
+      </section>
+
+      <section>
+        <h2>ขั้นที่ 1–2: ตัดสินใจ &amp; เตรียมเครื่องมือ</h2>
+        <p><strong>1. ตัดสินใจ:</strong> ระดับ local unit test (JVM), เป้า <code>OrderViewModel</code> + models/state</p>
+        <p><strong>2. เพิ่ม dependencies</strong> (version catalog + build.gradle):</p>
+        <ul>
+          <li><code>kotlinx-coroutines-test</code> — คุม coroutine / <code>viewModelScope</code></li>
+          <li><code>Turbine</code> — ทดสอบ <code>Flow</code> / event ให้เขียนง่าย</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>ขั้นที่ 3: Test Infrastructure</h2>
+        <pre class="mermaid">
+flowchart LR
+    T[OrderViewModelTest] --> VM[OrderViewModel]
+    T --> R[MainDispatcherRule]
+    R -. "setMain(testDispatcher)" .-> Main[Dispatchers.Main]
+    VM --> Repo["FoodRepository (interface)"]
+    Fake[FakeFoodRepository] -. "ใช้แทน" .-> Repo
+    T --> Fake
+    T --> Tur["Turbine (ทดสอบ event)"]
+        </pre>
+        <ul>
+          <li><strong>MainDispatcherRule</strong> — สลับ <code>Dispatchers.Main</code> เป็น test dispatcher</li>
+          <li><strong>FakeFoodRepository</strong> — ใช้ fake แทน mock คืนเมนูคงที่ (55 / 50)</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>ขั้นที่ 4: เทสต์ OrderViewModel</h2>
+        <pre class="mermaid">
+flowchart LR
+    A["Arrange<br/>สร้าง ViewModel + fake"] --> B["Act<br/>addToCart / placeOrder"]
+    B --> C["Assert<br/>ตรวจ uiState / event"]
+        </pre>
+        <p class="small">เทคนิค: <code>runTest</code> + <code>advanceUntilIdle()</code> • อ่าน <code>uiState.value</code> • Turbine สำหรับ event • เทียบ <code>BigDecimal</code> ด้วย <code>compareTo</code></p>
+      </section>
+
+      <section>
+        <h2>ขั้นที่ 4: เคสที่ครอบคลุม (12 เคส)</h2>
+        <ul style="font-size:0.72em">
+          <li>โหลดเมนูเข้า uiState ตอน init</li>
+          <li>สถานะเริ่มต้น: ตะกร้าว่าง / count / total = 0</li>
+          <li>addToCart เพิ่มจำนวน + อัปเดต count/total</li>
+          <li>ยอดรวมของสินค้าหลายชนิด</li>
+          <li>decreaseQuantity จนเหลือ 0 → รายการหาย</li>
+          <li>decreaseQuantity ตอน &gt; 1 → ยังอยู่</li>
+          <li>placeOrder ตะกร้าว่าง → ไม่ยิง event</li>
+          <li>placeOrder มีของ → ยิง OrderPlaced + เคลียร์ตะกร้า</li>
+          <li>restore จาก SavedStateHandle</li>
+          <li>round-trip: สร้าง ViewModel ใหม่แล้วตะกร้ายังอยู่</li>
+          <li>decreaseQuantity สินค้าที่ไม่มี → no-op</li>
+          <li>คงลำดับการเพิ่มสินค้า (insertion order)</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>ขั้นที่ 5: เทสต์ Model / State</h2>
+        <ul>
+          <li><strong>CartItemTest</strong> — <code>lineTotal = ราคา × จำนวน</code></li>
+          <li><strong>OrderUiStateTest</strong> — derived values:
+            <ul>
+              <li><code>cartCount</code> (ผลรวมจำนวน)</li>
+              <li><code>cartTotal</code> (ผลรวม lineTotal)</li>
+              <li><code>isCartEmpty</code></li>
+            </ul>
+          </li>
+        </ul>
+        <p class="small">เป็น pure logic ไม่ต้อง mock ใด ๆ</p>
+      </section>
+
+      <section>
+        <h2>ขั้นที่ 6: ปรับให้เป็น Black-box (round-trip)</h2>
+        <p class="small"><strong>ก่อน:</strong> อ่าน key ภายใน <code>"cart_quantities"</code> → ผูกกับ implementation &nbsp;|&nbsp; <strong>หลัง:</strong> ทดสอบพฤติกรรม restore จริง</p>
+        <pre class="mermaid">
+sequenceDiagram
+    participant T as Test
+    participant VM1 as OrderViewModel (ตัวแรก)
+    participant SSH as SavedStateHandle
+    participant VM2 as OrderViewModel (สร้างใหม่)
+    T->>VM1: addToCart(A) x2, addToCart(B)
+    VM1->>SSH: persist (id -> จำนวน)
+    T->>VM2: สร้างใหม่ด้วย SSH ตัวเดิม
+    SSH-->>VM2: อ่านตะกร้าที่บันทึกไว้
+    VM2-->>T: uiState.cart ถูก restore
+        </pre>
+      </section>
+
+      <section>
+        <h2>สรุป</h2>
+        <ul>
+          <li>MVVM ที่แยก layer ทำให้ <strong>เทสต์ง่ายและเร็ว</strong></li>
+          <li>ครอบคลุมพฤติกรรมหลัก + เคสขอบ รวม <strong>12 เคส</strong> ใน OrderViewModel + เทสต์ model/state</li>
+          <li>ใช้แนวทางมาตรฐาน: <strong>fake แทน mock</strong>, MainDispatcherRule, Turbine, เทสต์แบบ black-box</li>
+        </ul>
+        <p><strong>ก้าวต่อไป:</strong> GitHub Actions (CI) รัน build + test + validate wrapper อัตโนมัติทุก PR</p>
+      </section>
+
+      <section class="title-slide">
+        <h1>ขอบคุณครับ</h1>
+        <h3>Q &amp; A</h3>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'neutral',
+      fontFamily: "'Sarabun', sans-serif",
+      flowchart: { htmlLabels: true, useMaxWidth: true }
+    });
+
+    await Reveal.initialize({
+      hash: true,
+      slideNumber: 'c/t',
+      width: 1180,
+      height: 740,
+      margin: 0.06,
+      controls: true,
+      progress: true
+    });
+
+    await mermaid.run({ querySelector: '.reveal .mermaid' });
+    Reveal.layout();
+  </script>
+</body>
+</html>

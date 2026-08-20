@@ -182,6 +182,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   แบบละเอียดตั้งแต่ต้นจนจบ พร้อม diagram ประกอบ (test pyramid, 6 ขั้นตอน,
   test infrastructure, round-trip sequence)
 
+## 12. เพิ่ม presentation แบบ HTML (slide deck)
+
+**Added**
+- `docs/presentation.html` — สไลด์แบบ reveal.js (โหลดผ่าน CDN) เนื้อหาเดียวกับ
+  `presentation.md` แต่เปิดในเบราว์เซอร์แล้วนำเสนอได้ทันที (กดลูกศรเลื่อนสไลด์)
+  diagram เรนเดอร์ด้วย Mermaid, ใช้ฟอนต์ไทย Sarabun
+  หมายเหตุ: ต้องต่ออินเทอร์เน็ตเพื่อโหลด reveal.js/Mermaid/ฟอนต์จาก CDN
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
