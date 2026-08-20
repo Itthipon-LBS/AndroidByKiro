@@ -174,6 +174,14 @@ _`./gradlew testDebugUnitTest` ใน Android Studio)_
 
 _(ยังไม่ได้รันเทสต์บนเครื่องนี้ — รันด้วย `./gradlew testDebugUnitTest`)_
 
+## 11. เพิ่มไฟล์ presentation
+
+**Added**
+- `docs/presentation.md` — สไลด์นำเสนอ (Markdown + Mermaid diagrams) ครอบคลุม
+  ภาพรวมระบบ (สถาปัตยกรรม MVVM, flow ผู้ใช้, tech stack) และขั้นตอนการเขียน test
+  แบบละเอียดตั้งแต่ต้นจนจบ พร้อม diagram ประกอบ (test pyramid, 6 ขั้นตอน,
+  test infrastructure, round-trip sequence)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
