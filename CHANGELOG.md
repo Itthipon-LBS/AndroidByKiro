@@ -190,6 +190,16 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   diagram เรนเดอร์ด้วย Mermaid, ใช้ฟอนต์ไทย Sarabun
   หมายเหตุ: ต้องต่ออินเทอร์เน็ตเพื่อโหลด reveal.js/Mermaid/ฟอนต์จาก CDN
 
+## 13. แก้ Mermaid syntax error ในไฟล์ presentation
+
+**Fixed**
+- แก้ "Syntax error in text" ของ Mermaid (10.9.x) ทั้งใน `presentation.md` และ
+  `presentation.html`:
+  - ใส่เครื่องหมายคำพูดให้ label ของเส้นทุกเส้นที่มีอักขระพิเศษ (`/`, `+`, `?`)
+    เช่น `-->|"กดเพิ่ม / ลด"|` และ decision node `O{"ตะกร้าว่าง?"}`
+  - ปรับ sequence diagram: เอา `->` และวงเล็บใน alias/ข้อความออก ใช้คำอธิบายแทน
+    เพื่อไม่ให้ชนกับไวยากรณ์ของ Mermaid
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

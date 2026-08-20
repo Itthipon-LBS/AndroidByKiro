@@ -62,12 +62,12 @@ flowchart TD
 ```mermaid
 flowchart LR
     S([เปิดแอป]) --> M[หน้าเมนู]
-    M -->|กด เพิ่ม| M
-    M -->|ดูตะกร้า| C[หน้าตะกร้า]
-    C -->|กด + / -| C
-    C -->|กด สั่งอาหาร| O{ตะกร้าว่าง?}
-    O -->|ไม่ว่าง| T[Toast สำเร็จ + กลับหน้าเมนู]
-    O -->|ว่าง| C
+    M -->|"กดเพิ่ม"| M
+    M -->|"ดูตะกร้า"| C[หน้าตะกร้า]
+    C -->|"กดเพิ่ม / ลด"| C
+    C -->|"กดสั่งอาหาร"| O{"ตะกร้าว่าง?"}
+    O -->|"ไม่ว่าง"| T["Toast สำเร็จ แล้วกลับหน้าเมนู"]
+    O -->|"ว่าง"| C
 ```
 
 ---
@@ -227,14 +227,14 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     participant T as Test
-    participant VM1 as OrderViewModel (ตัวแรก)
+    participant VM1 as OrderViewModel ตัวแรก
     participant SSH as SavedStateHandle
-    participant VM2 as OrderViewModel (สร้างใหม่)
-    T->>VM1: addToCart(A) x2, addToCart(B)
-    VM1->>SSH: persist (id -> จำนวน)
+    participant VM2 as OrderViewModel สร้างใหม่
+    T->>VM1: addToCart A สองครั้ง และ addToCart B
+    VM1->>SSH: persist ตะกร้า (id และ จำนวน)
     T->>VM2: สร้างใหม่ด้วย SSH ตัวเดิม
     SSH-->>VM2: อ่านตะกร้าที่บันทึกไว้
-    VM2-->>T: uiState.cart ถูก restore ✔
+    VM2-->>T: uiState.cart ถูก restore
 ```
 
 ---
