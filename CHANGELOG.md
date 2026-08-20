@@ -16,6 +16,9 @@
 - `CHANGELOG.md` สำหรับบันทึกประวัติการเปลี่ยนแปลง (รูปแบบ Keep a Changelog)
 - Steering rule `.kiro/steering/changelog.md` (`inclusion: always`) เพื่อให้
   การเปลี่ยนแปลงครั้งถัด ๆ ไปถูกบันทึกลง `CHANGELOG.md` โดยอัตโนมัติ
+- Gradle wrapper (`gradlew`, `gradlew.bat`, `gradle/wrapper/gradle-wrapper.jar`)
+  เวอร์ชัน 8.7 เพื่อให้ build ผ่าน command line และ CI ได้ (ตั้ง execute bit
+  ให้ `gradlew` แล้ว)
 
 ---
 
