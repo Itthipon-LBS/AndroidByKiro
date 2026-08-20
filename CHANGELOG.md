@@ -1,34 +1,15 @@
 # Changelog
 
-บันทึกการเปลี่ยนแปลงทั้งหมดของโปรเจกต์นี้
+บันทึกการเปลี่ยนแปลงทั้งหมดของโปรเจกต์นี้ เรียงตามลำดับเวลาแบบต่อเนื่อง
 
-รูปแบบอ้างอิงจาก [Keep a Changelog](https://keepachangelog.com/)
-และใช้ [Semantic Versioning](https://semver.org/)
-
-> วิธีบันทึก: เพิ่มรายการใหม่ไว้ใต้หัวข้อ `[Unreleased]` เสมอ โดยจัดกลุ่มเป็น
-> `Added` (เพิ่ม), `Changed` (แก้ไข/ปรับ), `Fixed` (แก้บั๊ก), `Removed` (ลบ),
-> `Deprecated` (เตรียมเลิกใช้), `Security` (ความปลอดภัย)
-> เมื่อจะออกเวอร์ชัน ให้ย้ายรายการจาก `[Unreleased]` ไปไว้ใต้หมายเลขเวอร์ชันพร้อมวันที่
-
-## [Unreleased]
-
-### Added
-- `CHANGELOG.md` สำหรับบันทึกประวัติการเปลี่ยนแปลง (รูปแบบ Keep a Changelog)
-- Steering rule `.kiro/steering/changelog.md` (`inclusion: always`) เพื่อให้
-  การเปลี่ยนแปลงครั้งถัด ๆ ไปถูกบันทึกลง `CHANGELOG.md` โดยอัตโนมัติ
-- Gradle wrapper (`gradlew`, `gradlew.bat`, `gradle/wrapper/gradle-wrapper.jar`)
-  เวอร์ชัน 8.7 เพื่อให้ build ผ่าน command line และ CI ได้ (ตั้ง execute bit
-  ให้ `gradlew` แล้ว)
-- `.gitattributes` คุม line endings: `gradlew` เป็น LF, `*.bat` เป็น CRLF,
-  `*.jar`/รูปภาพ/keystore เป็น binary (แก้ปัญหา LF↔CRLF churn ของไฟล์ข้อความด้วย)
+> วิธีบันทึก: เพิ่มรายการใหม่ **ต่อท้ายไฟล์เสมอ (ล่าสุดอยู่ล่างสุด)** อย่าแทรกกลางไฟล์
+> แต่ละรายการใช้หัวข้อ `## N. <ชื่อสั้น ๆ>` (ต่อเลขจากรายการก่อนหน้า) ระบุ commit hash
+> ได้ถ้ามี และจัดกลุ่มรายละเอียดด้วย `Added` / `Changed` / `Fixed` / `Removed` /
+> `Deprecated` / `Security` เขียนสั้น กระชับ เน้น "อะไรเปลี่ยนและทำไม"
 
 ---
 
-## ประวัติการพัฒนา (Development history)
-
-รายการด้านล่างเรียงตามลำดับเวลาการทำงานจริงในโปรเจกต์ พร้อม commit hash อ้างอิง
-
-### 1. สร้างโปรเจกต์เริ่มต้น — แอปสั่งอาหารด้วย MVVM (`f435324`)
+## 1. สร้างโปรเจกต์เริ่มต้น — แอปสั่งอาหารด้วย MVVM (`f435324`)
 
 **Added**
 - โครงสร้างโปรเจกต์ Android (Kotlin) แบบ single-activity + Navigation Component
@@ -53,7 +34,7 @@
 - แก้ import ผิด: `navGraphViewModels` อยู่ในแพ็กเกจ `androidx.navigation`
   (ไม่ใช่ `androidx.navigation.fragment`) ทำให้เกิด `Unresolved reference`
 
-### 2. ตั้งค่า Git และ branch (`f435324`)
+## 2. ตั้งค่า Git และ branch (`f435324`)
 
 **Added**
 - `.gitignore` สำหรับ Android (กัน `.gradle/`, `.idea/`, `build/`,
@@ -61,7 +42,7 @@
 - สร้าง branch `feature/food-order-mvvm-app` แยกจาก `main`, commit และ push ขึ้น
   remote (`origin`) แล้วเปิด Pull Request เข้า `main`
 
-### 3. Refactor: รวม UI state + one-shot event (`ec5a119`)
+## 3. Refactor: รวม UI state + one-shot event (`ec5a119`)
 
 **Added**
 - `OrderUiState` — single source of truth ก้อนเดียว โดย `cartCount`, `cartTotal`,
@@ -74,7 +55,7 @@
 - `MenuFragment`/`CartFragment` สังเกตการณ์ `uiState` เดียว, `CartFragment`
   รับ event ด้วย `repeatOnLifecycle(STARTED)` (ไม่ trigger ซ้ำตอนหมุนจอ)
 
-### 4. ยกระดับเป็น production-grade: coroutines/StateFlow, SavedStateHandle, BigDecimal (`ef3c0bf`)
+## 4. ยกระดับ production-grade: coroutines/StateFlow, SavedStateHandle, BigDecimal (`ef3c0bf`)
 
 **Changed**
 - **Data layer async** — `FoodRepository.getMenu()` เป็น `suspend fun`,
@@ -95,15 +76,35 @@
 - `OrderViewModelFactory.kt` (แทนด้วย `OrderViewModel.Factory` แบบ DSL)
 - Dependency `lifecycle-livedata-ktx` ที่ไม่ได้ใช้แล้ว
 
-### 5. ยืนยันการทำงาน
+_(ยืนยัน: build และ run บน Android Studio ผ่านเรียบร้อยหลังรอบนี้)_
 
-- Build และ run บน Android Studio ผ่านเรียบร้อย
+## 5. เพิ่มระบบบันทึก Changelog (`0a858bd`)
 
----
+**Added**
+- `CHANGELOG.md` สำหรับบันทึกประวัติการเปลี่ยนแปลง
+- Steering rule `.kiro/steering/changelog.md` (`inclusion: always`) เพื่อให้
+  การเปลี่ยนแปลงครั้งถัด ๆ ไปถูกบันทึกลง `CHANGELOG.md` โดยอัตโนมัติ
+
+## 6. Commit Gradle wrapper + .gitattributes (`6991a0f`)
+
+**Added**
+- Gradle wrapper (`gradlew`, `gradlew.bat`, `gradle/wrapper/gradle-wrapper.jar`)
+  เวอร์ชัน 8.7 เพื่อให้ build ผ่าน command line และ CI ได้ (ตั้ง execute bit
+  ให้ `gradlew`) — ดึงจาก repo ทางการ `gradle/gradle` tag `v8.7.0` และตรวจสอบแล้ว
+  ว่าเป็น jar แท้ (มีคลาส `GradleWrapperMain`)
+- `.gitattributes` คุม line endings: `gradlew` เป็น LF, `*.bat` เป็น CRLF,
+  `*.jar`/รูปภาพ/keystore เป็น binary (แก้ปัญหา LF↔CRLF churn ของไฟล์ข้อความด้วย)
+
+## 7. ปรับรูปแบบ Changelog เป็นแบบ append ต่อท้าย
+
+**Changed**
+- เปลี่ยนโครงสร้าง `CHANGELOG.md` จากแบบ Keep a Changelog (`[Unreleased]` ด้านบน)
+  เป็นบันทึกเรียงตามเวลาแบบต่อเนื่อง เพิ่มรายการใหม่ต่อท้ายไฟล์เสมอ (ล่าสุดอยู่ล่างสุด)
+  เพื่ออ่านไล่จากบนลงล่างได้ง่ายและไม่ต้องแทรกกลางไฟล์
+- ปรับ steering rule `.kiro/steering/changelog.md` ให้สอดคล้องกับรูปแบบใหม่
 
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
-- Commit Gradle wrapper (`gradlew`, `gradle-wrapper.jar`) เพื่อให้ build ผ่าน CLI/CI ได้
 - Unit tests สำหรับ `OrderViewModel` (เพิ่ม/ลดจำนวน, ยอดรวม, event, ตะกร้าว่าง)
-- GitHub Actions (CI) build + test อัตโนมัติทุก PR
+- GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
 - เพิ่ม loading/error state ใน `OrderUiState` เมื่อเปลี่ยนไปใช้ข้อมูลจริง
