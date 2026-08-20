@@ -53,12 +53,11 @@ class MenuFragment : Fragment() {
     }
 
     private fun setupObservers() {
-        viewModel.menu.observe(viewLifecycleOwner) { menu ->
-            adapter.submitList(menu)
-        }
-        viewModel.cartCount.observe(viewLifecycleOwner) { count ->
-            binding.buttonViewCart.text = getString(R.string.action_view_cart, count)
-            binding.buttonViewCart.isEnabled = count > 0
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            adapter.submitList(state.menu)
+            binding.buttonViewCart.text =
+                getString(R.string.action_view_cart, state.cartCount)
+            binding.buttonViewCart.isEnabled = state.cartCount > 0
         }
     }
 

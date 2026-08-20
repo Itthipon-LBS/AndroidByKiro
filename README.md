@@ -26,8 +26,11 @@ com.example.foodorder
 ```
 
 - **View** (Fragment/Activity): แสดงผลและรับ event เท่านั้น ไม่มี business logic
-- **ViewModel** (`OrderViewModel`): ถือ state ของเมนู/ตะกร้า เปิดเผยผ่าน `LiveData`
-  แบบ read-only และเปลี่ยน state ผ่าน public function เท่านั้น
+- **ViewModel** (`OrderViewModel`): เปิดเผย state เป็น `OrderUiState` ก้อนเดียว
+  (single source of truth) ผ่าน `LiveData` แบบ read-only โดยค่าที่ derive ได้
+  (`cartCount`, `cartTotal`) คำนวณจาก state จริงเสมอ และเปลี่ยน state ผ่าน public
+  function เท่านั้น ส่วนงานแบบ one-shot (เช่น สั่งอาหารสำเร็จ) ส่งเป็น `OrderEvent`
+  ผ่าน `Channel`/`Flow` ให้ UI จัดการครั้งเดียว ไม่ trigger ซ้ำตอนหมุนจอ
 - **Repository**: แยก data layer ออกจาก ViewModel ทำให้สลับแหล่งข้อมูล (API/Room)
   ได้ง่าย และเทสต์ได้
 - ใช้ `navGraphViewModels` เพื่อให้ `MenuFragment` และ `CartFragment` แชร์

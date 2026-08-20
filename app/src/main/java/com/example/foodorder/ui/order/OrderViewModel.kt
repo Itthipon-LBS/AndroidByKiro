@@ -6,40 +6,37 @@ import androidx.lifecycle.ViewModel
 import com.example.foodorder.data.model.CartItem
 import com.example.foodorder.data.model.MenuItem
 import com.example.foodorder.data.repository.FoodRepository
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
 
 /**
  * Shared ViewModel for the ordering flow.
  *
- * It is scoped to the navigation graph so that both the menu screen and the
- * cart screen observe and mutate the same cart state. UI state is exposed as
- * immutable [LiveData]; mutations happen only through the public functions.
+ * Scoped to the navigation graph so the menu and cart screens share one instance.
+ * Exposes a single immutable [OrderUiState] as the source of truth, plus a stream
+ * of one-shot [OrderEvent]s for actions the UI should handle once.
  */
 class OrderViewModel(
     private val repository: FoodRepository
 ) : ViewModel() {
 
-    private val _menu = MutableLiveData<List<MenuItem>>()
-    val menu: LiveData<List<MenuItem>> = _menu
-
-    // Cart is kept as an id -> CartItem map internally for O(1) updates,
-    // and exposed to the UI as an ordered list.
+    // Backing cart, keyed by menu item id for O(1) updates. Kept private so the
+    // only way to change state is through the public intent functions below.
     private val cartItems = LinkedHashMap<Int, CartItem>()
 
-    private val _cart = MutableLiveData<List<CartItem>>(emptyList())
-    val cart: LiveData<List<CartItem>> = _cart
+    private val _uiState = MutableLiveData(OrderUiState())
+    val uiState: LiveData<OrderUiState> = _uiState
 
-    private val _cartCount = MutableLiveData(0)
-    val cartCount: LiveData<Int> = _cartCount
-
-    private val _cartTotal = MutableLiveData(0.0)
-    val cartTotal: LiveData<Double> = _cartTotal
+    private val _events = Channel<OrderEvent>(Channel.BUFFERED)
+    val events: Flow<OrderEvent> = _events.receiveAsFlow()
 
     init {
         loadMenu()
     }
 
     private fun loadMenu() {
-        _menu.value = repository.getMenu()
+        _uiState.value = currentState().copy(menu = repository.getMenu())
     }
 
     /** Adds one unit of [menuItem] to the cart. */
@@ -50,7 +47,7 @@ class OrderViewModel(
         publishCart()
     }
 
-    /** Removes one unit of [menuItem]; removes the line entirely when it hits zero. */
+    /** Removes one unit of [menuItem]; drops the line entirely when it reaches zero. */
     fun decreaseQuantity(menuItem: MenuItem) {
         val existing = cartItems[menuItem.id] ?: return
         val newQuantity = existing.quantity - 1
@@ -63,21 +60,20 @@ class OrderViewModel(
     }
 
     /**
-     * Finalizes the order. Returns the total that was ordered and clears the cart.
-     * Returns null when the cart is empty.
+     * Finalizes the order: emits an [OrderEvent.OrderPlaced] with the total and
+     * clears the cart. Does nothing when the cart is empty.
      */
-    fun placeOrder(): Double? {
-        if (cartItems.isEmpty()) return null
-        val total = _cartTotal.value ?: 0.0
+    fun placeOrder() {
+        if (cartItems.isEmpty()) return
+        val total = cartItems.values.sumOf { it.lineTotal }
         cartItems.clear()
         publishCart()
-        return total
+        _events.trySend(OrderEvent.OrderPlaced(total))
     }
 
     private fun publishCart() {
-        val items = cartItems.values.toList()
-        _cart.value = items
-        _cartCount.value = items.sumOf { it.quantity }
-        _cartTotal.value = items.sumOf { it.lineTotal }
+        _uiState.value = currentState().copy(cart = cartItems.values.toList())
     }
+
+    private fun currentState(): OrderUiState = _uiState.value ?: OrderUiState()
 }
