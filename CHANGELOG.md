@@ -103,8 +103,22 @@ _(ยืนยัน: build และ run บน Android Studio ผ่านเ�
   เพื่ออ่านไล่จากบนลงล่างได้ง่ายและไม่ต้องแทรกกลางไฟล์
 - ปรับ steering rule `.kiro/steering/changelog.md` ให้สอดคล้องกับรูปแบบใหม่
 
+## 8. เพิ่ม JVM unit tests
+
+**Added**
+- Test dependencies: `kotlinx-coroutines-test`, `Turbine` (ในตัว version catalog)
+- `MainDispatcherRule` — JUnit rule สลับ `Dispatchers.Main` เป็น test dispatcher
+- `FakeFoodRepository` — test double ของ `FoodRepository`
+- `OrderViewModelTest` — ครอบคลุมโหลดเมนู, เพิ่ม/ลดจำนวน, ยอดรวม `BigDecimal`,
+  ยิง event `OrderPlaced` + เคลียร์ตะกร้า, ตะกร้าว่างไม่ยิง event,
+  restore จาก `SavedStateHandle` และการ persist ตะกร้า
+- `CartItemTest`, `OrderUiStateTest` — ทดสอบ derived values (lineTotal, cartCount,
+  cartTotal, isCartEmpty)
+
+_(ยังไม่ได้รันเทสต์บนเครื่องนี้ เพราะไม่มี Gradle/Android SDK — รันได้ด้วย_
+_`./gradlew testDebugUnitTest` ใน Android Studio)_
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
-- Unit tests สำหรับ `OrderViewModel` (เพิ่ม/ลดจำนวน, ยอดรวม, event, ตะกร้าว่าง)
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
 - เพิ่ม loading/error state ใน `OrderUiState` เมื่อเปลี่ยนไปใช้ข้อมูลจริง
