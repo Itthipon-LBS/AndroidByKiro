@@ -118,7 +118,51 @@ _(ยืนยัน: build และ run บน Android Studio ผ่านเ�
 _(ยังไม่ได้รันเทสต์บนเครื่องนี้ เพราะไม่มี Gradle/Android SDK — รันได้ด้วย_
 _`./gradlew testDebugUnitTest` ใน Android Studio)_
 
+## 9. บันทึกละเอียด: ขั้นตอนการเขียน unit test (ตั้งแต่ต้นจนจบ)
+
+ส่วนนี้เล่ากระบวนการของหัวข้อ `## 8` แบบเป็นลำดับ เพื่อให้ย้อนดูได้ว่าเริ่มจากไหน
+ทำอะไรต่ออะไร และทำไม
+
+**ขั้นที่ 1 — ตัดสินใจว่าจะเทสต์อะไรและระดับไหน**
+- เลือกเขียน **local unit test (รันบน JVM)** ก่อน เพราะเร็วและคุ้มสุด ไม่ต้องใช้ emulator
+- เป้าหมายหลักคือ `OrderViewModel` เพราะเป็นที่รวม business logic (ตะกร้า/ยอดรวม/event)
+- ทำได้ง่ายเพราะโครงสร้าง MVVM แยก layer และฉีด dependency ผ่าน constructor อยู่แล้ว
+
+**ขั้นที่ 2 — เตรียมเครื่องมือ (dependencies)**
+- เพิ่ม `kotlinx-coroutines-test` (ไว้คุม coroutine/`viewModelScope` ในเทสต์)
+- เพิ่ม `Turbine` (ไว้ทดสอบ `Flow`/event ให้เขียนง่าย)
+- ประกาศไว้ใน `gradle/libs.versions.toml` แล้วอ้างใน `app/build.gradle.kts` เป็น
+  `testImplementation`
+
+**ขั้นที่ 3 — สร้างโครงพื้นฐานของเทสต์ (test infrastructure)**
+- `MainDispatcherRule` — เพราะ `viewModelScope` รันบน `Dispatchers.Main` ซึ่งไม่มีจริง
+  ในเทสต์ JVM จึงต้องสลับเป็น test dispatcher ด้วย `Dispatchers.setMain(...)`
+- `FakeFoodRepository` — ใช้ "fake" แทน mock เพื่อคืนเมนูคงที่ที่คาดเดาได้
+  (`ITEM_A` = 55 บาท, `ITEM_B` = 50 บาท)
+
+**ขั้นที่ 4 — เขียนเทสต์ `OrderViewModel` ไล่ทีละพฤติกรรม**
+1. โหลดเมนูเข้า `uiState` ตอน init (ใช้ `runTest` + `advanceUntilIdle` รอ coroutine)
+2. สถานะเริ่มต้น: ตะกร้าว่าง, count = 0, total = 0
+3. `addToCart` เพิ่มจำนวนและอัปเดต count/total (เทียบ `BigDecimal` ด้วย `compareTo`)
+4. ยอดรวมของสินค้าหลายชนิด
+5. `decreaseQuantity` จนเหลือ 0 แล้วรายการหายจากตะกร้า
+6. `decreaseQuantity` ตอนจำนวน > 1 แล้วรายการยังอยู่
+7. `placeOrder` ตอนตะกร้าว่าง → ไม่ยิง event (ตรวจด้วย Turbine `expectNoEvents`)
+8. `placeOrder` ตอนมีของ → ยิง `OrderPlaced` พร้อม total ที่ถูก แล้วเคลียร์ตะกร้า
+9. restore ตะกร้าจาก `SavedStateHandle` (จำลอง process death)
+10. บันทึกตะกร้าลง `SavedStateHandle` เมื่อมีการเปลี่ยนแปลง
+
+**ขั้นที่ 5 — เขียนเทสต์ระดับ model/state**
+- `CartItemTest` — `lineTotal` = ราคา × จำนวน
+- `OrderUiStateTest` — derived values (`cartCount`, `cartTotal`, `isCartEmpty`)
+
+**ขั้นที่ 6 — ปิดงาน**
+- อัปเดต `CHANGELOG.md` (หัวข้อ `## 8`), commit `2f0347a`, push ขึ้น branch
+- ยังไม่ได้รันจริงบนเครื่องนี้ (ไม่มี Gradle/Android SDK) — รันด้วย
+  `./gradlew testDebugUnitTest` ใน Android Studio
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
+- ปรับเทสต์ persist ให้เป็น round-trip (เลี่ยงการผูกกับ key ภายใน) + เพิ่มเคสขอบ
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
 - เพิ่ม loading/error state ใน `OrderUiState` เมื่อเปลี่ยนไปใช้ข้อมูลจริง
