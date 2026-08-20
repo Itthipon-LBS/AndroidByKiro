@@ -161,8 +161,21 @@ _`./gradlew testDebugUnitTest` ใน Android Studio)_
 - ยังไม่ได้รันจริงบนเครื่องนี้ (ไม่มี Gradle/Android SDK) — รันด้วย
   `./gradlew testDebugUnitTest` ใน Android Studio
 
+## 10. ปรับเทสต์ให้เป็น black-box มากขึ้น + เพิ่มเคสขอบ
+
+**Changed**
+- แปลงเทสต์ persist จากการอ่าน key ภายใน (`"cart_quantities"`) เป็น **round-trip
+  test**: สร้าง ViewModel ใหม่จาก `SavedStateHandle` ตัวเดิมแล้วเช็คว่าตะกร้าถูก
+  restore กลับมา (ทดสอบพฤติกรรมจริง ไม่ผูกกับ implementation)
+
+**Added**
+- เคส `decreaseQuantity` กับสินค้าที่ไม่มีในตะกร้า → ต้องเป็น no-op (ไม่พัง)
+- เคสตรวจว่าตะกร้าคงลำดับการเพิ่มสินค้า (insertion order)
+
+_(ยังไม่ได้รันเทสต์บนเครื่องนี้ — รันด้วย `./gradlew testDebugUnitTest`)_
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
-- ปรับเทสต์ persist ให้เป็น round-trip (เลี่ยงการผูกกับ key ภายใน) + เพิ่มเคสขอบ
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
+- (ตัวเลือก) เปลี่ยนไปใช้ assertion library เช่น Truth เพื่อ error message ที่อ่านง่ายขึ้น
 - เพิ่ม loading/error state ใน `OrderUiState` เมื่อเปลี่ยนไปใช้ข้อมูลจริง

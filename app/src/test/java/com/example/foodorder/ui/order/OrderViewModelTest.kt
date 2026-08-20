@@ -151,15 +151,49 @@ class OrderViewModelTest {
     }
 
     @Test
-    fun `persists cart quantities to SavedStateHandle`() =
+    fun `cart survives ViewModel recreation through SavedStateHandle`() =
         runTest(mainDispatcherRule.testDispatcher) {
+            // A shared handle stands in for the one the framework keeps across
+            // configuration change / process death.
             val saved = SavedStateHandle()
-            val viewModel = createViewModel(savedStateHandle = saved)
+
+            val original = createViewModel(savedStateHandle = saved)
+            advanceUntilIdle()
+            original.addToCart(ITEM_A)
+            original.addToCart(ITEM_A)
+            original.addToCart(ITEM_B)
+
+            // Recreate the ViewModel from the same handle.
+            val recreated = createViewModel(savedStateHandle = saved)
             advanceUntilIdle()
 
-            viewModel.addToCart(ITEM_A)
-
-            val stored = saved.get<HashMap<Int, Int>>("cart_quantities")
-            assertEquals(1, stored?.get(ITEM_A.id))
+            val state = recreated.uiState.value
+            assertEquals(2, state.cart.size)
+            assertEquals(3, state.cartCount)
+            assertEquals(2, state.cart.first { it.menuItem == ITEM_A }.quantity)
+            assertEquals(1, state.cart.first { it.menuItem == ITEM_B }.quantity)
         }
+
+    @Test
+    fun `decreaseQuantity on an item not in the cart is a no-op`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val viewModel = createViewModel()
+            advanceUntilIdle()
+
+            viewModel.decreaseQuantity(ITEM_A)
+
+            assertTrue(viewModel.uiState.value.isCartEmpty)
+        }
+
+    @Test
+    fun `cart preserves insertion order`() = runTest(mainDispatcherRule.testDispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.addToCart(ITEM_B)
+        viewModel.addToCart(ITEM_A)
+
+        val orderedIds = viewModel.uiState.value.cart.map { it.menuItem.id }
+        assertEquals(listOf(ITEM_B.id, ITEM_A.id), orderedIds)
+    }
 }
