@@ -554,6 +554,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   Satellite connectivity** ใน Glossary และรวมการเจาะลึกไว้ในหัวข้อ "ฟีเจอร์เด่นของ
   Android 15" ในส่วนขยายความ
 
+## 59. เพิ่มฟีเจอร์เด่น Android 16 (Glossary + เจาะลึก)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **Material 3 Expressive, Live Updates/
+  progress-centric notifications, Advanced Protection, 16 KB page size, LE Audio,
+  HDR screenshots, Generic Bootloader** ใน Glossary และรวมการเจาะลึกไว้ในหัวข้อ
+  "ฟีเจอร์เด่นของ Android 16" ในส่วนขยายความ
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
