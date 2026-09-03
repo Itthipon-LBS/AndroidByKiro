@@ -1,0 +1,24 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Fork -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M42,30 L42,50 M38,30 L38,44 M46,30 L46,44 M42,50 L42,78" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M40,30 L40,45 M44,30 L44,45 M42,30 L42,78 M40,45 Q42,49 44,45" />
+    <!-- Spoon -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M66,30 L66,78" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M66,30 m-6,0 a6,9 0 1,0 12,0 a6,9 0 1,0 -12,0" />
+</vector>
