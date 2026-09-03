@@ -336,6 +336,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   (โฟน 2.3 Gingerbread / แท็บเล็ต 3.x Honeycomb) พร้อมตารางเทียบ, เหตุผลที่เป็น
   ข้อเสีย (สับสน, ภาระนักพัฒนา, fragmentation) และการรวมกลับเป็น codebase เดียวใน ICS 4.0
 
+## 31. ขยายความ "การแจ้งเตือนแบบขยาย" ในหัวข้อ Jelly Bean
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มคำอธิบาย Expandable/Rich Notifications:
+  สไตล์ BigText/BigPicture/Inbox, action buttons, ประโยชน์ และวิวัฒนาการต่อไปสู่
+  direct reply, notification channels, bundled notifications, Conversations/Bubbles
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
