@@ -525,6 +525,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ไปใส่เครื่อง) และเพิ่ม **Live Caption** ทั้งใน Glossary และเจาะลึกใน "ขยายความศัพท์
   ทางเทคนิค" (คำบรรยายอัตโนมัติ on-device, accessibility, ทิศทาง on-device AI)
 
+## 55. เพิ่ม Approximate location (Glossary + เจาะลึก)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **Approximate location** ใน Glossary และเจาะลึก
+  ใน "ขยายความศัพท์ทางเทคนิค": ตัวเลือก Precise/Approximate, คู่ permission
+  FINE/COARSE, เหตุผลด้านความเป็นส่วนตัว และสายวิวัฒนาการ location (10 → 12 → 17)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
