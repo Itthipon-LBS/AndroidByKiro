@@ -453,6 +453,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 **Changed**
 - ย่อ/ปรับรายการ Vulkan ใน Glossary พร้อมโน้ตให้ดูส่วนขยายความ
 
+## 46. เพิ่ม FBE/FDE (Glossary + เจาะลึก)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **FBE** และ **FDE** ใน Glossary และเจาะลึก
+  **File-Based Encryption vs FDE** ในหัวข้อ "ขยายความศัพท์ทางเทคนิค": เข้ารหัสรายไฟล์,
+  เทียบ FDE, Direct Boot (โซน DE/CE), ประโยชน์ และหมายเหตุนักพัฒนา (`directBootAware`)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
