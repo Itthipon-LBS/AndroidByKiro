@@ -532,6 +532,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ใน "ขยายความศัพท์ทางเทคนิค": ตัวเลือก Precise/Approximate, คู่ permission
   FINE/COARSE, เหตุผลด้านความเป็นส่วนตัว และสายวิวัฒนาการ location (10 → 12 → 17)
 
+## 56. เพิ่ม Themed app icons (Glossary + เจาะลึก)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **Themed app icons** ใน Glossary และเจาะลึกใน
+  "ขยายความศัพท์ทางเทคนิค": เปลี่ยนสีไอคอนตาม Material You, ต่างจาก adaptive icons
+  (สี vs รูปทรง), การใส่ `<monochrome>` และการเชื่อมกับไอคอนของโปรเจกต์นี้
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

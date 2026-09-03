@@ -708,6 +708,8 @@ _(ข้อมูล Android 17 อ้างอิงแหล่งปี 2026 
   (ดู "ขยายความศัพท์ทางเทคนิค")
 - **Adaptive icons** — ไอคอนแอปที่แยกชั้น foreground/background ให้ระบบครอบเป็นทรง
   ต่าง ๆ ได้ (Oreo 8.0) (ดู "ขยายความศัพท์ทางเทคนิค")
+- **Themed app icons** — ไอคอนแอปเปลี่ยนสีให้เข้าธีม Material You (จากวอลเปเปอร์)
+  (Android 13) (ดู "ขยายความศัพท์ทางเทคนิค")
 - **Gesture navigation** — นำทางด้วยท่าทาง (ปัด) แทนปุ่ม 3 ปุ่ม (Pie 9.0, เต็มรูป Android 10)
 - **Digital Wellbeing** — เครื่องมือดู/จำกัดเวลาใช้แอป เพื่อสุขภาพการใช้งาน (Pie 9.0)
 - **Display cutout / notch** — API รองรับจอที่มีรอยบาก/เจาะ (Pie 9.0)
@@ -1232,6 +1234,34 @@ _(ข้อมูล Android 17 อ้างอิงแหล่งปี 2026 
   เป๊ะ ผู้ใช้จึงลดการเปิดเผยได้
 - ต่อยอดจากสาย location: "ขณะใช้แอป" (Android 10) → **approximate** (12) → temporary
   location access (Android 17)
+
+### Themed app icons (Android 13)
+
+**คืออะไร**
+- ไอคอนแอปบนหน้าโฮม **เปลี่ยนสีให้เข้ากับธีม/สีวอลเปเปอร์ (Material You)** อัตโนมัติ
+  เมื่อผู้ใช้เปิดโหมด "Themed icons"
+- ต่างจาก **adaptive icons** (Oreo) ที่จัดการแค่ "รูปทรง" — themed icons จัดการ "สี"
+  (ปรับเป็น **monochrome tint** ตามชุดสีของธีม)
+
+**นักพัฒนาต้องทำอะไร**
+- ใส่ไอคอนชั้น **`<monochrome>`** เพิ่มใน `<adaptive-icon>`:
+
+```xml
+<adaptive-icon>
+    <background .../>
+    <foreground .../>
+    <monochrome android:drawable="@drawable/ic_launcher_monochrome"/>
+</adaptive-icon>
+```
+
+- ถ้า **ไม่ใส่ `<monochrome>`** ไอคอนจะ **ไม่ถูก theme** (แสดงแบบปกติ) แม้ผู้ใช้เปิดโหมดนี้
+
+**ข้อจำกัด/หมายเหตุ**
+- ยุคแรกใช้ได้เต็มที่บน **Pixel** ก่อน OEM อื่นทยอยรองรับ; ผู้ใช้เปิด/ปิดได้ในการตั้งค่า
+
+**เชื่อมกับโปรเจกต์นี้**
+- แอป FoodOrder ใช้ adaptive icon แต่ **ยังไม่มีชั้น `<monochrome>`** — หากต้องการรองรับ
+  themed icons บน Android 13+ ต้องเพิ่มไอคอน monochrome เข้าไป
 
 ---
 
