@@ -407,6 +407,16 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 - ใน `docs/android-versions.md` เพิ่มรายการ **SMS / MMS** ในกลุ่ม "การเชื่อมต่อ & สื่อ"
   ของ Glossary (SMS = ตัวอักษรล้วน, MMS = แนบสื่อได้, ต่อมาถูกแทนด้วยแอปแชต/RCS)
 
+## 41. เพิ่มการเจาะลึก SELinux ใน "ขยายความศัพท์ทางเทคนิค"
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มการเจาะลึก **SELinux**: คืออะไร, MAC vs DAC,
+  โหมด permissive/enforcing, ไทม์ไลน์บน Android (4.3 permissive → 4.4 บางส่วน →
+  5.0 enforcing เต็มรูป) และเหตุผลที่สำคัญ
+
+**Changed**
+- ย่อรายการ SELinux ใน Glossary พร้อมโน้ตให้ไปดูส่วนขยายความ
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
