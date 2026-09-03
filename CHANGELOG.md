@@ -428,6 +428,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 **Changed**
 - ปรับรายการ Doze ใน Glossary ให้ระบุว่าเป็นระดับ "ทั้งเครื่อง" เพื่อเทียบกับ App Standby
 
+## 43. เพิ่ม Auto Backup (Glossary + เจาะลึก)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **Auto Backup** ใน Glossary และเจาะลึกใน
+  "ขยายความศัพท์ทางเทคนิค": หลักการ (สำรองขึ้น Drive/กู้คืนอัตโนมัติ, ~25MB, ตอนชาร์จ+
+  Wi-Fi), การควบคุมของนักพัฒนา (`allowBackup`, backup rules) และประเด็นความปลอดภัย
+  (ยกเว้นข้อมูลอ่อนไหว, E2E encryption)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
