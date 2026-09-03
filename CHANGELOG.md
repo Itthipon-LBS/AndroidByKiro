@@ -321,6 +321,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ครั้งแรก ช่วยให้ UI สม่ำเสมอข้ามเครื่อง ลด fragmentation ด้านหน้าตา) และวิวัฒนาการ
   ไปสู่ Material Design ใน Lollipop
 
+## 29. ขยายความการไม่เปิด AOSP ของ Honeycomb
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มคำอธิบาย AOSP (Android Open Source Project),
+  เหตุผลที่ Google ไม่ปล่อยซอร์สของ Honeycomb ในช่วงนั้น (ทำเร่งด่วนเพื่อแท็บเล็ต,
+  ยังไม่พร้อมสำหรับอุปกรณ์ทั่วไป), ผลกระทบ (ถูกวิจารณ์เรื่องความโปร่งใส/ชุมชนเข้าไม่ถึง)
+  และการคลี่คลายเมื่อรวมเข้ากับ ICS 4.0
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
