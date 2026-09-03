@@ -290,6 +290,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   แสดงเป็นสี `#00d1b2` — เห็นผลใน VS Code Markdown Preview
   (หมายเหตุ: GitHub จะตัด inline style/`<style>` ออก จึงไม่แสดงสีบน GitHub)
 
+## 25. ขยายความ "ติดตั้งแอปบน SD (App2SD)" ในหัวข้อ Froyo
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มคำอธิบาย App2SD: ย้ายแอปบางส่วนไปการ์ด SD,
+  เหตุผลที่สำคัญ (หน่วยความจำภายในยุคนั้นเล็ก), การทำงาน/ข้อจำกัด (`android:installLocation`,
+  widget ใช้ไม่ได้, SD ช้ากว่า, ความเสี่ยงความปลอดภัย) และบทสรุป (ต่อมาแทนด้วย
+  Adoptable Storage ใน Android 6.0)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
