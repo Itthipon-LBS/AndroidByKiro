@@ -539,6 +539,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   "ขยายความศัพท์ทางเทคนิค": เปลี่ยนสีไอคอนตาม Material You, ต่างจาก adaptive icons
   (สี vs รูปทรง), การใส่ `<monochrome>` และการเชื่อมกับไอคอนของโปรเจกต์นี้
 
+## 57. เพิ่ม Predictive back, Regional preferences, Passkeys
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **Predictive back, Regional preferences,
+  Passkeys** ใน Glossary และเจาะลึกใน "ขยายความศัพท์ทางเทคนิค" (predictive back:
+  พรีวิวย้อนกลับ + API; regional prefs: ภูมิภาคแยกจากภาษา; passkeys: ล็อกอินไร้รหัสผ่าน
+  FIDO/WebAuthn + Credential Manager)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
