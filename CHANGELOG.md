@@ -436,6 +436,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   Wi-Fi), การควบคุมของนักพัฒนา (`allowBackup`, backup rules) และประเด็นความปลอดภัย
   (ยกเว้นข้อมูลอ่อนไหว, E2E encryption)
 
+## 44. เพิ่ม Bundled Notifications & Direct Reply (Glossary + เจาะลึก)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **Bundled notifications** และ **Direct Reply**
+  ใน Glossary และเจาะลึกใน "ขยายความศัพท์ทางเทคนิค" (จัดกลุ่มแจ้งเตือนของแอปเดียวกัน
+  + ตอบข้อความจากแจ้งเตือน, API `setGroup()`/`RemoteInput`, ต่อยอดสู่ channels/Bubbles)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
