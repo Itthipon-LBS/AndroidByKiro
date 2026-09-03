@@ -675,6 +675,66 @@ _(ข้อมูล Android 17 อ้างอิงแหล่งปี 2026 
 
 ---
 
+## ศัพท์ทางเทคนิค (Glossary)
+
+รวมคำศัพท์ที่ปรากฏในเอกสารนี้ เรียงตามกลุ่ม เพื่อใช้อ้างอิงเร็ว ๆ
+
+### Runtime & ประสิทธิภาพ
+- **Dalvik VM** — runtime เดิมของ Android ที่รัน bytecode `.dex` (ใช้จนถึงก่อน ART)
+- **ART (Android Runtime)** — runtime ใหม่แทน Dalvik เน้น AOT (ดูหัวข้อ KitKat)
+- **Interpret** — แปล bytecode เป็นคำสั่งเครื่องทีละคำสั่งตอนรัน (ช้า)
+- **JIT (Just-In-Time)** — คอมไพล์โค้ดที่ถูกเรียกบ่อยเป็น native **ระหว่างรัน**
+- **AOT (Ahead-Of-Time)** — คอมไพล์เป็น native **ตั้งแต่ตอนติดตั้ง**
+- **Profile-guided compilation** — คอมไพล์เฉพาะส่วนที่ใช้จริง ตอนเครื่องว่าง/ชาร์จ
+- **V8** — JavaScript engine ของ Google (ในเบราว์เซอร์/Chrome, Node.js)
+- **Garbage collection (GC)** — การคืนหน่วยความจำที่ไม่ใช้แล้วอัตโนมัติ
+
+### UI & ดีไซน์
+- **Holo (Holographic UI)** — ภาษาออกแบบแรกของ Android (โทนมืด + ฟ้าไซแอน)
+- **Material Design** — ภาษาออกแบบตั้งแต่ Lollipop (เงา/การเคลื่อนไหวแบบกระดาษ)
+- **Material You / Dynamic Color** — ธีมสีปรับตามภาพพื้นหลัง (Android 12)
+- **Immersive mode** — โหมดเต็มจอที่ซ่อน status/navigation bar
+- **Action Bar** — แถบหัวแอปมาตรฐาน (มากับ Honeycomb)
+- **Fragment** — ส่วนย่อยของ UI ที่นำมาประกอบ/ปรับ layout ตามขนาดจอ
+- **Edge-to-edge** — วาดเนื้อหาเต็มจอถึงขอบ (บังคับตั้งแต่ Android 15)
+- **Skeuomorphic** — ดีไซน์ที่เลียนแบบวัสดุจริง (แนวเก่าก่อน Holo/Material)
+
+### การเชื่อมต่อ & สื่อ
+- **NFC (Near Field Communication)** — สื่อสารไร้สายระยะใกล้ (แตะ)
+- **SIP / VoIP** — โทรด้วยเสียงผ่านอินเทอร์เน็ต (SIP = โปรโตคอลจัดการสาย)
+- **Tethering** — แชร์เน็ตของมือถือให้อุปกรณ์อื่น (ผ่าน USB/Wi-Fi/Bluetooth)
+- **HTML5** — มาตรฐานเว็บที่เล่นวิดีโอ/แอนิเมชันได้ในตัว (ไม่ต้องพึ่งปลั๊กอิน)
+- **WebKit** — เอนจินเรนเดอร์เว็บที่เบราว์เซอร์ Android ยุคแรกใช้
+- **Adobe Flash** — ปลั๊กอินเล่นสื่อ/เกมบนเว็บยุคเก่า (ยุติปลายปี 2020)
+- **Bluetooth LE** — บลูทูธพลังงานต่ำ (อุปกรณ์สวมใส่/เซ็นเซอร์)
+- **Vulkan** — API กราฟิกประสิทธิภาพสูง (มากับ Nougat)
+
+### สถาปัตยกรรมระบบ & การอัปเดต
+- **AOSP (Android Open Source Project)** — ซอร์สโค้ด Android ที่เปิดสาธารณะ
+- **Project Treble** — แยก vendor layer ออกจาก framework → อัปเดตง่ายขึ้น (Oreo)
+- **Project Mainline** — อัปเดตส่วนประกอบระบบผ่าน Google Play (Android 10)
+- **API level** — หมายเลขระบุความสามารถแพลตฟอร์ม (ใช้ตั้ง min/target/compileSdk)
+- **Fragmentation** — ความหลากหลายของอุปกรณ์/เวอร์ชันที่ทำให้อัปเดตยาก
+- **App2SD / Adoptable Storage** — ย้ายแอปไป SD (App2SD) / ผูก SD เป็นสตอเรจภายใน (6.0)
+
+### สิทธิ์ & ความเป็นส่วนตัว
+- **App sandbox** — การแยกสิทธิ์แต่ละแอปด้วย Linux UID
+- **Runtime permission** — ขออนุญาตตอนใช้งานจริง (Marshmallow)
+- **Scoped Storage** — จำกัดการเข้าถึงไฟล์ของแอป (Android 10+)
+- **SavedStateHandle** — เก็บ state ให้รอด config change/process death
+- **Doze** — โหมดประหยัดแบตขณะเครื่องพักนาน
+
+### ความปลอดภัย
+- **SELinux** — กลไกควบคุมการเข้าถึงระดับ kernel (enforcing ยุค 5.x)
+- **Verified boot** — ตรวจความถูกต้องของระบบตอนบูต
+- **ASLR** — สุ่มตำแหน่งหน่วยความจำเพื่อกันการโจมตี
+- **seccomp** — จำกัด syscall ที่โปรเซสเรียกได้ (ลดพื้นผิวการโจมตี)
+- **Privilege escalation** — การยกระดับสิทธิ์ (เช่นจากผู้ใช้ธรรมดาเป็น root)
+- **Stagefright** — ช่องโหว่ไลบรารีถอดรหัสสื่อ (กระทบ 2.2–5.1)
+- **Advanced Protection** — โหมดความปลอดภัยขั้นสูงรวมศูนย์ (Android 16)
+
+---
+
 ## สรุปแนวโน้ม
 
 - **2008–2013:** สร้างรากฐาน + ไล่ตามคู่แข่ง (ฟีเจอร์/ประสิทธิภาพ)

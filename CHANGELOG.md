@@ -364,6 +364,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   แทน Dalvik, ตารางเทียบ Dalvik (JIT) vs ART (AOT), ข้อดี/ข้อแลกเปลี่ยน, วิวัฒนาการ
   (Nougat ใช้ JIT+AOT+profile-guided, อัปเดตผ่าน Mainline) และลิงก์โยงกับหัวข้อ Froyo
 
+## 35. เพิ่มหัวข้อ "ศัพท์ทางเทคนิค" (Glossary) ในเอกสาร Android
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มหัวข้อ Glossary รวมคำศัพท์ที่ปรากฏในเอกสาร
+  จัดกลุ่มเป็น: Runtime & ประสิทธิภาพ, UI & ดีไซน์, การเชื่อมต่อ & สื่อ, สถาปัตยกรรม
+  ระบบ & การอัปเดต, สิทธิ์ & ความเป็นส่วนตัว, และความปลอดภัย
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
