@@ -371,6 +371,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   จัดกลุ่มเป็น: Runtime & ประสิทธิภาพ, UI & ดีไซน์, การเชื่อมต่อ & สื่อ, สถาปัตยกรรม
   ระบบ & การอัปเดต, สิทธิ์ & ความเป็นส่วนตัว, และความปลอดภัย
 
+## 36. ขยายความ AOT ใน Glossary
+
+**Changed**
+- ใน `docs/android-versions.md` ขยายรายการ **AOT** ใน Glossary: อธิบายการคอมไพล์
+  ล่วงหน้าตอนติดตั้ง (ไฟล์ `.oat`/`.odex`), ข้อดี/ข้อเสีย, การเทียบกับ JIT/Interpret,
+  บริบทใน ART/Nougat และตัวอย่างนอก Android (Kotlin/Native, GraalVM, Flutter)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
