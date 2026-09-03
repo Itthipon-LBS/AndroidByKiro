@@ -468,6 +468,16 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   (`getRestrictBackgroundStatus`) และความต่างจาก App Standby/Doze (เน็ต vs แบต,
   ผู้ใช้เปิดเอง vs ระบบตัดสิน)
 
+## 48. เพิ่มการเจาะลึก Project Treble
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มการเจาะลึก **Project Treble** ในหัวข้อ "ขยายความ
+  ศัพท์ทางเทคนิค": ปัญหาเดิม (framework ผูกกับ vendor), VINTF/HAL (HIDL→AIDL),
+  ประโยชน์ (อัปเดตเร็วขึ้น), GSI และการต่อยอดสู่ Project Mainline
+
+**Changed**
+- ใส่โน้ตให้รายการ Project Treble ใน Glossary ไปดูส่วนขยายความ
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
