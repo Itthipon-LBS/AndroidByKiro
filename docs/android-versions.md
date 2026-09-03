@@ -704,6 +704,10 @@ _(ข้อมูล Android 17 อ้างอิงแหล่งปี 2026 
 - **AccessibilityService** — บริการเบื้องหลังที่ "อ่าน" หน้าจอและโต้ตอบแทนผู้ใช้ได้
   (คนละมุมกับ a11y เชิงผู้ใช้ และเป็นช่องทางที่มัลแวร์ชอบใช้)
   (ดู "ขยายความศัพท์ทางเทคนิค")
+- **Accessibility APIs (ฝั่งแอป)** — สิ่งที่นักพัฒนาใส่ในแอปให้ screen reader เข้าใจ
+  (`contentDescription`, semantics ฯลฯ) (ดู "ขยายความศัพท์ทางเทคนิค")
+- **Accessibility testing tools** — เครื่องมือตรวจว่าแอปเข้าถึงได้ (Accessibility
+  Scanner, Espresso checks, ATF) (ดู "ขยายความศัพท์ทางเทคนิค")
 - **Bundled notifications** — รวมการแจ้งเตือนจากแอปเดียวกันเป็นกลุ่มเดียว กางดูได้
   (Nougat 7.0) (ดู "ขยายความศัพท์ทางเทคนิค")
 - **Direct Reply** — พิมพ์ตอบข้อความจากในแจ้งเตือนได้เลยไม่ต้องเปิดแอป (Nougat 7.0)
@@ -1459,6 +1463,36 @@ _หัวข้อเวอร์ชัน Android 15)_
 
 > สรุปให้จำง่าย: **a11y เชิงผู้ใช้** = ทำให้ทุกคนใช้แอปได้ • **AccessibilityService** =
 > API ที่ให้แอป "อ่าน/ควบคุมหน้าจอ" ได้ (มีประโยชน์แต่ก็เป็นช่องทางเสี่ยง)
+
+### Accessibility APIs ฝั่งแอป (ทำ UI ให้เข้าถึงได้)
+
+เป็นสิ่งที่ **นักพัฒนาใส่ในแอปเอง** เพื่อ "อธิบาย" UI ให้เครื่องมือช่วยเหลือ (เช่น TalkBack)
+เข้าใจ — ฝั่งนี้เป็น **ผู้ผลิตข้อมูล**, ส่วน AccessibilityService เป็น **ผู้บริโภคข้อมูล**
+
+**ใน View system (XML)**
+- **`android:contentDescription`** — คำอธิบายสำหรับ element ที่สื่อความหมาย (ไอคอน/รูป)
+- **`android:importantForAccessibility`** — บอกว่าให้ screen reader สนใจ/ข้าม element นี้
+- **`android:labelFor`** — ผูก label กับช่องกรอก, **`AccessibilityDelegate`** — ปรับ
+  พฤติกรรม accessibility แบบละเอียด, **traversal order** — คุมลำดับการโฟกัส
+
+**ใน Jetpack Compose**
+- ใช้ **`Modifier.semantics { }`** และ **`contentDescription`** ผ่าน "semantics tree"
+  (เทียบเท่า accessibility tree ของ View)
+
+**โยงกับโปรเจกต์นี้**
+- แอป FoodOrder ใส่ `contentDescription` ให้ปุ่มเพิ่ม/ลดจำนวนในตะกร้า และไอคอนต่าง ๆ
+
+### Accessibility testing tools (เครื่องมือตรวจสอบ)
+
+- **Accessibility Scanner** — แอปจาก Google ที่สแกนหน้าจอแล้ว **ชี้จุดที่ควรแก้** (เช่น
+  ขนาดแตะเล็กไป, contrast ต่ำ, ไม่มี contentDescription)
+- **Espresso Accessibility Checks** — เปิดใน UI test เพื่อ **ตรวจ a11y อัตโนมัติ** ระหว่าง
+  รันเทสต์
+- **Accessibility Test Framework (ATF)** — ไลบรารีเบื้องหลังที่เครื่องมือข้างต้นใช้ตรวจกฎ
+- **Lint checks** — เตือนปัญหา a11y พื้นฐานตั้งแต่ตอนเขียนโค้ด (เช่น ลืม contentDescription)
+
+> ข้อควรรู้: เครื่องมืออัตโนมัติจับได้แค่บางส่วน — การเข้าถึงที่ดี **ต้องทดสอบจริงกับ
+> TalkBack/ผู้ใช้จริง** ประกอบด้วย
 
 ---
 

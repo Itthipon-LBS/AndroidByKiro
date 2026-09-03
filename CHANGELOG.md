@@ -585,6 +585,15 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   การใช้งานนอก a11y, ประเด็นความปลอดภัย (มัลแวร์หลอกให้เปิด, การคุมเข้มของ Google/
   Advanced Protection) และคำที่เกี่ยวข้อง (accessibility tree) พร้อมสรุปแยก 2 ความหมาย
 
+## 63. เพิ่ม Accessibility APIs ฝั่งแอป + Accessibility testing tools
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **Accessibility APIs (ฝั่งแอป)** และ
+  **Accessibility testing tools** ใน Glossary และเจาะลึกใน "ขยายความศัพท์ทางเทคนิค":
+  ฝั่งแอป (contentDescription/importantForAccessibility/labelFor/Delegate, Compose
+  semantics, โยงกับ FoodOrder) และเครื่องมือ (Accessibility Scanner, Espresso checks,
+  ATF, lint)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
