@@ -313,6 +313,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   พร้อมผลกระทบและ **แนวทางป้องกัน/มาตรการที่ Google เพิ่มภายหลัง** (SELinux, verified
   boot, ASLR, seccomp, monthly patch, Mainline) — **ไม่มีขั้นตอน/โค้ดสำหรับโจมตี**
 
+## 28. ขยายความ UI แบบ holographic (ธีม Holo) ในหัวข้อ Honeycomb
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มคำอธิบายธีม Holo: เป็น design language แรกของ
+  Android (โทนมืด + ฟ้าไซแอน, ไม่เกี่ยวโฮโลแกรมจริง), ความสำคัญเชิงเทคนิค (ธีมมาตรฐาน
+  ครั้งแรก ช่วยให้ UI สม่ำเสมอข้ามเครื่อง ลด fragmentation ด้านหน้าตา) และวิวัฒนาการ
+  ไปสู่ Material Design ใน Lollipop
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
