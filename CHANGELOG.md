@@ -443,6 +443,16 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ใน Glossary และเจาะลึกใน "ขยายความศัพท์ทางเทคนิค" (จัดกลุ่มแจ้งเตือนของแอปเดียวกัน
   + ตอบข้อความจากแจ้งเตือน, API `setGroup()`/`RemoteInput`, ต่อยอดสู่ channels/Bubbles)
 
+## 45. เพิ่มการเจาะลึก Vulkan + OpenGL ES ใน Glossary
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มการเจาะลึก **Vulkan** ในหัวข้อ "ขยายความศัพท์
+  ทางเทคนิค" (ต่างจาก OpenGL ES, overhead ต่ำ, มัลติเธรด, ข้อแลกเปลี่ยน, ANGLE,
+  เทียบ Metal/DirectX 12) และเพิ่มรายการ **OpenGL ES** ใน Glossary
+
+**Changed**
+- ย่อ/ปรับรายการ Vulkan ใน Glossary พร้อมโน้ตให้ดูส่วนขยายความ
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
