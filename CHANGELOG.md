@@ -350,6 +350,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ยุคแรก (Now Cards ตามบริบท), ความต่างจาก Siri (เชิงรุก vs ถาม-ตอบ) และวิวัฒนาการ
   สู่ Now on Tap → Google Assistant → Google Discover
 
+## 33. ขยายความ "Immersive mode" ในหัวข้อ KitKat
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มคำอธิบาย Immersive mode: ซ่อน status/navigation
+  bar พร้อมกันเพื่อเต็มจอ, 2 แบบ (Immersive vs Immersive Sticky), ความต่างจากโหมดเดิม
+  (lean back/low profile) และหมายเหตุนักพัฒนา (system UI flags → WindowInsetsController)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
