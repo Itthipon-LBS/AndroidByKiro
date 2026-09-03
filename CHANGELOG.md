@@ -417,6 +417,17 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 **Changed**
 - ย่อรายการ SELinux ใน Glossary พร้อมโน้ตให้ไปดูส่วนขยายความ
 
+## 42. เพิ่ม App Standby (Glossary + เจาะลึก)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **App Standby** ใน Glossary (พร้อมความต่างจาก
+  Doze) และเพิ่มการเจาะลึก **App Standby & Doze** ในหัวข้อ "ขยายความศัพท์ทางเทคนิค"
+  (หลักการ, ต่างจาก Doze ระดับเครื่อง vs รายแอป, ข้อยกเว้น, วิวัฒนาการสู่ App Standby
+  Buckets ใน Android 9)
+
+**Changed**
+- ปรับรายการ Doze ใน Glossary ให้ระบุว่าเป็นระดับ "ทั้งเครื่อง" เพื่อเทียบกับ App Standby
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
