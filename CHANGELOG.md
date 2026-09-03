@@ -267,6 +267,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   (จาก interpret → JIT), เหตุผลที่ทำให้เร็วขึ้น และตารางเทียบ Interpret / JIT / AOT
   พร้อมหมายเหตุว่า ART ยุคหลังใช้ JIT+AOT ผสม + profile-guided compilation
 
+## 22. ขยายความเอนจิน JS V8 ในหัวข้อ Android 2.2 Froyo
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มคำอธิบาย V8 (JavaScript engine ของ Google):
+  บทบาทในเบราว์เซอร์ Froyo, เหตุผลที่เร็ว (JIT, GC, hidden classes/inline caching)
+  และตารางแยกความต่างระหว่าง **V8 (เร่ง JS ในเบราว์เซอร์)** กับ **Dalvik JIT (เร่งโค้ดแอป)**
+  ที่มาพร้อมกันใน Froyo
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
