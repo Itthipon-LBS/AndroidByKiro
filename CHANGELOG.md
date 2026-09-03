@@ -609,6 +609,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ใน Kotlin, โยงกับ `OrderViewModel`) และ **Reflection `setAccessible`** พร้อมย้ำว่าไม่
   เกี่ยวกับ a11y
 
+## 66. เพิ่มหัวข้อ "แนวทางพัฒนาแอปให้เข้าถึงได้ (สำหรับนักพัฒนา)"
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มหัวข้อเชิงปฏิบัติ: 2 แนวทาง (ทำแอปให้เข้าถึงได้ /
+  ใช้ AccessibilityService), เช็กลิสต์ก่อนปล่อยแอป (a11y), เหตุผลที่คุ้มค่า และการโยง
+  กับโปรเจกต์ FoodOrder
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
