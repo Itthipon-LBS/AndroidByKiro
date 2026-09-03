@@ -343,6 +343,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   สไตล์ BigText/BigPicture/Inbox, action buttons, ประโยชน์ และวิวัฒนาการต่อไปสู่
   direct reply, notification channels, bundled notifications, Conversations/Bubbles
 
+## 32. ขยายความ "Google Now" ในหัวข้อ Jelly Bean
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มคำอธิบาย Google Now: ผู้ช่วยอัจฉริยะเชิงรุก
+  ยุคแรก (Now Cards ตามบริบท), ความต่างจาก Siri (เชิงรุก vs ถาม-ตอบ) และวิวัฒนาการ
+  สู่ Now on Tap → Google Assistant → Google Discover
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
