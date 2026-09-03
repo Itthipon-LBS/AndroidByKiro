@@ -478,6 +478,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 **Changed**
 - ใส่โน้ตให้รายการ Project Treble ใน Glossary ไปดูส่วนขยายความ
 
+## 49. เพิ่ม PiP และ Autofill (Glossary + เจาะลึก)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **PiP (Picture-in-Picture)** และ **Autofill
+  Framework** ใน Glossary และเจาะลึกใน "ขยายความศัพท์ทางเทคนิค" (PiP: หน้าต่างวิดีโอ
+  ลอย, `enterPictureInPictureMode`; Autofill: เติมฟอร์มระดับ OS, `autofillHints`)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
