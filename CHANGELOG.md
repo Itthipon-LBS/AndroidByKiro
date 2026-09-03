@@ -357,6 +357,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   bar พร้อมกันเพื่อเต็มจอ, 2 แบบ (Immersive vs Immersive Sticky), ความต่างจากโหมดเดิม
   (lean back/low profile) และหมายเหตุนักพัฒนา (system UI flags → WindowInsetsController)
 
+## 34. ขยายความ "ART runtime" ในหัวข้อ KitKat
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มคำอธิบาย ART (Android Runtime): เป็น runtime ใหม่
+  แทน Dalvik, ตารางเทียบ Dalvik (JIT) vs ART (AOT), ข้อดี/ข้อแลกเปลี่ยน, วิวัฒนาการ
+  (Nougat ใช้ JIT+AOT+profile-guided, อัปเดตผ่าน Mainline) และลิงก์โยงกับหัวข้อ Froyo
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
