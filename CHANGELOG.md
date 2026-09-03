@@ -616,6 +616,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ใช้ AccessibilityService), เช็กลิสต์ก่อนปล่อยแอป (a11y), เหตุผลที่คุ้มค่า และการโยง
   กับโปรเจกต์ FoodOrder
 
+## 67. เพิ่ม Adaptive-first (Android 17) — Glossary + เจาะลึก
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **Adaptive-first** ใน Glossary และเจาะลึกใน
+  "ขยายความศัพท์ทางเทคนิค": บังคับ resizability จอใหญ่ใน Android 17, เหตุผล (จอใหญ่/
+  พับได้), สิ่งที่นักพัฒนาต้องทำ (responsive layout, ไม่ล็อก orientation, state รอด
+  config change) และการโยงกับ FoodOrder
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
