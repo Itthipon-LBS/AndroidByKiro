@@ -547,6 +547,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   พรีวิวย้อนกลับ + API; regional prefs: ภูมิภาคแยกจากภาษา; passkeys: ล็อกอินไร้รหัสผ่าน
   FIDO/WebAuthn + Credential Manager)
 
+## 58. เพิ่มฟีเจอร์เด่น Android 15 (Private Space, partial screen sharing, satellite)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **Private Space, Partial screen sharing,
+  Satellite connectivity** ใน Glossary และรวมการเจาะลึกไว้ในหัวข้อ "ฟีเจอร์เด่นของ
+  Android 15" ในส่วนขยายความ
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
