@@ -260,6 +260,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   และครบขึ้น** ไม่ใช่จุดที่มี HTML5 เป็นครั้งแรก และหมายเหตุว่า HTML5 เพิ่งเป็นมาตรฐาน
   ทางการปี 2014 (การรองรับจึงค่อย ๆ เพิ่มทีละเวอร์ชัน)
 
+## 21. ขยายความ JIT ในหัวข้อ Android 2.2 Froyo
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มคำอธิบาย JIT (Just-In-Time): บริบท Dalvik VM
+  (จาก interpret → JIT), เหตุผลที่ทำให้เร็วขึ้น และตารางเทียบ Interpret / JIT / AOT
+  พร้อมหมายเหตุว่า ART ยุคหลังใช้ JIT+AOT ผสม + profile-guided compilation
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
