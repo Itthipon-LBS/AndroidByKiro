@@ -378,6 +378,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ล่วงหน้าตอนติดตั้ง (ไฟล์ `.oat`/`.odex`), ข้อดี/ข้อเสีย, การเทียบกับ JIT/Interpret,
   บริบทใน ART/Nougat และตัวอย่างนอก Android (Kotlin/Native, GraalVM, Flutter)
 
+## 37. เพิ่ม Project Volta ใน Glossary
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มรายการ **Project Volta** (JobScheduler,
+  Battery Saver, Battery Historian) และ **JobScheduler/WorkManager** ในหัวข้อ
+  ศัพท์ทางเทคนิค พร้อมโยงวิวัฒนาการสายประหยัดแบต (Doze → Background limits →
+  Adaptive Battery → WorkManager)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

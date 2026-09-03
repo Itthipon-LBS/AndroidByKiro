@@ -733,6 +733,14 @@ _(ข้อมูล Android 17 อ้างอิงแหล่งปี 2026 
 - **Runtime permission** — ขออนุญาตตอนใช้งานจริง (Marshmallow)
 - **Scoped Storage** — จำกัดการเข้าถึงไฟล์ของแอป (Android 10+)
 - **SavedStateHandle** — เก็บ state ให้รอด config change/process death
+- **Project Volta** — ชุดกลไก/เครื่องมือประหยัดแบตที่มากับ Lollipop (5.0): มี
+  **JobScheduler** (จัดกลุ่มงานเบื้องหลังให้ระบบเลือกเวลารันที่เหมาะ เช่น รอชาร์จ/Wi-Fi),
+  **Battery Saver mode** (ลดความถี่ CPU/จำกัดงานเบื้องหลังเมื่อแบตใกล้หมด) และ
+  **Battery Historian** (เครื่องมือนักพัฒนาไว้วิเคราะห์ว่าอะไรกินแบต) — วางรากฐานสู่
+  Doze/App Standby (6.0), Background limits (8.0), Adaptive Battery (9.0) และ
+  WorkManager ปัจจุบัน
+- **JobScheduler / WorkManager** — API จัดคิวงานเบื้องหลังอย่างประหยัดพลังงาน
+  (WorkManager เป็นตัวแนะนำในปัจจุบัน สืบทอดแนวคิดจาก JobScheduler)
 - **Doze** — โหมดประหยัดแบตขณะเครื่องพักนาน
 
 ### ความปลอดภัย
