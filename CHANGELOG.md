@@ -624,6 +624,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   พับได้), สิ่งที่นักพัฒนาต้องทำ (responsive layout, ไม่ล็อก orientation, state รอด
   config change) และการโยงกับ FoodOrder
 
+## 68. เพิ่มฟีเจอร์ที่เหลือของ Android 17 (Glossary + เจาะลึก)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **Floating Bubbles, Temporary location access,
+  Stolen device lock, Intelligence system** ใน Glossary และรวมการเจาะลึกไว้ในหัวข้อ
+  "ฟีเจอร์อื่นของ Android 17" ในส่วนขยายความ (ครบทุกไฮไลต์ของ Android 17 แล้ว)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
