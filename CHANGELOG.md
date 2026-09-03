@@ -298,6 +298,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   widget ใช้ไม่ได้, SD ช้ากว่า, ความเสี่ยงความปลอดภัย) และบทสรุป (ต่อมาแทนด้วย
   Adoptable Storage ใน Android 6.0)
 
+## 26. ขยายความ NFC และ SIP (VoIP) ในหัวข้อ Gingerbread
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มคำอธิบาย NFC (การสื่อสารระยะใกล้, อ่านแท็ก,
+  ปูทางจ่ายเงินแบบแตะ, เครื่องแรก Nexus S) และ SIP/VoIP (โทรด้วยเสียงผ่านอินเทอร์เน็ต,
+  SIP API ในตัว, ประโยชน์/ข้อจำกัด)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
