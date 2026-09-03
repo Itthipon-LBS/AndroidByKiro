@@ -594,6 +594,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   semantics, โยงกับ FoodOrder) และเครื่องมือ (Accessibility Scanner, Espresso checks,
   ATF, lint)
 
+## 64. เพิ่มหมายเหตุกันสับสนความหมาย accessibility
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มหมายเหตุท้ายหัวข้อ accessibility ว่าคำนี้ยังถูกใช้ใน
+  ความหมายทั่วไปทางโปรแกรมมิ่ง (code/member visibility, network accessibility) ซึ่งไม่
+  เกี่ยวกับ a11y ของ Android เพื่อกันสับสน
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
