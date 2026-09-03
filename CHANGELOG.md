@@ -562,6 +562,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   HDR screenshots, Generic Bootloader** ใน Glossary และรวมการเจาะลึกไว้ในหัวข้อ
   "ฟีเจอร์เด่นของ Android 16" ในส่วนขยายความ
 
+## 60. เพิ่ม Trunk Stable (Glossary + เจาะลึก)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **Trunk Stable** ใน Glossary และเจาะลึกใน
+  "ขยายความศัพท์ทางเทคนิค": โมเดลพัฒนา trunk เดียว + feature flags, ปล่อย AOSP
+  ปีละ 2 รอบตั้งแต่ปี 2026, ประโยชน์ และผลต่อนักพัฒนาแอป
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
