@@ -1502,6 +1502,23 @@ _หัวข้อเวอร์ชัน Android 15)_
 >
 > ในเอกสารนี้ "accessibility" หมายถึงมุมของ Android (4 หัวข้อด้านบน) เว้นแต่ระบุเป็นอย่างอื่น
 
+**เฉพาะที่เกี่ยวกับการเขียนโปรแกรมบน Android (Kotlin/Java)**
+
+ในการเขียนแอป Android คำว่า "accessibility" เชิงโค้ดที่พบจริงมี 2 อย่าง:
+
+- **Visibility modifiers (access modifiers)** — ระดับการเข้าถึงของ class/function/property
+  ใน Kotlin:
+  - **`public`** (ค่าเริ่มต้น) เห็นได้ทุกที่ • **`private`** เฉพาะในไฟล์/คลาส •
+    **`protected`** ในคลาสและซับคลาส • **`internal`** ภายใน **module** เดียวกัน
+  - โยงกับโปรเจกต์นี้: `OrderViewModel` ใช้ **`private`** กับ `MutableStateFlow`/ตัวแปร
+    ภายใน แล้วเปิดเฉพาะ `val` แบบ read-only ออกไป (encapsulation)
+- **Reflection `setAccessible(true)`** — Java/Kotlin Reflection ใช้ **บังคับเข้าถึง
+  member ที่เป็น private ได้ตอน runtime** (ข้าม modifier) มักพบในไลบรารี/เฟรมเวิร์ก
+  (เช่น DI, serialization) — ควรใช้เท่าที่จำเป็นเพราะข้าม encapsulation และมีผลด้าน
+  ประสิทธิภาพ/ความปลอดภัย
+
+> ทั้งสองอันนี้เป็นเรื่อง **โครงสร้างโค้ด** ไม่เกี่ยวกับ a11y (การช่วยเหลือการเข้าถึง) ของ Android
+
 ---
 
 ## สรุปแนวโน้ม

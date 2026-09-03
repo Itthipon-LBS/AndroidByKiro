@@ -601,6 +601,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ความหมายทั่วไปทางโปรแกรมมิ่ง (code/member visibility, network accessibility) ซึ่งไม่
   เกี่ยวกับ a11y ของ Android เพื่อกันสับสน
 
+## 65. เพิ่มความหมาย accessibility เชิงโค้ด (เฉพาะ Android/Kotlin)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มหมายเหตุความหมาย "accessibility" เชิงโค้ดที่เกี่ยว
+  กับการเขียนแอป Android: **visibility modifiers** (public/private/protected/internal
+  ใน Kotlin, โยงกับ `OrderViewModel`) และ **Reflection `setAccessible`** พร้อมย้ำว่าไม่
+  เกี่ยวกับ a11y
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
