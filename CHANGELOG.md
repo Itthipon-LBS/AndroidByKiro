@@ -518,6 +518,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 **Changed**
 - ใส่โน้ตให้รายการ Scoped Storage และ Project Mainline ใน Glossary ไปดูส่วนขยายความ
 
+## 54. เพิ่ม OEM และ Live Caption
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **OEM** ใน Glossary (ผู้ผลิตอุปกรณ์ที่นำ Android
+  ไปใส่เครื่อง) และเพิ่ม **Live Caption** ทั้งใน Glossary และเจาะลึกใน "ขยายความศัพท์
+  ทางเทคนิค" (คำบรรยายอัตโนมัติ on-device, accessibility, ทิศทาง on-device AI)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
