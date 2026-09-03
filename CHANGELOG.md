@@ -501,6 +501,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ทำไมสำคัญ (ระดับโปรโตคอล กระทบหลายแพลตฟอร์ม), ผลกับ Android และการป้องกัน
   (แพตช์, HTTPS/VPN, WPA3) — ไม่มีขั้นตอน/โค้ดโจมตี
 
+## 52. เพิ่มฟีเจอร์เด่น Android 9 Pie (Glossary + เจาะลึก)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **Gesture navigation, Adaptive Battery/
+  Brightness, Digital Wellbeing, Display cutout/notch, App Actions/Slices** ใน
+  Glossary และรวมการเจาะลึกไว้ในหัวข้อ "ฟีเจอร์เด่นของ Android 9 Pie" ในส่วนขยายความ
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
