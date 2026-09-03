@@ -508,6 +508,16 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   Brightness, Digital Wellbeing, Display cutout/notch, App Actions/Slices** ใน
   Glossary และรวมการเจาะลึกไว้ในหัวข้อ "ฟีเจอร์เด่นของ Android 9 Pie" ในส่วนขยายความ
 
+## 53. เพิ่มการเจาะลึก Scoped Storage และ Project Mainline (Android 10)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มการเจาะลึก **Scoped Storage** (โมเดลเข้าถึงไฟล์
+  จำกัด, MediaStore/SAF/Photo Picker, ผลกระทบต่อนักพัฒนา) และ **Project Mainline**
+  (อัปเดตโมดูลระบบผ่าน Play, APEX, ต่างจาก Treble) ในหัวข้อ "ขยายความศัพท์ทางเทคนิค"
+
+**Changed**
+- ใส่โน้ตให้รายการ Scoped Storage และ Project Mainline ใน Glossary ไปดูส่วนขยายความ
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
