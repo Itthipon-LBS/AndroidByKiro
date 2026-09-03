@@ -244,6 +244,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ระบบชื่อขนมตามตัวอักษรเริ่มจริงที่ 1.5 Cupcake และตั้งแต่ Android 10 เลิกใช้ชื่อขนม
   ในการตลาดแต่ยังมีชื่อภายใน
 
+## 19. ขยายความ HTML5 ในหัวข้อ Android 2.0–2.1 Eclair
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มคำอธิบายว่า HTML5 ใน Eclair คืออะไร: ความสามารถ
+  ที่เพิ่มเข้ามา (`<video>`/`<audio>`, `<canvas>`, Geolocation, AppCache, Web Storage,
+  CSS3), เหตุผลที่สำคัญกับยุคนั้น (เว็บไม่ต้องพึ่ง Flash, ปูทาง web/hybrid app) และ
+  ข้อจำกัดในตอนนั้น (รองรับไม่ครบ, JS ยังช้าก่อน Froyo)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
