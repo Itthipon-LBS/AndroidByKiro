@@ -485,6 +485,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   Framework** ใน Glossary และเจาะลึกใน "ขยายความศัพท์ทางเทคนิค" (PiP: หน้าต่างวิดีโอ
   ลอย, `enterPictureInPictureMode`; Autofill: เติมฟอร์มระดับ OS, `autofillHints`)
 
+## 50. เพิ่ม Background execution limits และ Adaptive icons (Glossary + เจาะลึก)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **Background execution limits** และ
+  **Adaptive icons** ใน Glossary และเจาะลึกใน "ขยายความศัพท์ทางเทคนิค"
+  (background limits: หยุด service เบื้องหลัง → ใช้ WorkManager/foreground service;
+  adaptive icons: ไอคอน foreground/background + mask, โยงกับไอคอนของโปรเจกต์นี้)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
