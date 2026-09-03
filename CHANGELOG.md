@@ -493,6 +493,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   (background limits: หยุด service เบื้องหลัง → ใช้ WorkManager/foreground service;
   adaptive icons: ไอคอน foreground/background + mask, โยงกับไอคอนของโปรเจกต์นี้)
 
+## 51. เพิ่ม KRACK (Glossary + เจาะลึก เชิงการศึกษา/ป้องกัน)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **KRACK** ใน Glossary และเจาะลึกใน "ขยายความ
+  ศัพท์ทางเทคนิค": คืออะไร (Key Reinstallation Attack บน WPA2 4-way handshake),
+  ทำไมสำคัญ (ระดับโปรโตคอล กระทบหลายแพลตฟอร์ม), ผลกับ Android และการป้องกัน
+  (แพตช์, HTTPS/VPN, WPA3) — ไม่มีขั้นตอน/โค้ดโจมตี
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
