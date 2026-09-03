@@ -460,6 +460,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   **File-Based Encryption vs FDE** ในหัวข้อ "ขยายความศัพท์ทางเทคนิค": เข้ารหัสรายไฟล์,
   เทียบ FDE, Direct Boot (โซน DE/CE), ประโยชน์ และหมายเหตุนักพัฒนา (`directBootAware`)
 
+## 47. เพิ่ม Data Saver (Glossary + เจาะลึก)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **Data Saver** ใน Glossary และเจาะลึกใน
+  "ขยายความศัพท์ทางเทคนิค": หลักการ (จำกัดเน็ตเบื้องหลัง), allowlist, API
+  (`getRestrictBackgroundStatus`) และความต่างจาก App Standby/Doze (เน็ต vs แบต,
+  ผู้ใช้เปิดเอง vs ระบบตัดสิน)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
