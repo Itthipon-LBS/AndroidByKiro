@@ -305,6 +305,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ปูทางจ่ายเงินแบบแตะ, เครื่องแรก Nexus S) และ SIP/VoIP (โทรด้วยเสียงผ่านอินเทอร์เน็ต,
   SIP API ในตัว, ประโยชน์/ข้อจำกัด)
 
+## 27. เพิ่มคำอธิบายช่องโหว่ยุค Gingerbread (เชิงการศึกษา/ป้องกัน)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มคำอธิบาย **ประเภทและสาเหตุ** ของช่องโหว่ยุค
+  Gingerbread (local privilege escalation เช่น GingerBreak/zergRush) แบบเชิงแนวคิด
+  พร้อมผลกระทบและ **แนวทางป้องกัน/มาตรการที่ Google เพิ่มภายหลัง** (SELinux, verified
+  boot, ASLR, seccomp, monthly patch, Mainline) — **ไม่มีขั้นตอน/โค้ดสำหรับโจมตี**
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
