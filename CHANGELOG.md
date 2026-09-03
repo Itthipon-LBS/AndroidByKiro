@@ -577,6 +577,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   Switch/Voice Access), แนวทางนักพัฒนา (`contentDescription`, ขนาดแตะ, contrast,
   ฟอนต์ sp — โยงกับปุ่มในแอป FoodOrder) และหมายเหตุการทดสอบจริง/WCAG
 
+## 62. เพิ่ม AccessibilityService (แยกจาก a11y เชิงผู้ใช้)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **AccessibilityService** ใน Glossary และเจาะลึก
+  ในหัวข้อ "ขยายความศัพท์ทางเทคนิค": อธิบายความหมายเชิงเทคนิค (อ่าน/ควบคุมหน้าจอ),
+  การใช้งานนอก a11y, ประเด็นความปลอดภัย (มัลแวร์หลอกให้เปิด, การคุมเข้มของ Google/
+  Advanced Protection) และคำที่เกี่ยวข้อง (accessibility tree) พร้อมสรุปแยก 2 ความหมาย
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
