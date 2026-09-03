@@ -569,6 +569,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   "ขยายความศัพท์ทางเทคนิค": โมเดลพัฒนา trunk เดียว + feature flags, ปล่อย AOSP
   ปีละ 2 รอบตั้งแต่ปี 2026, ประโยชน์ และผลต่อนักพัฒนาแอป
 
+## 61. เพิ่ม Accessibility (Glossary + เจาะลึก)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่ม **Accessibility (a11y)** ใน Glossary และเจาะลึก
+  ในหัวข้อ "ขยายความศัพท์ทางเทคนิค": ฟีเจอร์ระบบ (TalkBack, ขยายฟอนต์, Live Caption,
+  Switch/Voice Access), แนวทางนักพัฒนา (`contentDescription`, ขนาดแตะ, contrast,
+  ฟอนต์ sp — โยงกับปุ่มในแอป FoodOrder) และหมายเหตุการทดสอบจริง/WCAG
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
