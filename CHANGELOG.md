@@ -631,6 +631,18 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   Stolen device lock, Intelligence system** ใน Glossary และรวมการเจาะลึกไว้ในหัวข้อ
   "ฟีเจอร์อื่นของ Android 17" ในส่วนขยายความ (ครบทุกไฮไลต์ของ Android 17 แล้ว)
 
+## 69. ขยายแนวทาง accessibility: ความสามารถแพลตฟอร์ม + ประเภทแอป
+
+**Added**
+- ใน `docs/android-versions.md` (หัวข้อแนวทางพัฒนาแอปให้เข้าถึงได้) เพิ่ม:
+  **ความสามารถแพลตฟอร์มสำหรับสร้างแอป accessibility** (TTS, SpeechRecognizer, haptics,
+  `announceForAccessibility`, live region, custom actions, on-device ML, custom view
+  a11y) และ **ประเภทแอป accessibility ที่พัฒนาได้** (AAC, สายตาเลือนราง, การได้ยิน,
+  การควบคุมทางเลือก, ผู้มีภาวะพัฒนาการ) พร้อมมาตรฐาน (WCAG/EN 301 549/ADA)
+
+**Changed**
+- อัปเดตโน้ตโยงกับ FoodOrder ให้แนะนำ live region/announce, stateDescription/role
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

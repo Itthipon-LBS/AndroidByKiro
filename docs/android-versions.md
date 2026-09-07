@@ -1621,14 +1621,43 @@ _อ้างอิงท้ายเอกสาร)_
 - [ ] วิดีโอมี caption / มีทางเลือกที่ไม่ใช้เสียง
 - [ ] ทดสอบด้วย **TalkBack**, **Accessibility Scanner**, และ **Espresso a11y checks**
 
+### ความสามารถของแพลตฟอร์มสำหรับสร้างแอป accessibility
+
+นอกจากทำแอปให้เข้าถึงได้ Android ยังมี API ให้ **สร้างฟีเจอร์/แอปช่วยเหลือ** ได้อีกมาก:
+
+- **Text-to-Speech (TTS)** — แปลงข้อความเป็นเสียงพูด (อ่านเนื้อหาให้ผู้พิการทางสายตา)
+- **Speech Recognition (`SpeechRecognizer`)** — แปลงเสียงพูดเป็นข้อความ (สั่งงานด้วยเสียง)
+- **Haptics / Vibration** — ใช้การสั่นสื่อสารข้อมูลแทนเสียง/ภาพ
+- **`announceForAccessibility()` / AccessibilityEvent** — สั่งให้ screen reader ประกาศ
+  ข้อความเอง (เช่น "เพิ่มลงตะกร้าแล้ว")
+- **Live Region (`accessibilityLiveRegion`)** — ประกาศอัตโนมัติเมื่อเนื้อหาเปลี่ยน (เช่น
+  ยอดรวมตะกร้าอัปเดต) โดยไม่ต้องเลื่อนโฟกัส
+- **Custom accessibility actions** — เพิ่ม action พิเศษให้ screen reader (เช่น "ลบรายการ")
+- **on-device ML (ML Kit/CameraX)** — OCR อ่านป้าย, บรรยายภาพ, จดจำวัตถุ ช่วยผู้พิการ
+  ทางสายตา
+- **Custom View accessibility** — เมื่อทำ custom view ต้อง implement virtual view tree
+  (`AccessibilityNodeProvider`) เอง; Compose ใช้ `stateDescription`, `role`,
+  `mergeDescendants`, custom actions
+
+### ประเภทแอป accessibility ที่พัฒนาได้ (ตัวอย่าง)
+
+- **AAC (สื่อสารทางเลือก)** — ช่วยผู้ที่พูดไม่ได้สื่อสารด้วยรูป/สัญลักษณ์ + TTS
+- **แอปสำหรับผู้สายตาเลือนราง** — magnifier, ปรับ contrast/สี, บรรยายภาพด้วย ML
+- **แอปช่วยการได้ยิน** — sound amplifier, live transcribe, แปลงเสียงสำคัญเป็นสั่น/แสง
+- **การควบคุมทางเลือก** — สั่งงานด้วยเสียง/สวิตช์/การเคลื่อนไหว (ผ่าน AccessibilityService)
+- **แอปช่วยผู้มีภาวะพัฒนาการ** — ปฏิทินภาพ, สัญลักษณ์, ตัวช่วยจดจ่อ
+
 ### ทำไมคุ้มค่า
 
 - **เข้าถึงผู้ใช้กว้างขึ้น** (รวมผู้พิการทั่วโลก) และตรงตาม **ข้อกำหนดตามกฎหมาย** บางที่
+  (เช่น WCAG, EN 301 549, ADA/Section 508 ในบริบทองค์กร)
 - โครงสร้าง a11y ที่ดีมักทำให้ **โค้ด/UI สะอาดและทดสอบอัตโนมัติง่ายขึ้น** (semantics ชัด)
 - รองรับ use case ในที่แสง/เสียงไม่เอื้อ และช่วยเรื่องรีวิว/คะแนนแอป
 
 > โยงกับโปรเจกต์นี้: **FoodOrder** ใส่ `contentDescription` ให้ปุ่มเพิ่ม/ลดจำนวนในตะกร้า
-> และไอคอนแล้ว — ก้าวถัดไปที่ทำได้คือตรวจ contrast, ขนาดแตะ และรัน Accessibility Scanner
+> และไอคอนแล้ว — ก้าวถัดไปที่ทำได้: ประกาศ **"เพิ่มลงตะกร้าแล้ว"** ด้วย
+> `announceForAccessibility()` หรือทำ **live region** ที่ยอดรวมตะกร้า, ใส่
+> `stateDescription`/`role` ให้ปุ่มจำนวน, ตรวจ contrast/ขนาดแตะ และรัน Accessibility Scanner
 
 ---
 
