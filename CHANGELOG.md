@@ -643,6 +643,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 **Changed**
 - อัปเดตโน้ตโยงกับ FoodOrder ให้แนะนำ live region/announce, stateDescription/role
 
+## 70. เพิ่มสรุป "มุมมองต่อ accessibility" (หลายมุม)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มหัวข้อ "มุมมองต่อ accessibility" เป็นตารางสรุป:
+  3 แกนหลัก (ผู้ใช้/โปรแกรมเมอร์/ตัวเครื่อง) + มุมเสริม (ธุรกิจ, กฎหมาย/มาตรฐาน, QA,
+  นักออกแบบ, OEM, สังคม/จริยธรรม, ความปลอดภัย) พร้อมประโยคจำง่าย
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
