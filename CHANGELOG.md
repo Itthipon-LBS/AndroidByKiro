@@ -678,6 +678,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   UUID+Auto Backup, Block Store, ANDROID_ID, และ IMEI/MAC ที่ทำไม่ได้แล้ว), ตารางสรุป
   และตัวอย่างโค้ด Block Store
 
+## 74. เพิ่มหมายเหตุ IMEI ซ้ำกันได้ในหัวข้อ Unique ID
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มหมายเหตุว่า IMEI ตามสเปกไม่ซ้ำ แต่ในโลกจริงซ้ำได้
+  (เครื่องปลอม/แก้ IMEI/ค่า default), dual-SIM มี 2 ค่า, emulator คืน 0 และย้ำว่าใช้เป็น
+  Unique ID ไม่ได้ (เข้าถึงไม่ได้ตั้งแต่ Android 10 + เป็น PII)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
