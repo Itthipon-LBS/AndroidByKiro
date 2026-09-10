@@ -685,6 +685,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   (เครื่องปลอม/แก้ IMEI/ค่า default), dual-SIM มี 2 ค่า, emulator คืน 0 และย้ำว่าใช้เป็น
   Unique ID ไม่ได้ (เข้าถึงไม่ได้ตั้งแต่ Android 10 + เป็น PII)
 
+## 75. เพิ่มหมายเหตุ IMEI ไม่ขึ้นกับซิม (เทียบ IMEI/IMSI/ICCID)
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มหมายเหตุว่า IMEI เป็นเลขประจำตัวเครื่อง ไม่ขึ้นกับซิม
+  (ใส่/ไม่ใส่ซิมค่าเท่าเดิม) พร้อมตารางเทียบ IMEI vs IMSI vs ICCID และหมายเหตุ dual-SIM/
+  เครื่อง Wi-Fi-only
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
