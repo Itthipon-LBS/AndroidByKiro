@@ -661,6 +661,15 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 - หัวข้อเวอร์ชันจึงเหลือเฉพาะ bullet (ฟีเจอร์/ข้อดี/ข้อเสีย/ความปลอดภัย/ต่างจากก่อนหน้า) อ่านง่ายขึ้น
 - เพิ่มรายการ **Google Now** ในกลุ่ม "UI & ดีไซน์" ของ Glossary
 
+## 72. เพิ่มหัวข้อ "การสร้าง Unique ID ในแต่ละเวอร์ชัน Android"
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มหัวข้อเรื่อง identifier/Unique ID: ตารางประเภท ID
+  (IMEI/MAC, ANDROID_ID, AAID, App Set ID, FID, UUID), เส้นเวลาการเปลี่ยนแปลงตามเวอร์ชัน
+  (Oreo 8 → ANDROID_ID ต่อแอป, Android 10 ตัด IMEI/MAC, 12 ปิด AAID ได้, 13 ต้องขอ AD_ID),
+  แนวทางเลือกใช้ตามจุดประสงค์, ตัวอย่างโค้ดสร้าง UUID เอง และข้อควรระวังด้านความเป็นส่วนตัว/
+  นโยบาย Play
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
