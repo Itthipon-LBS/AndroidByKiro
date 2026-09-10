@@ -703,6 +703,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   IMEI ผูกกับ radio/modem ไม่ใช่ช่องซิม, DSDS ต้องมี radio แยก, กรณี modem เดียว/eSIM
   ที่อาจมี IMEI เดียว และ `getImei(slotIndex)` บน Android
 
+## 77. เพิ่มคู่มือการทำ Test ใน Android (เริ่มต้นจนถึง production)
+
+**Added**
+- `docs/android-testing-guide.md` — คู่มือเขียน test ฉบับเข้าใจง่ายสำหรับมือใหม่: test
+  pyramid, การตั้งค่า, unit test แรก, การรันเทสต์, ทดสอบ ViewModel (MainDispatcherRule +
+  fake + coroutines + Turbine), UI test (Espresso), best practices, เส้นทางสู่ production
+  (CI GitHub Actions, branch protection), เช็กลิสต์ และอ้างอิงตัวอย่างจริงในโปรเจกต์ FoodOrder
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
