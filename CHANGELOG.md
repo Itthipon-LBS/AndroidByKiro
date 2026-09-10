@@ -692,6 +692,17 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   (ใส่/ไม่ใส่ซิมค่าเท่าเดิม) พร้อมตารางเทียบ IMEI vs IMSI vs ICCID และหมายเหตุ dual-SIM/
   เครื่อง Wi-Fi-only
 
+## 76. แก้ถ้อยคำ IMEI + เพิ่มหัวข้อ "ทำไม dual-SIM มักมี IMEI 2 ค่า"
+
+**Changed**
+- แก้ถ้อยคำจาก "dual-SIM มี IMEI 2 ค่า" เป็น "**มักมี** IMEI 2 ค่า (ตามจำนวน radio/modem)"
+  เพื่อความถูกต้อง
+
+**Added**
+- ใน `docs/android-versions.md` เพิ่มหัวข้อย่อย "ทำไม dual-SIM มักมี IMEI 2 ค่า":
+  IMEI ผูกกับ radio/modem ไม่ใช่ช่องซิม, DSDS ต้องมี radio แยก, กรณี modem เดียว/eSIM
+  ที่อาจมี IMEI เดียว และ `getImei(slotIndex)` บน Android
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
