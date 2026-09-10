@@ -711,6 +711,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   fake + coroutines + Turbine), UI test (Espresso), best practices, เส้นทางสู่ production
   (CI GitHub Actions, branch protection), เช็กลิสต์ และอ้างอิงตัวอย่างจริงในโปรเจกต์ FoodOrder
 
+## 78. เพิ่มเอกสาร AI-Driven Development Lifecycle (AI-DLC)
+
+**Added**
+- `docs/ai-dlc-guide.md` — สรุป AI-DLC แบบเข้าใจง่าย: แก่นความคิด (AI นำ + คนตัดสินใจ),
+  ความต่างจากของเดิม, 3 เฟส (Inception/Construction/Operations) + gate, workflow profiles,
+  ตัวอย่างจริง (เพิ่มฟีเจอร์ประวัติการสั่งอาหารใน FoodOrder), best practices, ข้อควรระวัง
+  และแหล่งอ้างอิง AWS (เนื้อหาเรียบเรียงใหม่ตามข้อกำหนดลิขสิทธิ์)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
