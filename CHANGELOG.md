@@ -739,6 +739,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 - ใน `docs/kiro-ai-features.md` เพิ่มตารางข้อดี/ข้อเสียของ Steering, Skills, Specs,
   Hooks, MCP, `#` context พร้อมสรุปการเลือกใช้ให้เหมาะกับงาน
 
+## 82. เพิ่มหัวข้อเทียบฟีเจอร์ AI ข้ามเครื่องมือ (ไม่ผูกกับ Kiro)
+
+**Added**
+- ใน `docs/kiro-ai-features.md` เพิ่มหัวข้อ "ใช้ได้เฉพาะ Kiro ไหม?": แยกระดับแนวคิด
+  (ใช้ทั่วไป) กับระดับไฟล์/คอนฟิก (เฉพาะ Kiro), ตารางเทียบข้ามเครื่องมือ (Cursor,
+  Copilot, Claude Code, AGENTS.md) และย้ำว่า MCP เป็นมาตรฐานกลางที่ใช้ข้ามเครื่องมือได้
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
