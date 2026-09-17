@@ -774,6 +774,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   การจ้างงาน, time-to-market/OTA, ecosystem/plugin, learning curve, การทดสอบ, ความยั่งยืน
   ของ framework, รูปแบบอุปกรณ์, ต้นทุนระยะยาว และมุมผู้ใช้เพิ่มเติม (a11y/integration/warm-up)
 
+## 87. เพิ่มหัวข้อ "ทำไม Cross-Platform บางทีกดปุ่มไม่ติด"
+
+**Added**
+- ใน `docs/android-for-programmers.md` เพิ่มหัวข้ออธิบายอาการกดปุ่มแล้วทำงานบ้างไม่ทำงาน
+  บ้างใน Cross-Platform: สาเหตุ (bridge/JS thread, UI thread บล็อก, touch/gesture ชน,
+  hit area/overlay, debounce/state, async ไม่รอผล), ทำไม native เจอน้อยกว่า และวิธีแก้/เลี่ยง
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
