@@ -746,6 +746,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   (ใช้ทั่วไป) กับระดับไฟล์/คอนฟิก (เฉพาะ Kiro), ตารางเทียบข้ามเครื่องมือ (Cursor,
   Copilot, Claude Code, AGENTS.md) และย้ำว่า MCP เป็นมาตรฐานกลางที่ใช้ข้ามเครื่องมือได้
 
+## 83. เพิ่มเอกสาร "Android สำหรับโปรแกรมเมอร์" (เริ่มด้วย Native vs Cross-Platform)
+
+**Added**
+- `docs/android-for-programmers.md` — สรุปสั้น เข้าใจง่าย: Native vs Cross-Platform
+  (Flutter/React Native/KMP/.NET MAUI), ตารางเทียบ, แนวทางเลือก, พื้นฐาน Android Native
+  ที่ต้องรู้ และเครื่องมือ (มีหัวข้อถัดไปไว้ต่อยอด)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
