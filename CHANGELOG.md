@@ -760,6 +760,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   (จุดพลาดบ่อย + ViewModel/SavedStateHandle/viewLifecycleOwner), การจัดการ state/data
   (StateFlow, event, DataStore/Room, Retrofit), permissions & ความปลอดภัย และลิงก์อ่านต่อ
 
+## 85. ขยายความ Native vs Cross-Platform (ข้อแตกต่าง/ข้อดี-เสีย/ปัญหาที่พบบ่อย)
+
+**Added**
+- ใน `docs/android-for-programmers.md` เจาะลึกหัวข้อ Native vs Cross-Platform:
+  ข้อแตกต่างเชิงเทคนิค (การรัน UI, การเข้าถึง API, ขนาดแอป, การอัปเดต OS), ข้อดี/ข้อเสีย
+  ของแต่ละแบบ, และปัญหาที่พบบ่อยแยกฝั่งโปรแกรมเมอร์และฝั่งผู้ใช้งานแอป
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
