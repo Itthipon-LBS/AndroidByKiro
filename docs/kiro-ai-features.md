@@ -1,0 +1,216 @@
+# ฟีเจอร์ AI ใน Kiro — ฉบับเขียนตามได้จริง
+
+เอกสารนี้อธิบายกลไกหลักที่ใช้ "กำกับและขยายความสามารถ" ของ AI ใน Kiro แบบ **เข้าใจง่าย
++ มีตัวอย่างเขียนตามได้จริง** สำหรับคนที่ไม่เคยทำมาก่อน
+
+## ภาพรวมอย่างเร็ว
+
+| กลไก | ใช้ทำอะไร | โหลดเมื่อไร | ที่อยู่ |
+|------|-----------|-----------|--------|
+| **Steering** | บริบท/กติกา/มาตรฐานถาวร | ตลอดเวลา (หรือตามเงื่อนไข) | `.kiro/steering/*.md` |
+| **Skills** | ความสามารถเฉพาะทาง หยิบมาใช้ | เมื่อจำเป็น | `.kiro/skills/` |
+| **Specs** | คุมงานใหญ่เป็นขั้นตอน | ตอนทำฟีเจอร์ | `.kiro/specs/` |
+| **Hooks** | ทำงานอัตโนมัติเมื่อมีเหตุการณ์ | ตาม event | `.kiro/hooks/*.json` |
+| **MCP** | เชื่อมเครื่องมือ/ข้อมูลนอก | เมื่อเรียกใช้ tool | `.kiro/settings/mcp.json` |
+| **`#` context** | ป้อนบริบทเฉพาะครั้ง | ในแชต | (พิมพ์ในแชต) |
+
+> จำง่าย: **Steering = รู้ตลอด • Skills = หยิบมาใช้ • Specs = คุมขั้นตอน • Hooks = อัตโนมัติ
+> • MCP = ต่อของนอก • `#` = ป้อนบริบทเฉพาะครั้ง**
+
+---
+
+## 1. Steering — บริบท/กติกาถาวร
+
+**ใช้เมื่อ:** อยากให้ AI รู้มาตรฐานทีม/สถาปัตยกรรม/คำสั่ง build-test ทุกครั้งที่ทำงาน
+
+**วิธีเขียน:**
+1. สร้างไฟล์ใน `.kiro/steering/` เช่น `coding-standards.md`
+2. (ทางเลือก) ใส่ front matter กำหนดว่าจะโหลดเมื่อไร
+
+**ตัวอย่างจริง** — `.kiro/steering/coding-standards.md`:
+```markdown
+---
+inclusion: always
+---
+
+# มาตรฐานการเขียนโค้ด (โปรเจกต์นี้)
+
+- ใช้ Kotlin + MVVM: logic อยู่ใน ViewModel, View ไม่มี business logic
+- state เปิดเป็น StateFlow แบบ read-only; เปลี่ยนค่าผ่าน public function เท่านั้น
+- เงินใช้ BigDecimal เสมอ (ห้าม Double)
+- ทุกฟีเจอร์ต้องมี unit test
+- คำสั่งรันเทสต์: `./gradlew testDebugUnitTest`
+```
+
+**โหมด `inclusion` (ใน front matter):**
+- `always` — โหลดทุกครั้ง (ค่าเริ่มต้น)
+- `fileMatch` + `fileMatchPattern: 'README*'` — โหลดเฉพาะเมื่อเปิดไฟล์ที่ตรง pattern
+- `manual` — โหลดเมื่อผู้ใช้อ้างด้วย `#` ในแชต
+
+**อ้างไฟล์อื่นในสตีเยอริงได้** ด้วย `#[[file:<relative_path>]]` เช่นแนบ OpenAPI spec
+
+**ตัวอย่างในโปรเจกต์นี้:** `.kiro/steering/changelog.md` (ตั้ง `inclusion: always`) สั่งให้
+อัปเดต `CHANGELOG.md` ทุกครั้งที่มีการเปลี่ยนแปลง
+
+---
+
+## 2. Skills — ความสามารถเฉพาะทาง (หยิบมาใช้)
+
+**ใช้เมื่อ:** มีขั้นตอนงานเฉพาะที่ทำซ้ำ ๆ และไม่จำเป็นต้องโหลดตลอด (ประหยัด context)
+
+**วิธีเขียน:**
+1. สร้างโฟลเดอร์ `.kiro/skills/<ชื่อ-skill>/`
+2. สร้างไฟล์ `SKILL.md` ข้างในอธิบายว่า skill นี้ทำอะไรและขั้นตอนเป็นอย่างไร
+
+**ตัวอย่างจริง** — `.kiro/skills/add-mvvm-feature/SKILL.md`:
+```markdown
+# Skill: เพิ่มฟีเจอร์แบบ MVVM ตามแบบ FoodOrder
+
+ใช้เมื่อ: ต้องเพิ่มหน้าจอ/ฟีเจอร์ใหม่ในแอปนี้
+
+ขั้นตอน:
+1. สร้าง model ใน data/model (ใช้ BigDecimal สำหรับเงิน)
+2. เพิ่มเมธอดใน FoodRepository (suspend) + Impl
+3. สร้าง <Feature>ViewModel: เปิด uiState เป็น StateFlow, event ผ่าน Channel/Flow
+4. สร้าง <Feature>Fragment + layout XML + ViewBinding
+5. เพิ่ม destination ใน nav_graph.xml
+6. เขียน unit test ให้ ViewModel (ใช้ MainDispatcherRule + fake repository)
+7. อัปเดต CHANGELOG.md
+```
+
+- เมื่อคุณสั่งงานที่เข้าข่าย AI จะ "เปิด" skill นี้มาอ่านแล้วทำตามขั้นตอน
+- ต่างจาก steering ตรงที่ **ไม่ถูกโหลดตลอด** แต่หยิบมาเมื่อเกี่ยวข้อง
+
+---
+
+## 3. Specs — คุมงานใหญ่เป็นขั้นตอน
+
+**ใช้เมื่อ:** ทำฟีเจอร์ใหญ่/ซับซ้อน อยากวางแผนและรีวิวก่อนลงมือ
+
+**แนวคิด:** ทำงานเป็น 3 ระยะ **requirements → design → tasks** แล้วให้ AI ทำตาม task ทีละข้อ
+
+**วิธีเริ่ม (ทำตามได้จริง):**
+1. บอก Kiro ว่า "สร้าง spec สำหรับฟีเจอร์ X"
+2. Kiro จะช่วยร่าง **requirements.md** (สิ่งที่ต้องได้) → คุณรีวิว/แก้ → อนุมัติ
+3. ต่อด้วย **design.md** (ออกแบบ/สถาปัตยกรรม) → อนุมัติ
+4. ต่อด้วย **tasks.md** (แตกเป็นงานย่อยติ๊กได้) → AI ลงมือทำทีละ task
+5. ไฟล์อยู่ใน `.kiro/specs/<ชื่อฟีเจอร์>/`
+
+**ตัวอย่างโครง** `.kiro/specs/order-history/requirements.md`:
+```markdown
+# Requirements: ประวัติการสั่งอาหาร
+- เก็บรายการที่สั่งล่าสุด 30 รายการ
+- แสดงย้อนหลัง (วันที่ + ยอดรวม)
+- ล้างประวัติได้
+```
+
+> เหมาะกับงานที่อยากได้ "แผน + จุดอนุมัติ" ชัด ๆ (ตรงกับเฟส Inception ของ AI-DLC)
+
+---
+
+## 4. Hooks — ทำงานอัตโนมัติเมื่อมีเหตุการณ์
+
+**ใช้เมื่อ:** อยากให้บางอย่างทำเองเมื่อเกิด event เช่น ตอน save ไฟล์, สร้างไฟล์, จบงาน
+
+**วิธีเขียน:** สร้างไฟล์ `.kiro/hooks/<id>.json`
+
+**ตัวอย่าง 1 — รัน lint ทุกครั้งที่ save ไฟล์ Kotlin** (`.kiro/hooks/lint-on-save.json`):
+```json
+{
+  "version": "v1",
+  "hooks": [{
+    "name": "Lint on Save",
+    "trigger": "PostFileSave",
+    "matcher": "\\.kt$",
+    "action": { "type": "command", "command": "./gradlew ktlintCheck" }
+  }]
+}
+```
+
+**ตัวอย่าง 2 — รันเทสต์หลังทำ spec task เสร็จ** (`.kiro/hooks/test-after-task.json`):
+```json
+{
+  "version": "v1",
+  "hooks": [{
+    "name": "Run Tests After Task",
+    "trigger": "PostTaskExec",
+    "action": { "type": "command", "command": "./gradlew testDebugUnitTest" }
+  }]
+}
+```
+
+**Trigger ที่ใช้บ่อย:** `PostFileSave`, `PostFileCreate`, `PreToolUse`, `PostToolUse`,
+`UserPromptSubmit`, `Stop`, `PreTaskExec`, `PostTaskExec`, `SessionStart`
+**Action มี 2 แบบ:** `command` (รันคำสั่ง) หรือ `agent` (แนบ prompt ให้ AI)
+
+> เคล็ดลับ: สร้าง hook ผ่านคำสั่ง "Open Kiro Hook UI" ก็ได้ ไม่ต้องเขียน JSON เอง
+
+---
+
+## 5. MCP — เชื่อมเครื่องมือ/ข้อมูลภายนอก
+
+**ใช้เมื่อ:** อยากให้ AI เข้าถึง "ของนอกตัว" เช่น เอกสาร AWS, ฐานข้อมูล, API ทีม
+
+**วิธีตั้งค่า:** แก้ไฟล์ `.kiro/settings/mcp.json` (ระดับ workspace) หรือ
+`~/.kiro/settings/mcp.json` (ระดับผู้ใช้)
+
+**ตัวอย่างจริง — ต่อ MCP server เอกสาร AWS:**
+```json
+{
+  "mcpServers": {
+    "aws-docs": {
+      "command": "uvx",
+      "args": ["awslabs.aws-documentation-mcp-server@latest"],
+      "env": { "FASTMCP_LOG_LEVEL": "ERROR" },
+      "disabled": false
+    }
+  }
+}
+```
+
+- ใช้ `uvx` รัน server (ต้องติดตั้ง `uv`/`uvx` ก่อน)
+- `disabled: false` = เปิดใช้; ตั้ง server หลายตัวได้
+- หลังแก้ไฟล์ Kiro จะเชื่อมต่อใหม่อัตโนมัติ (หรือ reconnect จาก MCP view)
+
+---
+
+## 6. `#` Context — ป้อนบริบทเฉพาะครั้งในแชต
+
+**ใช้เมื่อ:** อยากให้ AI สนใจของบางอย่าง "เฉพาะข้อความนี้" (ไม่ถาวรแบบ steering)
+
+พิมพ์ในแชต:
+- `#File` / `#Folder` — แนบไฟล์/โฟลเดอร์
+- `#Problems` — ปัญหา/error ในไฟล์ปัจจุบัน
+- `#Terminal` — เอาต์พุตเทอร์มินัล
+- `#Git Diff` — การเปลี่ยนแปลงที่ยังไม่ commit
+
+**ตัวอย่าง:** "ช่วยแก้บั๊กใน #File ตามที่เห็นใน #Problems"
+
+---
+
+## เลือกใช้อันไหนดี (สรุปตัดสินใจ)
+
+- อยากให้ AI **รู้กติกาตลอด** → **Steering**
+- มี **ขั้นตอนเฉพาะทำซ้ำ ๆ** → **Skill**
+- ทำ **ฟีเจอร์ใหญ่** อยากมีแผน/จุดอนุมัติ → **Spec**
+- อยากให้ **ทำเองเมื่อ save/จบงาน** → **Hook**
+- ต้องการให้ AI **เข้าถึงของนอก** → **MCP**
+- ป้อนบริบท **เฉพาะครั้ง** → **`#` ในแชต**
+
+## ข้อควรระวัง
+
+- **อย่ายัดทุกอย่างเป็น steering แบบ always** — ทำให้เปลือง context; ของเฉพาะทางใช้ skill/`#` แทน
+- **hook แบบ command รันคำสั่งจริง** — ระวังคำสั่งที่อันตราย/ช้า
+- **MCP server เป็นโค้ดภายนอก** — ใช้เฉพาะ server ที่เชื่อถือได้
+- ตรวจผลลัพธ์ของ AI เสมอ โดยเฉพาะงานที่กระทบ production
+
+---
+
+## อ้างอิงในโปรเจกต์นี้
+
+- Steering ที่ใช้จริง: `.kiro/steering/changelog.md`
+- แนวทาง spec: ตอนสร้างแอปทำแบบ requirements → design → tasks
+- เอกสารเกี่ยวข้อง: `docs/ai-dlc-guide.md` (AI-DLC), `docs/android-testing-guide.md`
+
+> หมายเหตุ: รายละเอียด/ตัวเลือกของแต่ละฟีเจอร์อาจอัปเดตได้ ให้ยึดเอกสารทางการของ Kiro
+> เป็นหลักเมื่อมีข้อสงสัย

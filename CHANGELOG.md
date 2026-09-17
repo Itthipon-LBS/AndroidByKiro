@@ -719,6 +719,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ตัวอย่างจริง (เพิ่มฟีเจอร์ประวัติการสั่งอาหารใน FoodOrder), best practices, ข้อควรระวัง
   และแหล่งอ้างอิง AWS (เนื้อหาเรียบเรียงใหม่ตามข้อกำหนดลิขสิทธิ์)
 
+## 79. เพิ่มเอกสารฟีเจอร์ AI ของ Kiro (steering/skills/specs/hooks/MCP)
+
+**Added**
+- `docs/kiro-ai-features.md` — อธิบายกลไก AI ของ Kiro แบบเขียนตามได้จริง: Steering,
+  Skills, Specs, Hooks, MCP, `#` context พร้อมตัวอย่างไฟล์/โค้ดจริงของแต่ละอัน,
+  ตารางเลือกใช้, ข้อควรระวัง และอ้างอิงการใช้งานในโปรเจกต์นี้
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
