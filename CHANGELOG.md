@@ -753,6 +753,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   (Flutter/React Native/KMP/.NET MAUI), ตารางเทียบ, แนวทางเลือก, พื้นฐาน Android Native
   ที่ต้องรู้ และเครื่องมือ (มีหัวข้อถัดไปไว้ต่อยอด)
 
+## 84. เพิ่มหัวข้อต่อในเอกสาร Android สำหรับโปรแกรมเมอร์
+
+**Added**
+- ใน `docs/android-for-programmers.md` เพิ่มหัวข้อ: โครงสร้างโปรเจกต์, Lifecycle
+  (จุดพลาดบ่อย + ViewModel/SavedStateHandle/viewLifecycleOwner), การจัดการ state/data
+  (StateFlow, event, DataStore/Room, Retrofit), permissions & ความปลอดภัย และลิงก์อ่านต่อ
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

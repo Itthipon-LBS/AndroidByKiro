@@ -65,12 +65,57 @@
 
 ---
 
-## หัวข้อถัดไป (จะเพิ่มภายหลัง)
+## 4. โครงสร้างโปรเจกต์ Android (สั้น ๆ)
 
-- โครงสร้างโปรเจกต์ Android
-- Lifecycle ของ Activity/Fragment
-- การจัดการ state และ data
-- การทำ test (ดู `docs/android-testing-guide.md`)
-- ความปลอดภัย & permissions
+```
+app/
+├── build.gradle.kts          ตั้งค่า build ของโมดูล app
+└── src/main/
+    ├── AndroidManifest.xml    ประกาศ Activity, permission, ไอคอน
+    ├── java/<package>/        โค้ด Kotlin (แบ่งเป็น data / ui / di ...)
+    └── res/                   ทรัพยากร (ไม่ใช่โค้ด)
+        ├── layout/            ไฟล์ UI (XML)
+        ├── values/            strings, colors, themes
+        ├── drawable/          ไอคอน/รูป vector
+        └── navigation/        nav_graph.xml
+```
 
-> เอกสารนี้เน้นเฉพาะเรื่องสำคัญ — รายละเอียดเวอร์ชัน/ศัพท์เทคนิคดูที่ `docs/android-versions.md`
+- **แยกโค้ด (`java/`) ออกจากทรัพยากร (`res/`)** เสมอ
+- จัดแพ็กเกจตามชั้น MVVM: `data`, `ui`, `di` (ดูโครงจริงใน `README.md`)
+
+## 5. Lifecycle (วงจรชีวิต) — เรื่องที่พลาดบ่อย
+
+**Activity/Fragment มีวงจรชีวิต** ที่ระบบเรียกตามสถานะ:
+```
+onCreate → onStart → onResume → (ใช้งาน) → onPause → onStop → onDestroy
+```
+- **หมุนจอ/เปลี่ยน config = สร้างใหม่** → ตัวแปรใน Activity/Fragment หาย
+- **ทางแก้:** เก็บ state ที่ต้องรอดใน **ViewModel** (รอด config change) และ
+  **SavedStateHandle** (รอด process death)
+- **Fragment มี 2 lifecycle:** ตัว Fragment กับ **view ของมัน** (`viewLifecycleOwner`) —
+  observe ข้อมูลด้วย `viewLifecycleOwner` และเคลียร์ ViewBinding ใน `onDestroyView`
+
+## 6. การจัดการ State และ Data
+
+- **UI state:** เก็บใน ViewModel เปิดเป็น **`StateFlow`** (หรือ LiveData) แบบ read-only
+- **One-shot event** (toast/navigate): ใช้ **`Channel`/`SharedFlow`** ไม่ใช่ state
+- **ข้อมูลถาวรในเครื่อง:**
+  - **DataStore** — เก็บค่า preference/คู่ key-value (แทน SharedPreferences)
+  - **Room** — ฐานข้อมูล SQLite แบบมี type-safe
+- **ข้อมูลจากเน็ต:** **Retrofit** (REST) หรือ **Ktor** + coroutines
+- **หลักการ:** UI ← observe ← ViewModel ← Repository ← (DB/Network)
+
+## 7. Permissions & ความปลอดภัย (สั้น ๆ)
+
+- ขอ **runtime permission** ตอนใช้งานจริง (กล้อง, ตำแหน่ง ฯลฯ) — ผู้ใช้ปฏิเสธได้ ต้องเผื่อ
+- ขอ **เท่าที่จำเป็น** + อธิบายเหตุผล; ตำแหน่งใช้ "ขณะใช้แอป"/approximate เมื่อพอ
+- อย่าเก็บ **ข้อมูลลับ** (token/key) แบบ plain text; ใช้ที่จัดเก็บที่ปลอดภัยและ HTTPS
+- ระวังข้อมูลอ่อนไหวตอนทำ Auto Backup (ดู `docs/android-versions.md`)
+
+## 8. อ่านต่อ
+
+- **ประวัติเวอร์ชัน + ศัพท์เทคนิค:** `docs/android-versions.md`
+- **การทำ test:** `docs/android-testing-guide.md`
+- **โครงสร้างโปรเจกต์จริง (MVVM):** `README.md`
+
+> เอกสารนี้เน้นเฉพาะเรื่องสำคัญ ให้เห็นภาพรวมเร็ว — เจาะลึกแต่ละเรื่องดูเอกสารที่อ้างถึง
