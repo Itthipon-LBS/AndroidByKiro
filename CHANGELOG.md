@@ -796,6 +796,22 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   race condition, bridge, dependency hell, แบต/ร้อน, startup, ANR, offline) พร้อมอาการและ
   วิธีเลี่ยงสั้น ๆ + ธีมร่วมของปัญหา
 
+## 90. จัดระเบียบเอกสาร android-for-programmers + ตารางเทียบปัญหา Native vs Cross-Platform
+
+**Changed**
+- เขียน `docs/android-for-programmers.md` ใหม่ทั้งไฟล์ให้เป็นระเบียบและอ่านง่ายขึ้น: แบ่ง
+  เป็น 2 ส่วนชัดเจน — **ส่วน A: Native vs Cross-Platform** (คืออะไร, ตารางเทียบภาพรวม,
+  ข้อดี/ข้อเสีย, แนวทางเลือก) และ **ส่วน B: พื้นฐาน Android Native** (สแตก, โครงสร้าง,
+  lifecycle, state/data, permissions, เครื่องมือ) พร้อมสารบัญด้านบน
+- ยุบเนื้อหาซ้ำซ้อนเดิม (เจาะข้อแตกต่าง/มุมธุรกิจ/มุมผู้ใช้หลายบล็อก) ให้กระชับ และย่อ
+  หัวข้อเจาะลึกอาการ "กดปุ่มไม่ทำงาน" 2 กรณีให้สั้นลงแต่คงโค้ดตัวอย่าง `try/finally` + timeout
+
+**Added**
+- ตาราง **"ปัญหาเชิงเทคนิค: Native vs Cross-Platform"** เทียบปัญหาเดียวกัน 17 แถว
+  (กดปุ่มไม่ติด/ค้าง, ANR, memory leak, jank, OOM, back stack, keyboard, state หาย,
+  deep link, platform bug, race condition, debug crash, dependency, แบต/ร้อน, ฟีเจอร์ OS,
+  a11y) ว่าแต่ละแนวทางเจอมาก/น้อยและเพราะอะไร
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

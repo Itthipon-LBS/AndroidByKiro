@@ -1,303 +1,180 @@
 # Android สำหรับโปรแกรมเมอร์ (ฉบับสรุปสั้น)
 
-เอกสารนี้สรุป **เฉพาะเรื่องสำคัญ** ที่โปรแกรมเมอร์ควรรู้ก่อนพัฒนาแอป Android — สั้น กระชับ
-เข้าใจง่าย
+สรุป **เฉพาะเรื่องสำคัญ** ที่โปรแกรมเมอร์ควรรู้ก่อนพัฒนาแอป Android — สั้น กระชับ เข้าใจง่าย
+
+**สารบัญ**
+- ส่วน A — [Native vs Cross-Platform](#a-native-vs-cross-platform)
+- ส่วน B — [พื้นฐาน Android Native](#b-พื้นฐาน-android-native)
 
 ---
 
-## 1. Native vs Cross-Platform: เลือกทางไหน
+# A. Native vs Cross-Platform
 
-สิ่งแรกที่ต้องตัดสินใจคือจะเขียนแอปแบบไหน
+## A1. สองแนวทางคืออะไร
 
-### Native (เขียนเจาะจงแต่ละแพลตฟอร์ม)
-- **Android:** Kotlin (หรือ Java) + Android SDK
-- **iOS:** Swift + iOS SDK
-- แยกโค้ด 2 ชุด (Android/iOS) เขียนคนละที
+**Native — เขียนเจาะจงแต่ละแพลตฟอร์ม**
+- Android: Kotlin (หรือ Java) + Android SDK
+- iOS: Swift + iOS SDK
+- แยกโค้ด 2 ชุด
 
-### Cross-Platform (เขียนครั้งเดียว รันหลายแพลตฟอร์ม)
-- **Flutter** (ภาษา Dart) — วาด UI เอง, ลื่น, นิยมมาก
-- **React Native** (JavaScript/TypeScript) — ใช้ React, เหมาะทีมสาย web
-- **Kotlin Multiplatform (KMP)** — แชร์ logic ด้วย Kotlin, ทำ UI native ได้ (Compose Multiplatform)
+**Cross-Platform — เขียนครั้งเดียว รันหลายแพลตฟอร์ม**
+- **Flutter** (Dart) — วาด UI เองด้วย engine, ลื่น, นิยมมาก
+- **React Native** (JS/TS) — map เป็น native view จริง (มี bridge)
+- **Kotlin Multiplatform (KMP)** — แชร์ logic ด้วย Kotlin, UI native ได้
 - **.NET MAUI** (C#) — สาย Microsoft
 
-### เทียบให้เห็นภาพ
+## A2. ตารางเปรียบเทียบภาพรวม
 
 | ประเด็น | Native | Cross-Platform |
 |---------|--------|----------------|
 | โค้ด | 2 ชุด (Android/iOS) | ชุดเดียวใช้หลายที่ |
-| ประสิทธิภาพ | สูงสุด | ดี (ส่วนใหญ่พอสำหรับแอปทั่วไป) |
-| เข้าถึงฟีเจอร์เครื่อง | ครบ/เร็วที่สุด (API ใหม่มาทันที) | ต้องรอ plugin/bridge บางที |
-| ความเร็วในการพัฒนา | ช้ากว่า (ทำ 2 แพลตฟอร์ม) | เร็วกว่า (เขียนครั้งเดียว) |
-| ต้นทุน/ทีม | ต้องมีคนสาย Android + iOS | ทีมเล็กกว่าได้ |
-| UI ตรงตามแพลตฟอร์ม | เป๊ะที่สุด | ใกล้เคียง (Flutter วาดเอง) |
+| ประสิทธิภาพ | สูงสุด | ดี (พอสำหรับแอปทั่วไป) |
+| เข้าถึงฟีเจอร์เครื่อง/API ใหม่ | ได้ทันที | รอ plugin/bridge |
+| ความเร็วพัฒนา | ช้ากว่า | เร็วกว่า |
+| ต้นทุน/ทีม | ต้องมีสาย Android + iOS | ทีมเล็กกว่าได้ |
+| UI ตรงตามแพลตฟอร์ม | เป๊ะสุด | ใกล้เคียง |
+| ขนาดแอป/startup | เล็ก/เร็ว | ใหญ่/ช้ากว่า (แบก engine) |
+| การอัปเดต | ต้องส่งสโตร์ | มี OTA/hot update บางส่วน |
+| ความยั่งยืนระยะยาว | OS vendor ดูแล | ขึ้นกับผู้ดูแล framework |
 
-### เลือกอย่างไร (สรุปตัดสินใจ)
-- **เลือก Native เมื่อ:** ต้องการประสิทธิภาพสูงสุด, ใช้ฮาร์ดแวร์/API ใหม่หนัก (กล้อง, AR,
-  เซ็นเซอร์, กราฟิก), UX ต้องเป๊ะตามแพลตฟอร์ม
-- **เลือก Cross-Platform เมื่อ:** อยากออกทั้ง Android+iOS เร็ว/ประหยัด, แอปทั่วไป
-  (ธุรกิจ/ฟอร์ม/CRUD), ทีมเล็ก
-- **ทางสายกลาง:** **KMP** แชร์ logic (network/business) แต่ทำ UI native แต่ละฝั่ง
+## A3. ข้อดี / ข้อเสีย (สรุป)
 
-### เจาะข้อแตกต่างที่ชัดเจน (เชิงเทคนิค)
+**Native** — ✅ ประสิทธิภาพสูงสุด, เข้าถึง API ใหม่ก่อน, UX เป๊ะ, debug ลึก
+&nbsp;&nbsp;❌ เขียน 2 ชุด, ต้นทุน/เวลา/ทีมมากกว่า
 
-- **การรัน UI:**
-  - Native — ใช้ UI toolkit ของแพลตฟอร์มตรง ๆ (Android View/Compose, iOS UIKit/SwiftUI)
-  - Flutter — **วาด UI เองด้วย engine (Skia/Impeller)** ไม่ใช้ native widget → หน้าตา
-    เหมือนกันทุกเครื่อง แต่ไม่ได้ใช้ของระบบ
-  - React Native — เขียน JS แล้ว **map ไปเป็น native view จริง** (มี bridge/JSI คั่น)
-- **การเข้าถึงฮาร์ดแวร์/API ใหม่:**
-  - Native — ได้ทันทีที่ Google/Apple ปล่อย
-  - Cross-Platform — ต้อง **รอ plugin/bridge** หรือเขียน native module เอง
-- **ขนาดแอป:** Native มักเล็กกว่า; Cross-Platform แบก runtime/engine → ไฟล์ใหญ่ขึ้น
-- **การอัปเดต OS:** Native ปรับตาม behavior change ได้ตรง; Cross-Platform ต้องรอ
-  framework/plugin อัปเดตตาม
+**Cross-Platform** — ✅ โค้ดชุดเดียว, พัฒนาเร็ว, ทีมเล็กได้, UI สม่ำเสมอ
+&nbsp;&nbsp;❌ ประสิทธิภาพ/ฟีเจอร์ลึกสู้ native ไม่ได้บางเคส, พึ่ง framework/plugin, ไฟล์ใหญ่
 
-### ข้อดี / ข้อเสีย
+## A4. เลือกอย่างไร
 
-**Native**
-- ✅ ประสิทธิภาพสูงสุด, เข้าถึง API/ฮาร์ดแวร์ใหม่ได้ก่อน, UX เป๊ะตามแพลตฟอร์ม, เครื่องมือ
-  /เอกสารครบ, debug/profile ลึก
-- ❌ ต้องเขียน 2 ชุด (Android/iOS) → ต้นทุน/เวลา/ทีมมากกว่า, logic ซ้ำซ้อน 2 ฝั่ง
+- **Native** — ต้องการประสิทธิภาพสูงสุด, ใช้ฮาร์ดแวร์/API ใหม่หนัก (กล้อง/AR/เซ็นเซอร์/กราฟิก), UX ต้องเป๊ะ
+- **Cross-Platform** — อยากออก Android+iOS เร็ว/ประหยัด, แอปทั่วไป (ธุรกิจ/ฟอร์ม/CRUD), ทีมเล็ก
+- **KMP (สายกลาง)** — แชร์ logic แต่ทำ UI native แต่ละฝั่ง
 
-**Cross-Platform**
-- ✅ โค้ดชุดเดียวออกได้หลายแพลตฟอร์ม, พัฒนาเร็ว, ทีมเล็กได้, UI สม่ำเสมอ (โดยเฉพาะ Flutter)
-- ❌ ประสิทธิภาพ/ฟีเจอร์ลึกอาจสู้ native ไม่ได้, พึ่ง framework/plugin (ถ้าเลิก maintain
-  ลำบาก), ไฟล์ใหญ่, บางเคสต้องเขียน native เสริมอยู่ดี
+## A5. ปัญหาเชิงเทคนิค: Native vs Cross-Platform
 
-### ปัญหาที่พบบ่อย — ฝั่งโปรแกรมเมอร์
+ตารางนี้เทียบ **ปัญหาเดียวกันว่าแต่ละแนวทางเจอมาก/น้อยและเพราะอะไร** (หลายปัญหาเจอได้ทั้ง
+คู่ แต่ cross-platform มักเจอบ่อยกว่า/แก้ยากกว่าเพราะมีชั้น bridge/engine + ต้องดูแล 2 ฝั่ง)
 
-**Native**
-- โค้ด logic **ซ้ำ 2 ฝั่ง** ต้องแก้ 2 ที่ (Android + iOS) → เพี้ยนกันได้
-- ตาม behavior change ของ OS ใหม่ทุกปี (target SDK, permission เข้มขึ้น)
-- Gradle/build config ซับซ้อนสำหรับมือใหม่
+| ปัญหา | Native | Cross-Platform |
+|-------|--------|----------------|
+| **กดปุ่มไม่ติด (event หลุดชั่วคราว)** | เจอน้อย (touch ระบบเดียว) | เจอบ่อยกว่า (bridge/JS thread หน่วง) |
+| **ปุ่มค้างถาวรจนรีสตาร์ท** | เจอได้ (state/loading ค้าง) | เจอได้ + debug ยากกว่า (ข้ามชั้น) |
+| **Main thread บล็อก / ANR** | เจอได้ | เจอได้ (งานหนักบน JS/UI thread) |
+| **Memory leak** | เจอได้ | เจอบ่อยกว่า (refs ข้าม bridge/JS) |
+| **List ยาวกระตุก (jank)** | คุม low-level ได้ | ขึ้นกับ engine/การ optimize |
+| **รูปกินแรม (OOM)** | คุม decode/cache เองได้ | ต้องพึ่ง image library |
+| **Navigation/back stack เพี้ยน** | ระบบ native ตรง | ข้ามชั้น ซับซ้อนกว่า |
+| **Keyboard บัง input** | จัดการตรง | ต้องเผื่อ 2 แพลตฟอร์ม |
+| **State หายตอน kill/rotate** | SavedStateHandle | ต้อง persist/restore เอง |
+| **Deep link / push ผิดหน้า** | API ตรง | ผ่าน plugin |
+| **Platform-specific bug** | เขียนเจาะจงอยู่แล้ว | โค้ดเดียวแต่พฤติกรรมต่าง 2 ฝั่ง |
+| **Race condition (async ซ้อน)** | structured concurrency (coroutine) | ต้องจัดการเอง |
+| **Debug native crash** | stack ชัด | ข้าม JS/Dart + native → ยาก |
+| **Dependency/เวอร์ชันพัง** | Gradle/SPM | framework + plugin ตกรุ่นบ่อย |
+| **เปลืองแบต/ร้อน** | คุม background ละเอียด | re-render/engine เพิ่ม overhead |
+| **ฟีเจอร์ OS ใหม่มาช้า** | ได้ทันที | รอ framework อัปเดต |
+| **Accessibility / integration ระบบ** | เนียน | อาจไม่ครบเท่า |
 
-**Cross-Platform**
-- **ต้องเขียน native module เอง** เมื่อ plugin ไม่รองรับฟีเจอร์ที่ต้องการ (เสียเวลาที่ตั้งใจจะประหยัด)
-- **dependency พัง/ตกรุ่น** เมื่อ framework อัปเกรด (React Native อัปเวอร์ชันแล้วเจ็บบ่อย)
-- debug ข้าม 2 ชั้น (JS/Dart + native) ยากกว่า
-- ปัญหาเฉพาะแพลตฟอร์มยังโผล่ (ต้องทดสอบทั้ง Android+iOS อยู่ดี)
+> **ธีมร่วมของเกือบทุกปัญหา:** อย่าบล็อก main/UI thread • จัดการ state/async ให้ครบทุกกรณี
+> • ทดสอบบนอุปกรณ์จริงทั้ง Android + iOS (cross-platform ไม่ได้แปลว่าไม่ต้องทดสอบ 2 ที่)
 
-### ปัญหาที่พบบ่อย — ฝั่งผู้ใช้งานแอป
+## A6. เจาะลึก: อาการ "กดปุ่มไม่ทำงาน" (พบบ่อย)
 
-**Native** — ปัญหาน้อยด้าน UX/ประสิทธิภาพ แต่แอปอาจ**ออกช้าไม่พร้อมกัน** 2 แพลตฟอร์ม
-(ทีมทำทีละฝั่ง)
+### กรณีที่ 1 — กดบ้างไม่กดบ้าง (event หลุดชั่วคราว)
 
-**Cross-Platform** (สิ่งที่ผู้ใช้อาจรู้สึกได้)
-- **ไฟล์แอปใหญ่กว่า** (กินพื้นที่/โหลดนาน)
-- บางแอปรู้สึก **"ไม่เหมือนของระบบ"** (animation/gesture/keyboard เพี้ยนเล็กน้อย)
-- **สะดุด/แลค** ในหน้าจอหนัก ๆ หรือ list ยาว (ขึ้นกับการทำ optimize)
-- ฟีเจอร์ใหม่ของ OS **มาช้ากว่า** (รอ framework อัปเดต)
-- ใช้แบตมากกว่าในบางกรณี
+**สาเหตุ:** bridge/JS thread ยุ่ง, main thread บล็อก, touch/gesture ชนกัน, hit area/overlay
+บัง, กดซ้ำระหว่าง disable, async ไม่แสดง loading
 
-### มุมเพิ่มเติม (ธุรกิจ/ทีม/ระยะยาว)
+**แก้:** ย้ายงานหนักออก UI thread, ใส่ loading + debounce, จัดการ gesture/`hitSlop`,
+ให้ปุ่มมี feedback ทันที (ripple/opacity)
 
-- **การจ้างงาน/ทีม:** Native ต้องมีคน Kotlin + Swift (2 สาย); Cross-Platform ใช้คนชุดเดียว
-  (Dart/JS/C#) — จ้างง่ายถ้าทีมมีสายนั้นอยู่แล้ว (เช่น web → React Native)
-- **เวลาออกตลาด & อัปเดต:** Cross-Platform ออก 2 แพลตฟอร์มพร้อมกัน + RN/Flutter มี
-  **OTA/hot update บางส่วน** (แก้ JS/Dart โดยไม่ต้องส่งสโตร์ใหม่ ภายใต้เงื่อนไขนโยบายสโตร์);
-  Native ทุกการแก้ต้องส่งสโตร์และรออนุมัติ
-- **Ecosystem/ไลบรารี:** Native ครบ/ทางการ/อายุยืน; Cross-Platform พึ่ง plugin ชุมชน —
-  คุณภาพไม่สม่ำเสมอ, **plugin ร้างได้**
-- **Learning curve:** Native เอกสารแน่นแต่ต้องเรียน 2 แพลตฟอร์ม; Cross-Platform เรียน
-  กรอบเดียว แต่สุดท้ายต้องเข้าใจความต่างของแต่ละแพลตฟอร์มอยู่ดีเมื่อเจอปัญหา
-- **การทดสอบ:** Native มีเครื่องมือทางการ (JUnit/Espresso, XCTest); Cross-Platform มี
-  test framework ของตัวเอง แต่ยังต้องทดสอบบนอุปกรณ์จริงทั้ง 2 ฝั่ง
-- **ความยั่งยืน (longevity):** Native ดูแลโดย OS vendor อยู่ยาวแน่นอน; Cross-Platform
-  **ขึ้นกับผู้ดูแล framework** → มีความเสี่ยงระยะยาวถ้าถูกลดบทบาท/เลิกพัฒนา
-- **รูปแบบอุปกรณ์:** Native รองรับจอพับ/แท็บเล็ต/Wear/TV/Auto ตรงและเร็ว; Cross-Platform
-  ฟอร์มแฟกเตอร์แปลก ๆ อาจช้า/ไม่ครบ
-- **ต้นทุนระยะยาว:** Cross-Platform เริ่มถูก/เร็ว แต่ถ้าแอปโตและต้องเขียน native module
-  เยอะ **ต้นทุนอาจไล่ทันหรือแซง native**
+### กรณีที่ 2 — ปุ่มตายถาวรจนต้องรีสตาร์ท (stuck state)
 
-### มุมผู้ใช้เพิ่มเติม
+ปุ่มตายสนิท หายเมื่อรีสตาร์ทเท่านั้น = แอปติดใน **สถานะพังค้าง** ที่ถูกล้างตอนเปิดใหม่
 
-- Cross-Platform: เปิดครั้งแรกอาจช้ากว่า (warm-up engine), **accessibility อาจไม่ครบ
-  เท่า native**, การผสานกับระบบ (share, widget, shortcut) บางทีไม่เนียนเท่า
-- Native: a11y และ integration กับระบบมักเนียนกว่า, ฟีเจอร์ใหม่ของ OS มาถึงผู้ใช้เร็วกว่า
+**สาเหตุ (เรียงตามโอกาส):**
+1. **Loading/async ค้าง** (พบมากสุด) — ตั้ง `isLoading=true` แต่งานค้าง/พังเงียบ/ไม่มี
+   timeout → ไม่เคยตั้งกลับ `false` → ปุ่ม disable ถาวร
+2. Main thread บล็อกถาวร (deadlock/loop) — มักเลื่อนจอไม่ได้ด้วย
+3. State ไม่รีเซ็ต (overlay/gesture ค้าง)
+4. Exception ถูก catch เงียบ
+5. Memory/resource leak (เป็นหลังใช้นาน ๆ)
 
-> สรุป: **Native ชนะเรื่องคุณภาพ/ความลึก แต่แพงและช้ากว่า** • **Cross-Platform ชนะเรื่อง
-> ความเร็ว/ต้นทุน แต่แลกด้วยการพึ่ง framework และงานลึกบางอย่าง** — เลือกตาม **ขนาดทีม,
-> งบ, ความซับซ้อนของแอป และแผนระยะยาว**
+**จุดสังเกต:** เลื่อนจอไม่ได้เลย → ข้อ 2 • เลื่อนได้แต่บางปุ่มตาย → ข้อ 1/3/4 •
+เกิดหลัง action ที่พึ่งเน็ต → ข้อ 1
 
-### ทำไม Cross-Platform บางทีกดปุ่มไม่ติด (สาเหตุ + วิธีแก้)
-
-อาการ "กดปุ่มแล้วทำงานบ้าง ไม่ทำงานบ้าง" ส่วนใหญ่ **ไม่ใช่ปุ่มพัง** แต่การกด
-**ถูกดีเลย์/ตกหล่น** เพราะ event ต้องวิ่งผ่านหลายชั้นและ thread ที่ยุ่ง
-
-**สาเหตุที่พบบ่อย**
-- **Bridge/JS thread ติดคอขวด (React Native):** การกดวิ่งจาก native → bridge → JS
-  ถ้า JS thread กำลังยุ่ง (คำนวณหนัก/re-render ใหญ่) การกดจะดีเลย์หรือตกหล่น
-- **UI thread โดนบล็อก:** ทำงานหนัก (parse JSON ใหญ่, โหลดรูป, loop) บน main thread →
-  แอปค้างชั่วขณะ กดไม่รับ
-- **touch/gesture ชนกัน:** ปุ่มอยู่ใน scroll/list/gesture ที่ "แย่งจับ" การแตะ → บางครั้งถูก
-  ตีความเป็น scroll ไม่ใช่ tap (พบบ่อยเมื่อซ้อน component หลายชั้น)
-- **hit area / overlay / z-index:** พื้นที่กดจริงเล็กกว่าที่เห็น หรือมี element โปร่งใสทับอยู่
-- **กดซ้ำ/debounce/state ไม่พร้อม:** ปุ่มถูก disable ชั่วคราว หรือ handler ยังไม่ bind
-  ตอนกด (เช่นกดระหว่างหน้าจอกำลังโหลด)
-- **async ไม่รอผล:** onClick เรียกงาน async แต่ไม่แสดง loading → ผู้ใช้รู้สึกว่าไม่มีอะไรเกิดขึ้น
-
-**ทำไม Native เจอน้อยกว่า:** touch วิ่งในระบบเดียว ไม่ข้าม bridge/JS thread → latency ต่ำ
-กว่า (แต่ native ก็เจอได้ถ้าบล็อก main thread หรือ touch ซ้อนกัน)
-
-**วิธีแก้ (นักพัฒนา)**
-- ย้ายงานหนักออกจาก UI/JS thread (background/worker/coroutine)
-- ใส่ **loading state + debounce** ให้ปุ่มสื่อสถานะชัดและกันกดซ้ำ
-- จัดการ **gesture priority** และ `hitSlop`; ตรวจ z-index/overlay ว่าไม่มีอะไรบังปุ่ม
-- ให้ปุ่มมี **feedback ทันที** (ripple/opacity) ผู้ใช้จะรู้ว่ากดติด
-
-**วิธีเลี่ยง (ผู้ใช้)**
-- อัปเดตแอปเวอร์ชันล่าสุด, ปิด-เปิดแอป, กดช้าลงหนึ่งจังหวะ (บางแอป debounce อยู่)
-
-### กดปุ่มไม่ติด "ถาวร" จนต้องรีสตาร์ทแอป (state/loading ค้าง)
-
-ต่างจากอาการด้านบน (กดบ้างไม่กดบ้าง = event หลุดชั่วคราว) — อาการนี้คือ **ปุ่มตายสนิท
-กดกี่ครั้งก็ไม่ทำงาน และหายก็ต่อเมื่อรีสตาร์ทแอป** = แอปติดอยู่ใน **สถานะพังค้าง (stuck
-state)** ซึ่งถูกล้างเมื่อสร้าง state ใหม่ตอนเปิดแอปใหม่
-
-**สาเหตุที่พบบ่อย (เรียงตามโอกาส)**
-1. **Loading/async ค้าง (พบมากสุด):** onClick เรียกงาน async แล้วตั้ง `isLoading = true`
-   แต่งาน **ค้าง/พังเงียบ/ไม่มี timeout** → ไม่เคยตั้งกลับ `false` → ปุ่มถูก disable ถาวร
-2. **Main/UI thread ถูกบล็อกถาวร:** deadlock / loop ไม่จบ / รอ lock → UI ยังเห็นแต่รับ
-   touch ไม่ได้เลย (มักเลื่อนจอไม่ได้ด้วย)
-3. **State ผิดแล้วไม่รีเซ็ต:** overlay/dialog ที่มองไม่เห็นค้างทับอยู่บนสุด, หรือ gesture
-   ค้าง capture การแตะ
-4. **Exception ถูก catch เงียบ:** error ใน handler ถูกกลืนโดยไม่รีเซ็ต state → ปุ่ม "ตาย"
-5. **Memory/resource leak:** listener/thread pool รั่วสะสม (เป็นหลังใช้ไปนาน ๆ)
-
-**จุดสังเกตแยกสาเหตุ**
-- เลื่อนจอไม่ได้เลย → ข้อ 2 (thread บล็อก) • เลื่อนได้แต่บางปุ่มตาย → ข้อ 1/3/4
-- เกิดหลัง action ที่พึ่งเน็ตเสมอ (เช่นเน็ตหลุด) → ข้อ 1 (async ไม่มี timeout)
-- เกิดหลังใช้ไปนาน ๆ → ข้อ 5 (leak)
-
-**วิธีหาสาเหตุ:** ดู **Logcat** ตอนกดปุ่มที่ตาย (มี exception เงียบไหม), ใช้ profiler ดูว่า
-main thread ค้างที่ไหน, ตรวจว่า state ที่คุมปุ่มถูกรีเซ็ตทุกกรณี
-
-**วิธีแก้ที่ตรงจุดสุด (ข้อ 1): รีเซ็ต state ใน `finally` เสมอ + ใส่ timeout**
+**วิธีแก้ตรงจุด (ข้อ 1): รีเซ็ต state ใน `finally` เสมอ + ใส่ timeout**
 ```kotlin
 fun onPlaceOrderClick() {
     viewModelScope.launch {
         _isLoading.value = true
         try {
-            withTimeout(15_000) {          // กันงานค้างไม่จบ
-                repository.placeOrder()
-            }
+            withTimeout(15_000) { repository.placeOrder() }   // กันงานค้าง
         } catch (e: Exception) {
-            _error.value = e.message       // แจ้ง error ไม่กลืนเงียบ
+            _error.value = e.message                          // ไม่กลืน error เงียบ
         } finally {
-            _isLoading.value = false       // ปลดล็อกปุ่มเสมอ ไม่ว่าจะสำเร็จ/พัง
+            _isLoading.value = false                          // ปลดล็อกปุ่มเสมอ
         }
     }
 }
 ```
-
-**หลักกันพลาด:** อย่าตั้ง state กลับ "เฉพาะตอนสำเร็จ" — ให้ปลดล็อกใน `finally` ทุกครั้ง,
-ห้ามบล็อก main thread, และอย่า catch แล้วเงียบโดยไม่คืนสถานะปุ่ม
-
-### ปัญหาเชิงเทคนิคอื่น ๆ ที่พบบ่อยใน Cross-Platform
-
-หลายข้อ **ไม่ได้เฉพาะ cross-platform** (native ก็เจอ) แต่ cross-platform มัก **เจอบ่อย
-กว่า/แก้ยากกว่า** เพราะมีชั้น bridge/engine + ต้องดูแล 2 แพลตฟอร์มพร้อมกัน
-
-| ปัญหา | อาการ | วิธีเลี่ยงสั้น ๆ |
-|-------|-------|------------------|
-| **Memory leak** | ใช้ไปนาน ๆ อืด/แครช | ถอด listener/subscription ให้ครบ, อย่าถือ reference view/context ค้าง |
-| **List กระตุก (jank)** | เลื่อน list ยาวสะดุด | ใช้ list แบบ recycle (FlatList/LazyColumn), ทำ item ให้เบา |
-| **รูปกินแรม (OOM)** | แกลเลอรีแครช | ย่อขนาด + cache รูป (ใช้ image library) |
-| **Back stack เพี้ยน** | กด back ไปหน้าผิด/หน้าซ้อน | จัดการ navigation/stack ให้ชัด, ทดสอบ back ทุกเส้นทาง |
-| **Keyboard บัง input** | คีย์บอร์ดทับช่องกรอก | ใช้ scroll/resize เมื่อคีย์บอร์ดขึ้น, ทดสอบทั้ง Android/iOS |
-| **State หายตอน kill/rotate** | กลับมาแล้วข้อมูลหาย | persist/restore state (เทียบ SavedStateHandle ของ native) |
-| **Deep link/push ผิดหน้า** | เปิดจาก noti แล้ว route ผิด/ค้าง | ทดสอบ deep link ทุกกรณี รวมตอนแอปปิดอยู่ |
-| **Platform-specific bug** | Android ได้ iOS เพี้ยน | ทดสอบทั้ง 2 ฝั่ง (permission, safe area, ฟอนต์, timezone) |
-| **Race condition** | ยิงซ้ำ/ผลมาไม่ตามลำดับ → ข้อมูลผิด | ยกเลิก request เก่า, debounce, ตรวจลำดับผลลัพธ์ |
-| **Native module/bridge พัง** | crash ที่ debug ยาก | ใช้ plugin ตรงเวอร์ชัน, ดู native log ประกอบ |
-| **Dependency hell** | อัปเกรดแล้ว build พัง | ล็อกเวอร์ชัน, อัปเกรดทีละก้าว, อ่าน migration guide |
-| **เปลืองแบต/ร้อน** | แบตหมดเร็ว/เครื่องร้อน | หยุด timer/animation/location เมื่อไม่ใช้, ลด re-render |
-| **แอปใหญ่/startup ช้า** | cold start นาน | ลด asset, lazy-load, วัด startup time |
-| **ANR / freeze** | ระบบเตือน "แอปไม่ตอบสนอง" | อย่าทำงานหนักบน main thread |
-| **Offline/เน็ตไม่เสถียร** | ค้าง/แสดงข้อมูลเก่า | ใส่ timeout + retry + สถานะออฟไลน์ชัดเจน |
-
-> ธีมร่วมของเกือบทุกปัญหา: **อย่าบล็อก main/UI thread, จัดการ state/async ให้ครบทุกกรณี,
-> และทดสอบบนอุปกรณ์จริงทั้ง Android + iOS** — cross-platform ไม่ได้แปลว่า "เขียนครั้งเดียว
-> แล้วไม่ต้องทดสอบสองที่"
-
-> โปรเจกต์ **FoodOrder** ในที่นี้เป็น **Native Android (Kotlin + MVVM + XML)**
+> หลักกันพลาด: อย่าตั้ง state กลับ "เฉพาะตอนสำเร็จ", ห้ามบล็อก main thread, อย่า catch เงียบ
 
 ---
 
-## 2. พื้นฐาน Android Native ที่ต้องรู้ (สั้น ๆ)
+# B. พื้นฐาน Android Native
 
+## B1. สแตกพื้นฐาน
 - **ภาษา:** Kotlin (ทางการ), รองรับ Java
-- **UI 2 แนวทาง:**
-  - **XML + View** (ดั้งเดิม, ViewBinding) — โปรเจกต์นี้ใช้แบบนี้
-  - **Jetpack Compose** (UI แบบ declarative, แนวทางใหม่ที่แนะนำ)
-- **สถาปัตยกรรมแนะนำ:** **MVVM** (+ Repository) — แยก UI / logic / data
-- **องค์ประกอบหลัก:** Activity, Fragment, ViewModel, Navigation
+- **UI:** XML + View (ViewBinding) — โปรเจกต์นี้ใช้ • หรือ **Jetpack Compose** (แนวทางใหม่)
+- **สถาปัตยกรรม:** **MVVM** (+ Repository) — แยก UI / logic / data
+- **องค์ประกอบ:** Activity, Fragment, ViewModel, Navigation
 - **Async:** Coroutines + Flow
 - **Build:** Gradle (Kotlin DSL) + Version Catalog
-- **min/target/compile SDK:** กำหนดช่วงเวอร์ชันที่รองรับ (ดู `docs/android-versions.md`)
 
----
-
-## 3. เครื่องมือ
-
-- **Android Studio** — IDE หลัก (มาพร้อม SDK, emulator, profiler)
-- **Emulator / เครื่องจริง** — ทดสอบแอป
-- **Gradle** — build system
-- **Git** — version control
-
----
-
-## 4. โครงสร้างโปรเจกต์ Android (สั้น ๆ)
-
+## B2. โครงสร้างโปรเจกต์
 ```
 app/
-├── build.gradle.kts          ตั้งค่า build ของโมดูล app
+├── build.gradle.kts          ตั้งค่า build
 └── src/main/
     ├── AndroidManifest.xml    ประกาศ Activity, permission, ไอคอน
-    ├── java/<package>/        โค้ด Kotlin (แบ่งเป็น data / ui / di ...)
-    └── res/                   ทรัพยากร (ไม่ใช่โค้ด)
-        ├── layout/            ไฟล์ UI (XML)
-        ├── values/            strings, colors, themes
-        ├── drawable/          ไอคอน/รูป vector
-        └── navigation/        nav_graph.xml
+    ├── java/<package>/        โค้ด Kotlin (data / ui / di ...)
+    └── res/                   ทรัพยากร (layout, values, drawable, navigation)
 ```
+- แยกโค้ด (`java/`) ออกจากทรัพยากร (`res/`) เสมอ • จัดแพ็กเกจตามชั้น MVVM
 
-- **แยกโค้ด (`java/`) ออกจากทรัพยากร (`res/`)** เสมอ
-- จัดแพ็กเกจตามชั้น MVVM: `data`, `ui`, `di` (ดูโครงจริงใน `README.md`)
-
-## 5. Lifecycle (วงจรชีวิต) — เรื่องที่พลาดบ่อย
-
-**Activity/Fragment มีวงจรชีวิต** ที่ระบบเรียกตามสถานะ:
+## B3. Lifecycle (จุดพลาดบ่อย)
 ```
 onCreate → onStart → onResume → (ใช้งาน) → onPause → onStop → onDestroy
 ```
 - **หมุนจอ/เปลี่ยน config = สร้างใหม่** → ตัวแปรใน Activity/Fragment หาย
-- **ทางแก้:** เก็บ state ที่ต้องรอดใน **ViewModel** (รอด config change) และ
-  **SavedStateHandle** (รอด process death)
-- **Fragment มี 2 lifecycle:** ตัว Fragment กับ **view ของมัน** (`viewLifecycleOwner`) —
-  observe ข้อมูลด้วย `viewLifecycleOwner` และเคลียร์ ViewBinding ใน `onDestroyView`
+- **แก้:** เก็บ state ที่ต้องรอดใน **ViewModel** (รอด config change) + **SavedStateHandle**
+  (รอด process death)
+- **Fragment มี 2 lifecycle:** observe ด้วย `viewLifecycleOwner`, เคลียร์ ViewBinding ใน
+  `onDestroyView`
 
-## 6. การจัดการ State และ Data
+## B4. State & Data
+- **UI state:** ViewModel เปิดเป็น **StateFlow** (read-only)
+- **One-shot event** (toast/navigate): **Channel/SharedFlow** (ไม่ใช่ state)
+- **ข้อมูลในเครื่อง:** **DataStore** (preference), **Room** (ฐานข้อมูล)
+- **ข้อมูลเน็ต:** **Retrofit**/**Ktor** + coroutines
+- **ทิศทางข้อมูล:** UI ← observe ← ViewModel ← Repository ← (DB/Network)
 
-- **UI state:** เก็บใน ViewModel เปิดเป็น **`StateFlow`** (หรือ LiveData) แบบ read-only
-- **One-shot event** (toast/navigate): ใช้ **`Channel`/`SharedFlow`** ไม่ใช่ state
-- **ข้อมูลถาวรในเครื่อง:**
-  - **DataStore** — เก็บค่า preference/คู่ key-value (แทน SharedPreferences)
-  - **Room** — ฐานข้อมูล SQLite แบบมี type-safe
-- **ข้อมูลจากเน็ต:** **Retrofit** (REST) หรือ **Ktor** + coroutines
-- **หลักการ:** UI ← observe ← ViewModel ← Repository ← (DB/Network)
-
-## 7. Permissions & ความปลอดภัย (สั้น ๆ)
-
-- ขอ **runtime permission** ตอนใช้งานจริง (กล้อง, ตำแหน่ง ฯลฯ) — ผู้ใช้ปฏิเสธได้ ต้องเผื่อ
+## B5. Permissions & ความปลอดภัย
+- ขอ **runtime permission** ตอนใช้จริง (ผู้ใช้ปฏิเสธได้ ต้องเผื่อ)
 - ขอ **เท่าที่จำเป็น** + อธิบายเหตุผล; ตำแหน่งใช้ "ขณะใช้แอป"/approximate เมื่อพอ
-- อย่าเก็บ **ข้อมูลลับ** (token/key) แบบ plain text; ใช้ที่จัดเก็บที่ปลอดภัยและ HTTPS
-- ระวังข้อมูลอ่อนไหวตอนทำ Auto Backup (ดู `docs/android-versions.md`)
+- อย่าเก็บ **ข้อมูลลับ** (token/key) แบบ plain text; ใช้ HTTPS
+- ระวังข้อมูลอ่อนไหวตอนทำ Auto Backup
 
-## 8. อ่านต่อ
+## B6. เครื่องมือ
+- **Android Studio** (IDE + SDK + emulator + profiler) • **Gradle** (build) • **Git** (version control)
 
-- **ประวัติเวอร์ชัน + ศัพท์เทคนิค:** `docs/android-versions.md`
-- **การทำ test:** `docs/android-testing-guide.md`
-- **โครงสร้างโปรเจกต์จริง (MVVM):** `README.md`
+---
 
-> เอกสารนี้เน้นเฉพาะเรื่องสำคัญ ให้เห็นภาพรวมเร็ว — เจาะลึกแต่ละเรื่องดูเอกสารที่อ้างถึง
+## อ่านต่อ
+- ประวัติเวอร์ชัน + ศัพท์เทคนิค: `docs/android-versions.md`
+- การทำ test: `docs/android-testing-guide.md`
+- โครงสร้างโปรเจกต์จริง (MVVM): `README.md`
+
+> โปรเจกต์ **FoodOrder** ในที่นี้เป็น **Native Android (Kotlin + MVVM + XML)**
