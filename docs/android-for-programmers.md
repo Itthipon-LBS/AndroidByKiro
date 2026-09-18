@@ -417,6 +417,65 @@ Fragment/Compose ทั้งหมด
 > ระดับ Activity) ส่วนที่เหลือเป็นเรื่อง **สเกล/โครงสร้างทีม** ที่เลือกหลาย Activity เพราะ
 > คุ้มกว่า ไม่ใช่เพราะจำเป็น
 
+### B3.3 ตัวอย่าง: Drawer + Bottom Nav + หน้า detail (ซ่อน chrome)
+
+**โจทย์:** หน้าหลักมี Navigation Drawer (hamburger) + Bottom Navigation; กดปุ่มแล้วเปิด
+"หน้า detail" ที่มีแค่ toolbar + ปุ่ม back (ไม่มี bottom nav / drawer)
+
+**คำตอบ: ใช้ single-activity** — เพราะเป็นการนำทาง **ภายในแอปเราเอง** ล้วน ไม่มีแอปนอก/
+task พิเศษ/หลายหน้าต่างเข้ามาเกี่ยว จึงไม่เข้าเงื่อนไขต้องแยก Activity (ดู B3.2)
+
+**โครงสร้าง**
+```
+MainActivity (Activity เดียว)
+ └─ NavHostFragment            ← Navigation Component
+     ├─ กลุ่มหน้าหลัก (top-level ของ bottom nav)
+     │   ├─ HomeFragment
+     │   ├─ SearchFragment
+     │   └─ ProfileFragment
+     └─ DetailFragment         ← หน้าที่กดปุ่มแล้วเปิด (มีแค่ toolbar + back)
+```
+
+**หัวใจ: ซ่อน bottom nav + ล็อก drawer ตามหน้า** โดยฟัง destination ที่เปลี่ยน
+```kotlin
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        val navController = (supportFragmentManager
+            .findFragmentById(R.id.nav_host) as NavHostFragment).navController
+
+        // top-level = ไม่มีปุ่ม back, เปิด drawer ได้ (แสดงเป็น hamburger)
+        val topLevel = setOf(R.id.homeFragment, R.id.searchFragment, R.id.profileFragment)
+        val appBarConfig = AppBarConfiguration(topLevel, binding.drawerLayout)
+
+        setSupportActionBar(binding.toolbar)
+        binding.toolbar.setupWithNavController(navController, appBarConfig)
+        binding.bottomNav.setupWithNavController(navController)
+        binding.navigationView.setupWithNavController(navController)
+
+        // อยู่หน้า detail → ซ่อน bottom nav + ล็อก drawer (toolbar จะโชว์ลูกศร back เอง)
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            val isTopLevel = destination.id in topLevel
+            binding.bottomNav.isVisible = isTopLevel
+            binding.drawerLayout.setDrawerLockMode(
+                if (isTopLevel) DrawerLayout.LOCK_MODE_UNLOCKED
+                else DrawerLayout.LOCK_MODE_LOCKED_CLOSED
+            )
+        }
+    }
+}
+```
+- **เปิดหน้า detail:** `findNavController().navigate(R.id.action_home_to_detail)`
+- **ปุ่ม back:** `setupWithNavController` + `AppBarConfiguration` จัดการให้เอง — หน้า
+  top-level โชว์ hamburger, หน้า detail โชว์ลูกศร back อัตโนมัติ
+
+> **จะพิจารณาแยก Activity เฉพาะเมื่อ** หน้า detail ต้องเปิด **แยก task** ใน recents,
+> แสดง **หน้าต่างแยก** พร้อมหน้าหลัก, หรือถูกเรียกจาก **แอปอื่น/deep link** เป็นจุดเข้า
+> อิสระ — เคสนี้ไม่มีสักข้อ จึงใช้ single-activity ได้เต็มที่
+
 ## B4. สถาปัตยกรรมที่แนะนำ
 - **แยกชั้น (layered):** UI layer → Domain (ตัวเลือก) → Data layer
 - **รูปแบบยอดนิยม:** **MVVM** (Model-View-ViewModel) และ **MVI** (state ก้อนเดียว)

@@ -891,6 +891,15 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   แต่จริง ๆ single-activity ทำได้ (หน้าจอเยอะ, nested nav, dialog, onboarding, ล็อกอิน,
   แท็บ+drawer)
 
+## 100. เพิ่มตัวอย่าง Drawer + Bottom Nav + หน้า detail ใน B3.3
+
+**Added**
+- ใน `docs/android-for-programmers.md` เพิ่มหัวข้อ B3.3 ตัวอย่างจริง: หน้าหลักมี Navigation
+  Drawer + Bottom Navigation แล้วกดปุ่มเปิดหน้า detail ที่มีแค่ toolbar + back ควรใช้
+  single-activity — พร้อมโครงสร้าง NavHost, โค้ด `MainActivity` ที่ setup Navigation
+  Component (AppBarConfiguration + top-level destinations) และซ่อน bottom nav/ล็อก drawer
+  ตาม destination ที่เปลี่ยน พร้อมหมายเหตุว่าเมื่อไรจึงจะพิจารณาแยก Activity
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
