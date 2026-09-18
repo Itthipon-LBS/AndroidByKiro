@@ -4,7 +4,7 @@
 
 **สารบัญ**
 - ส่วน A — [Native vs Cross-Platform](#a-native-vs-cross-platform)
-- ส่วน B — [พื้นฐาน Android Native](#b-พื้นฐาน-android-native)
+- ส่วน B — [พื้นฐาน Android Native (ภาพรวม)](#b-พื้นฐาน-android-native-ภาพรวม)
 
 ---
 
@@ -223,58 +223,93 @@ fun onPlaceOrderClick() {
 
 ---
 
-# B. พื้นฐาน Android Native
+# B. พื้นฐาน Android Native (ภาพรวม)
 
-## B1. สแตกพื้นฐาน
-- **ภาษา:** Kotlin (ทางการ), รองรับ Java
-- **UI:** XML + View (ViewBinding) — โปรเจกต์นี้ใช้ • หรือ **Jetpack Compose** (แนวทางใหม่)
-- **สถาปัตยกรรม:** **MVVM** (+ Repository) — แยก UI / logic / data
-- **องค์ประกอบ:** Activity, Fragment, ViewModel, Navigation
-- **Async:** Coroutines + Flow
-- **Build:** Gradle (Kotlin DSL) + Version Catalog
+ภาพรวมสิ่งที่ประกอบกันเป็นแอป Android — เพื่อให้เห็นว่าแพลตฟอร์มนี้มีอะไรบ้าง
 
-## B2. โครงสร้างโปรเจกต์
-```
-app/
-├── build.gradle.kts          ตั้งค่า build
-└── src/main/
-    ├── AndroidManifest.xml    ประกาศ Activity, permission, ไอคอน
-    ├── java/<package>/        โค้ด Kotlin (data / ui / di ...)
-    └── res/                   ทรัพยากร (layout, values, drawable, navigation)
-```
-- แยกโค้ด (`java/`) ออกจากทรัพยากร (`res/`) เสมอ • จัดแพ็กเกจตามชั้น MVVM
+## B1. สแตกและภาษา
+- **ภาษา:** **Kotlin** (ภาษาทางการที่แนะนำ), ยังรองรับ **Java** (โปรเจกต์เก่าจำนวนมาก)
+- **SDK/แพลตฟอร์ม:** Android SDK + Jetpack (ชุดไลบรารีทางการของ Google)
+- **Build system:** **Gradle** (Groovy หรือ Kotlin DSL) + Version Catalog สำหรับจัดการ
+  เวอร์ชัน dependency รวมศูนย์
+- **รูปแบบแพ็กเกจ:** APK (ไฟล์ติดตั้ง) และ **AAB (Android App Bundle)** ที่ Play ใช้ส่งแอป
 
-## B3. Lifecycle (จุดพลาดบ่อย)
+## B2. สองแนวทางเขียน UI
+Android มี 2 แนวทางหลัก (เลือกได้ตามทีม/โปรเจกต์):
+
+| | XML + View | Jetpack Compose |
+|---|-----------|-----------------|
+| รูปแบบ | เขียน layout เป็น XML แยกจากโค้ด | เขียน UI เป็น Kotlin แบบ declarative |
+| อายุ | ดั้งเดิม, โปรเจกต์เก่าส่วนใหญ่ใช้ | แนวทางใหม่ที่ Google ผลักดัน |
+| ผูกค่ากับ view | `findViewById` / **ViewBinding** | ไม่มี view object แยก (state → UI) |
+| จุดเด่น | ทรัพยากร/ตัวอย่างเยอะ | โค้ดสั้น, จัดการ state ตรงไปตรงมา |
+
+## B3. องค์ประกอบระบบหลัก (4 App Components)
+Android สร้างแอปจาก "องค์ประกอบ" ที่ระบบรู้จักและเรียกใช้ได้:
+- **Activity** — หนึ่งหน้าจอ/จุดเข้าใช้งาน UI
+- **Service** — งานเบื้องหลังที่ไม่มี UI (เช่น เล่นเพลง, ซิงก์ข้อมูล)
+- **BroadcastReceiver** — รับ event จากระบบ/แอปอื่น (เช่น แบตต่ำ, บูตเครื่องเสร็จ)
+- **ContentProvider** — แชร์ข้อมูลข้ามแอปอย่างมีการควบคุม
+
+องค์ประกอบเสริมที่พบบ่อย: **Fragment** (ส่วน UI ย่อยใน Activity), **Intent**
+(ข้อความสั่งให้เปิด component/ส่งข้อมูลระหว่างกัน), **AndroidManifest.xml**
+(ประกาศ component, permission, ข้อมูลแอป)
+
+## B4. สถาปัตยกรรมที่แนะนำ
+- **แยกชั้น (layered):** UI layer → Domain (ตัวเลือก) → Data layer
+- **รูปแบบยอดนิยม:** **MVVM** (Model-View-ViewModel) และ **MVI** (state ก้อนเดียว)
+- **หลักการ:** UI สังเกต state จาก ViewModel; ViewModel คุย Repository; Repository
+  เป็นแหล่งความจริงเดียวที่รวมข้อมูลจาก DB/network
+- **ทิศทางข้อมูล:** `UI ← observe ← ViewModel ← Repository ← (DB / Network)`
+
+## B5. Lifecycle (จุดพลาดบ่อย)
 ```
 onCreate → onStart → onResume → (ใช้งาน) → onPause → onStop → onDestroy
 ```
-- **หมุนจอ/เปลี่ยน config = สร้างใหม่** → ตัวแปรใน Activity/Fragment หาย
-- **แก้:** เก็บ state ที่ต้องรอดใน **ViewModel** (รอด config change) + **SavedStateHandle**
-  (รอด process death)
-- **Fragment มี 2 lifecycle:** observe ด้วย `viewLifecycleOwner`, เคลียร์ ViewBinding ใน
-  `onDestroyView`
+- **หมุนจอ/เปลี่ยน config = สร้าง Activity/Fragment ใหม่** → ตัวแปรที่ถือไว้ตรง ๆ หาย
+- **แก้:** เก็บ state ที่ต้องรอดใน **ViewModel** (รอด config change) +
+  **SavedStateHandle** (รอด process death เมื่อระบบ kill แอป)
+- **Fragment มี 2 lifecycle:** ตัว Fragment และ view ของมัน — observe ข้อมูลด้วย
+  `viewLifecycleOwner` และเคลียร์ ViewBinding ใน `onDestroyView` เพื่อกัน memory leak
 
-## B4. State & Data
-- **UI state:** ViewModel เปิดเป็น **StateFlow** (read-only)
-- **One-shot event** (toast/navigate): **Channel/SharedFlow** (ไม่ใช่ state)
-- **ข้อมูลในเครื่อง:** **DataStore** (preference), **Room** (ฐานข้อมูล)
-- **ข้อมูลเน็ต:** **Retrofit**/**Ktor** + coroutines
-- **ทิศทางข้อมูล:** UI ← observe ← ViewModel ← Repository ← (DB/Network)
+## B6. การจัดการ State และข้อมูล
+- **UI state:** เปิดจาก ViewModel เป็น **StateFlow** (หรือ LiveData) แบบ read-only
+- **One-shot event** (toast/navigate): ใช้ **Channel/SharedFlow** ไม่ใช่ state ค้าง
+- **Async:** **Coroutines + Flow** (มาตรฐานปัจจุบันของ Kotlin/Android)
+- **ข้อมูลในเครื่อง:** **DataStore** (คู่ key-value/preference), **Room** (ฐานข้อมูล SQLite
+  แบบ type-safe)
+- **ข้อมูลจากเครือข่าย:** **Retrofit** หรือ **Ktor** (+ OkHttp) คู่กับ coroutines
+- **Dependency Injection:** **Hilt/Dagger** (ทางการ) หรือ **Koin** — ลดการผูกกันแน่น
 
-## B5. Permissions & ความปลอดภัย
-- ขอ **runtime permission** ตอนใช้จริง (ผู้ใช้ปฏิเสธได้ ต้องเผื่อ)
-- ขอ **เท่าที่จำเป็น** + อธิบายเหตุผล; ตำแหน่งใช้ "ขณะใช้แอป"/approximate เมื่อพอ
-- อย่าเก็บ **ข้อมูลลับ** (token/key) แบบ plain text; ใช้ HTTPS
-- ระวังข้อมูลอ่อนไหวตอนทำ Auto Backup
+## B7. Navigation
+- **Navigation Component** (Jetpack) — จัดการการย้ายหน้าและ back stack, มี Safe Args
+  ส่งข้อมูลแบบ type-safe
+- **single-activity architecture** — ใช้ Activity เดียวเป็นโฮสต์ แล้วสลับ Fragment/
+  Compose destination ข้างใน เป็นแนวทางที่นิยม
 
-## B6. เครื่องมือ
-- **Android Studio** (IDE + SDK + emulator + profiler) • **Gradle** (build) • **Git** (version control)
+## B8. Permissions & ความปลอดภัย
+- ขอ **runtime permission** ตอนใช้งานจริง (กล้อง/ตำแหน่ง ฯลฯ) — ผู้ใช้ปฏิเสธได้ ต้องเผื่อ
+- ขอ **เท่าที่จำเป็น** + อธิบายเหตุผล; ตำแหน่งเลือก "ขณะใช้แอป"/approximate เมื่อพอ
+- **Scoped Storage** — เข้าถึงไฟล์แบบจำกัดขอบเขต (ตั้งแต่ Android 10)
+- อย่าเก็บ **ข้อมูลลับ** (token/key) แบบ plain text; ใช้ **HTTPS** และที่จัดเก็บที่ปลอดภัย
+  (EncryptedSharedPreferences/Keystore)
+- ระวังข้อมูลอ่อนไหวตอนทำ **Auto Backup**
+
+## B9. การทดสอบ (Testing)
+- **Unit test (JVM):** JUnit + MockK/Mockito + coroutines-test — เร็ว ไม่ต้องใช้อุปกรณ์
+- **UI/Instrumented test:** **Espresso** (View) / **Compose UI test** — รันบน emulator/
+  เครื่องจริง
+- แนวคิด **test pyramid:** unit เยอะสุด → integration → UI น้อยสุด
+
+## B10. เครื่องมือและการเผยแพร่
+- **Android Studio** — IDE หลัก (มาพร้อม SDK, emulator, profiler, layout inspector)
+- **Emulator / เครื่องจริง** — ทดสอบแอป
+- **Gradle** — build system • **Git** — version control
+- **การเผยแพร่:** เซ็นแอป (signing) → สร้าง **AAB** → อัปโหลดขึ้น **Google Play Console**
+  (มี track ทดสอบภายใน/ปิด/เปิด ก่อนปล่อย production); ต้องทำตามเส้นตาย **target API** ของ Play
 
 ---
 
 ## อ่านต่อ
 - ประวัติเวอร์ชัน + ศัพท์เทคนิค: `docs/android-versions.md`
 - การทำ test: `docs/android-testing-guide.md`
-- โครงสร้างโปรเจกต์จริง (MVVM): `README.md`
-
-> โปรเจกต์ **FoodOrder** ในที่นี้เป็น **Native Android (Kotlin + MVVM + XML)**

@@ -829,6 +829,17 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ฟีเจอร์ OS, ความเสี่ยงผู้ดูแล) พร้อมตาราง "สเปกตรัมการแชร์โค้ด" (Native → KMP →
   Compose Multiplatform → Flutter/RN) และข้อสรุปว่าเส้นแบ่งเบลอลง
 
+## 93. เขียนส่วน B (พื้นฐาน Android Native) ใหม่ให้เป็นภาพรวมทั้งแพลตฟอร์ม
+
+**Changed**
+- ใน `docs/android-for-programmers.md` เขียนส่วน B ใหม่ให้เป็นภาพรวม Android ทั้งหมด
+  ไม่อ้างอิงโปรเจกต์นี้: ตัดโครงสร้างโฟลเดอร์เฉพาะโปรเจกต์และโน้ต "FoodOrder/โปรเจกต์นี้ใช้"
+  ออก แล้วขยายเป็น 10 หัวข้อกลาง ๆ — สแตก/ภาษา, สองแนวทาง UI (ตาราง XML vs Compose),
+  4 App Components, สถาปัตยกรรม (MVVM/MVI), lifecycle, state/data (+DI), Navigation,
+  permissions & security (+Scoped Storage/Keystore), testing (test pyramid) และเครื่องมือ/
+  การเผยแพร่ (AAB/Play Console/target API)
+- ปรับลิงก์ในสารบัญและตัดลิงก์ "โครงสร้างโปรเจกต์จริง (README)" ที่ผูกกับโปรเจกต์ออก
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
