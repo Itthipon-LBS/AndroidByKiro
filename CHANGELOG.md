@@ -881,6 +881,16 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ขาดด้านความปลอดภัย (ล็อกอิน/ชำระเงิน/onboarding), Activity จาก SDK ภายนอก, TWA/กล้อง
   เต็มจอ และแอป legacy/feature module พร้อมสรุปว่าแอปจริงมักเป็นแบบผสม
 
+## 99. แยกกรณี single-activity "ในแอปเราเอง" ใน B3.2
+
+**Added**
+- ใน `docs/android-for-programmers.md` (B3.2) เพิ่มส่วนเฉพาะกรณีที่ไม่มีแอปภายนอก/SDK
+  เข้ามาเกี่ยว: ระบุว่ากรณีที่ single-activity ทำไม่ได้จริงเหลือแค่เรื่องระดับหน้าต่าง/task
+  ของระบบ (หลายหน้าต่างพร้อมกัน/จอเสริม, window-task attribute ต่างกัน, แยก task ใน
+  recents, สเกล/feature module หลายทีม) พร้อมรายการที่ "เข้าใจผิดบ่อย" ว่าต้องแยก Activity
+  แต่จริง ๆ single-activity ทำได้ (หน้าจอเยอะ, nested nav, dialog, onboarding, ล็อกอิน,
+  แท็บ+drawer)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
