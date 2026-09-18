@@ -820,6 +820,15 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   เครื่องมือ/การเข้าถึง API/debug/การซ้ำโค้ด/dependency/ความยั่งยืน; ฝั่งผู้ใช้ครอบคลุม
   ความลื่น/ความรู้สึกเป็นของระบบ/ขนาดไฟล์/เวลาเปิด/a11y/แบต พร้อมประโยคสรุปปิดท้าย
 
+## 92. เพิ่มหัวข้อแนวโน้มในอนาคต Native vs Cross-Platform
+
+**Added**
+- ใน `docs/android-for-programmers.md` เพิ่มหัวข้อ A4.1 "แนวโน้มข้อดี/ข้อเสียในอนาคต":
+  ทิศทางฝั่ง Native (Compose/SwiftUI, KMP, AI ช่วยเขียน, อุปกรณ์รูปแบบใหม่) และฝั่ง
+  Cross-Platform (Impeller/New Architecture, ช่องว่าง performance แคบลง, ยังตามหลัง
+  ฟีเจอร์ OS, ความเสี่ยงผู้ดูแล) พร้อมตาราง "สเปกตรัมการแชร์โค้ด" (Native → KMP →
+  Compose Multiplatform → Flutter/RN) และข้อสรุปว่าเส้นแบ่งเบลอลง
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
