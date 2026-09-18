@@ -909,6 +909,15 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ได้เปรียบ พร้อมชี้ว่า logic ซ่อน chrome เขียนครั้งเดียว และสรุปว่าเมื่อไร 2 Activity ก็โอเค
   (หน้า detail น้อย/ไม่ส่งข้อมูลกลับ) กับเมื่อไร single-activity คุ้มกว่า
 
+## 102. เพิ่มหัวข้อ B3.4 Service (งานเบื้องหลัง)
+
+**Added**
+- ใน `docs/android-for-programmers.md` เพิ่มหัวข้อ B3.4 "Service (งานเบื้องหลัง)" ขนาด
+  กลางใต้ B3: อธิบาย Service 3 แบบ (started/bound/foreground) สั้น ๆ, เน้นว่าส่วนใหญ่ไม่ต้อง
+  เขียน Service ตรง ๆ แล้ว พร้อมตาราง "งานแบบนี้ → ใช้อะไร" (WorkManager/coroutine/
+  Foreground Service), ข้อจำกัด background ยุคใหม่ และ foreground service type ตั้งแต่
+  Android 14
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

@@ -500,6 +500,38 @@ detail ไม่มี bottom nav/drawer ตั้งแต่แรกจึง
 > หน้า detail / ส่งข้อมูลไป-กลับ / อยากได้ transition** → single-activity คุ้มกว่าเพราะจ่าย
 > ค่า setup แค่ครั้งเดียว (นี่คือเหตุผลที่ Google แนะนำ single-activity เป็น default)
 
+### B3.4 Service (งานเบื้องหลัง)
+
+Service คือ component สำหรับงานที่ **ไม่มี UI** เช่นเล่นเพลง/ซิงก์ข้อมูล แต่ในการพัฒนา
+สมัยใหม่ **ความสำคัญของ Service ลดลงมาก** เพราะ Google จำกัด background execution เข้มขึ้น
+ทุกเวอร์ชัน (ตั้งแต่ Android 8) และมีทางเลือกที่ดีกว่ามาแทน
+
+**Service มี 3 แบบ (รู้ไว้พอ)**
+- **Started service** — สั่งเริ่มแล้วรันต่อเอง (เดิมใช้ทำงานเบื้องหลัง — ปัจจุบันเลี่ยง)
+- **Bound service** — component อื่น bind เข้ามาเรียกใช้แบบ client-server แล้วปล่อยเมื่อเลิกใช้
+- **Foreground service** — งานที่ผู้ใช้เห็นและต้องรันต่อเนื่อง ต้องมี **notification ถาวร**
+
+**สำคัญที่สุด: ส่วนใหญ่ไม่ต้องเขียน Service ตรง ๆ อีกแล้ว** — เลือกเครื่องมือตามงาน:
+
+| งานแบบนี้ | ใช้อะไร (แนะนำ) |
+|-----------|-----------------|
+| งานเลื่อนเวลาได้ ต้องรับประกันว่าเสร็จ (อัปโหลด, ซิงก์, backup) | **WorkManager** |
+| งานผูกกับหน้าจอ/ช่วงชีวิต (โหลดข้อมูลมาแสดง) | **coroutine** ใน viewModelScope/lifecycleScope |
+| งานที่ผู้ใช้เห็นและต้องรันต่อเนื่องจริง ๆ (เล่นเพลง, นำทาง, อัดเสียง, ออกกำลังกาย) | **Foreground Service** |
+| งานตามเวลา/เงื่อนไข (ทุกวัน, เมื่อต่อ WiFi/ชาร์จ) | **WorkManager** (constraints) |
+
+**ข้อจำกัด background ยุคใหม่ (ต้องรู้)**
+- แอปที่อยู่ background **ถูกจำกัด/หยุด** ไม่ให้รัน background service อิสระได้นาน
+- ถ้าต้องรันตอนผู้ใช้ไม่ได้เปิดแอป → ต้องเป็น **Foreground Service** (มี notification) หรือ
+  **WorkManager**
+- ตั้งแต่ **Android 14** foreground service ต้องประกาศ **type** (เช่น `mediaPlayback`,
+  `location`, `dataSync`) ใน Manifest + ขอ permission ให้ตรง มิฉะนั้นแอปถูกปฏิเสธ/แครช
+
+> **สรุป:** อย่าเริ่มด้วย Service — ถามก่อนว่า "งานนี้ผู้ใช้ต้องเห็นและรันต่อเนื่องไหม?"
+> ถ้าไม่ → **WorkManager หรือ coroutine** • ถ้าใช่ → **Foreground Service** (พร้อม
+> notification + ประกาศ type ตั้งแต่ Android 14) • **Bound service** ใช้เมื่อต้องให้
+> component อื่นเรียกใช้แบบ interface เท่านั้น
+
 ## B4. สถาปัตยกรรมที่แนะนำ
 - **แยกชั้น (layered):** UI layer → Domain (ตัวเลือก) → Data layer
 - **รูปแบบยอดนิยม:** **MVVM** (Model-View-ViewModel) และ **MVI** (state ก้อนเดียว)
