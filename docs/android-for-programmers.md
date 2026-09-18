@@ -364,6 +364,33 @@ Android สร้างแอปจาก "องค์ประกอบ" ท�
 > **Fragment** ภายใต้ single-activity • ถ้าใช้ **Compose** ล้วน อาจเหลือ Activity เดียว
 > โดยไม่ต้องใช้ Fragment เลย (ใช้ composable + Navigation-Compose แทน)
 
+### B3.2 เมื่อไร single-activity ใช้ไม่ได้ / ไม่เหมาะ
+
+single-activity เป็นแนวทางที่ดีสำหรับ "ในแอปเดียว" แต่ **มีหลายกรณีที่ต้องมีหลาย Activity**
+เพราะ Activity คือหน่วยที่ระบบรู้จัก บางอย่างจึง "ต้องเป็น Activity เท่านั้น":
+
+- **จุดเข้าแยกที่แอปอื่น/ระบบเรียก** — แต่ละ entry point ที่ประกาศใน Manifest ต้องเป็น
+  Activity เช่น
+  - เปิดจาก **deep link / App Link** หลายเส้นทาง
+  - รับ **Intent จากแอปอื่น** (share sheet, `ACTION_VIEW`, `ACTION_SEND`)
+  - **ทางลัด (shortcut)** / รายการใน launcher ที่พาไปหน้าจอเฉพาะ
+- **หน้าที่ต้องแยก task/หน้าต่างจริง** — เช่นเปิดใน task แยก, ใช้ `launchMode`/
+  `taskAffinity`, หรือแสดงแบบ **หลายหน้าต่าง/free-form/split-screen** พร้อมกัน
+- **ต้องคืนผลลัพธ์ให้แอปอื่น** — เช่นเป็น picker ที่แอปอื่นเรียกแล้วรอ `setResult` กลับ
+- **flow ที่แยกขาดจริง ๆ ด้านความปลอดภัย/บริบท** — เช่นหน้า **ล็อกอิน/ยืนยันตัวตน**,
+  หน้าชำระเงินของ SDK ภายนอก, หรือ **onboarding** ที่ต้องแยก back stack ชัดเจน
+- **ฝัง Activity ของ library/SDK** — หลาย SDK (แผนที่, กล้อง, chrome custom tabs,
+  โฆษณา, payment) มาเป็น Activity ของตัวเอง เรียกใช้ตรง ๆ ผ่าน Intent
+- **หน้าจอพิเศษที่ต้องเป็น Activity** — เช่น **Trusted Web Activity**, หน้า AR/กล้อง
+  เต็มจอบางแบบ, หน้าที่ต้องปรับ window flag ระดับ Activity
+- **แอปเก่า/โมดูลใหญ่** — legacy ที่เป็น multi-activity อยู่แล้ว หรือแยก **feature module**
+  ที่ต่างทีมดูแล การรวมเป็น Activity เดียวได้ไม่คุ้ม
+
+> **สรุป:** single-activity คุมได้แค่ "การนำทางภายในแอปของเราเอง" — แต่ **จุดที่ระบบหรือ
+> แอปอื่นเข้ามา, การแยก task/หน้าต่าง, การคืนผลลัพธ์ และ Activity จาก SDK ภายนอก ยังต้อง
+> เป็นหลาย Activity** • ในทางปฏิบัติแอปจริงมักเป็นแบบ **ผสม**: Activity หลักหนึ่งตัวสำหรับ
+> flow หลัก + Activity เพิ่มเฉพาะจุดเข้า/กรณีพิเศษข้างต้น
+
 ## B4. สถาปัตยกรรมที่แนะนำ
 - **แยกชั้น (layered):** UI layer → Domain (ตัวเลือก) → Data layer
 - **รูปแบบยอดนิยม:** **MVVM** (Model-View-ViewModel) และ **MVI** (state ก้อนเดียว)

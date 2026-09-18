@@ -872,6 +872,15 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   เกณฑ์ว่าเมื่อไรใช้ Activity เมื่อไรใช้ Fragment, แนวทาง single-activity + Navigation
   Component และหมายเหตุกรณีใช้ Compose ล้วน (Activity เดียวไม่ต้องมี Fragment)
 
+## 98. เพิ่มหัวข้อสถานการณ์ที่ single-activity ใช้ไม่ได้ ใน B3
+
+**Added**
+- ใน `docs/android-for-programmers.md` เพิ่มหัวข้อ B3.2 "เมื่อไร single-activity ใช้ไม่ได้
+  / ไม่เหมาะ": รวมกรณีที่ต้องมีหลาย Activity — จุดเข้าที่ระบบ/แอปอื่นเรียก (deep link/
+  share/shortcut), หน้าที่ต้องแยก task/หลายหน้าต่าง, การคืนผลลัพธ์ให้แอปอื่น, flow ที่แยก
+  ขาดด้านความปลอดภัย (ล็อกอิน/ชำระเงิน/onboarding), Activity จาก SDK ภายนอก, TWA/กล้อง
+  เต็มจอ และแอป legacy/feature module พร้อมสรุปว่าแอปจริงมักเป็นแบบผสม
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
