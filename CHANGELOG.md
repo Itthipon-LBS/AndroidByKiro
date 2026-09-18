@@ -812,6 +812,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   deep link, platform bug, race condition, debug crash, dependency, แบต/ร้อน, ฟีเจอร์ OS,
   a11y) ว่าแต่ละแนวทางเจอมาก/น้อยและเพราะอะไร
 
+## 91. ขยายข้อดี/ข้อเสีย Native vs Cross-Platform แยกมุมนักพัฒนา/ผู้ใช้
+
+**Added**
+- ใน `docs/android-for-programmers.md` เพิ่มหัวข้อ A3.1 (มุมนักพัฒนา) และ A3.2 (มุมผู้ใช้งาน)
+  ขยายข้อดี/ข้อเสียของทั้ง Native และ Cross-Platform อย่างละเอียด: ฝั่งนักพัฒนาครอบคลุม
+  เครื่องมือ/การเข้าถึง API/debug/การซ้ำโค้ด/dependency/ความยั่งยืน; ฝั่งผู้ใช้ครอบคลุม
+  ความลื่น/ความรู้สึกเป็นของระบบ/ขนาดไฟล์/เวลาเปิด/a11y/แบต พร้อมประโยคสรุปปิดท้าย
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
