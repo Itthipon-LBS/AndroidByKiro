@@ -900,6 +900,15 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   Component (AppBarConfiguration + top-level destinations) และซ่อน bottom nav/ล็อก drawer
   ตาม destination ที่เปลี่ยน พร้อมหมายเหตุว่าเมื่อไรจึงจะพิจารณาแยก Activity
 
+## 101. เพิ่มตารางเทียบ 2 Activity vs single-activity ใน B3.3
+
+**Added**
+- ใน `docs/android-for-programmers.md` (B3.3) เพิ่มส่วนตอบคำถาม "แยก 2 Activity ไม่ง่าย
+  กว่าเหรอ": ยอมรับว่าดูง่ายกว่าตอนเริ่ม แต่มีตารางเทียบ 7 ประเด็น (ส่งข้อมูลไป/กลับ,
+  แชร์ state, transition, back stack, ความสม่ำเสมอ UI, การเพิ่มหน้าใหม่) ที่ single-activity
+  ได้เปรียบ พร้อมชี้ว่า logic ซ่อน chrome เขียนครั้งเดียว และสรุปว่าเมื่อไร 2 Activity ก็โอเค
+  (หน้า detail น้อย/ไม่ส่งข้อมูลกลับ) กับเมื่อไร single-activity คุ้มกว่า
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

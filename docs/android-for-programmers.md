@@ -476,6 +476,30 @@ class MainActivity : AppCompatActivity() {
 > แสดง **หน้าต่างแยก** พร้อมหน้าหลัก, หรือถูกเรียกจาก **แอปอื่น/deep link** เป็นจุดเข้า
 > อิสระ — เคสนี้ไม่มีสักข้อ จึงใช้ single-activity ได้เต็มที่
 
+**"แยกเป็น 2 Activity ไม่ง่ายกว่าเหรอ?"** — ดูเหมือนง่ายกว่าตอนเริ่ม (แยกไฟล์ชัด, หน้า
+detail ไม่มี bottom nav/drawer ตั้งแต่แรกจึงไม่ต้องเขียน logic ซ่อน) แต่แลกด้วยงาน manual
+ที่โผล่ทีหลัง:
+
+| ประเด็น | 2 Activity | single-activity + Fragment |
+|--------|-----------|---------------------------|
+| ส่งข้อมูลไปหน้า detail | Intent extras (manual, ไม่ type-safe) | **Safe Args** (type-safe) |
+| ส่งผลลัพธ์กลับ | Activity Result API (ยุ่งกว่า) | shared ViewModel / FragmentResult |
+| แชร์ state กับหน้าหลัก | ทำไม่ได้ตรง ๆ (คนละ ViewModelStore) | ได้เลย (nav-graph scoped ViewModel) |
+| transition ระหว่างหน้า | shared element ข้าม Activity ยุ่งกว่า | animation ในตัว ลื่นกว่า |
+| back stack / ผสม flow | ระบบจัดการ แต่คุมลำดับยากกว่า | คุมรวมศูนย์ที่ nav graph |
+| ความสม่ำเสมอ UI/ธีม | setup toolbar/ธีมซ้ำทุก Activity | setup ครั้งเดียว |
+| เพิ่มหน้าใหม่ | Activity ใหม่ + ประกาศ Manifest ทุกครั้ง | เพิ่ม destination ใน graph |
+
+- **logic ซ่อน chrome ไม่ได้ยาก:** เขียน listener **ครั้งเดียว** ที่ `MainActivity`
+  (ดูโค้ดข้างบน) ครอบคลุมทุกหน้า detail ในอนาคต ไม่ต้องเขียนซ้ำ
+- **ข้อได้เปรียบจริงข้อเดียวของ 2 Activity** ในเคสนี้คือ "ไม่ต้องเขียน listener ซ่อน chrome"
+  ซึ่งเป็นต้นทุนครั้งเดียวเท่านั้น
+
+> **เมื่อไร 2 Activity ก็โอเค:** หน้า detail แค่ 1-2 หน้า ง่าย ๆ **ไม่ส่งข้อมูลกลับ ไม่แชร์
+> state ไม่ต้องการ transition** — ใช้ 2 Activity ได้ ไม่ผิด • **แต่ถ้าแอปมีแนวโน้มโต / หลาย
+> หน้า detail / ส่งข้อมูลไป-กลับ / อยากได้ transition** → single-activity คุ้มกว่าเพราะจ่าย
+> ค่า setup แค่ครั้งเดียว (นี่คือเหตุผลที่ Google แนะนำ single-activity เป็น default)
+
 ## B4. สถาปัตยกรรมที่แนะนำ
 - **แยกชั้น (layered):** UI layer → Domain (ตัวเลือก) → Data layer
 - **รูปแบบยอดนิยม:** **MVVM** (Model-View-ViewModel) และ **MVI** (state ก้อนเดียว)
