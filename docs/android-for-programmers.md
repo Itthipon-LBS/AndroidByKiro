@@ -549,6 +549,9 @@ Service คือ component สำหรับงานที่ **ไม่ม�
 - **AlarmManager** — ปลุกงาน **ตามเวลาเป๊ะ ๆ** (นาฬิกาปลุก, เตือนตามเวลา) ใช้เมื่อ WorkManager
   ไม่แม่นพอเรื่องเวลา
 
+> **เจาะลึกเรื่อง Service ทั้งหมด** (ประเภท, lifecycle, โค้ด, การเลือกใช้, ความแตกต่างตาม
+> เวอร์ชัน, แนวโน้ม): ดู `docs/android-services.md`
+
 ## B4. สถาปัตยกรรมที่แนะนำ
 - **แยกชั้น (layered):** UI layer → Domain (ตัวเลือก) → Data layer
 - **รูปแบบยอดนิยม:** **MVVM** (Model-View-ViewModel) และ **MVI** (state ก้อนเดียว)

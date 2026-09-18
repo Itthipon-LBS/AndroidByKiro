@@ -927,6 +927,20 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   DreamService และหมายเหตุว่า IntentService/JobIntentService deprecated) และ "กลไกจัด
   ตารางงานที่เกี่ยวข้อง" (WorkManager, JobScheduler, AlarmManager)
 
+## 104. สร้างเอกสาร Service ใน Android ฉบับสมบูรณ์
+
+**Added**
+- สร้าง `docs/android-services.md` เอกสารเรื่อง Service โดยเฉพาะ ครบถ้วนแบบอ่านจบไม่ต้อง
+  หาข้อมูลเพิ่ม 16 หัวข้อ: Service คืออะไร (+เข้าใจผิดบ่อย), ประเภท (started/bound/
+  foreground), lifecycle (onStartCommand/START_* flags), โค้ดตัวอย่าง, Foreground Service
+  เจาะลึก (+ข้อกำหนดตามเวอร์ชัน/foregroundServiceType), Bound Service (+AIDL/Messenger),
+  Service เฉพาะทาง, ทางเลือกยุคใหม่ (WorkManager/coroutine/JobScheduler/AlarmManager),
+  decision guide, ข้อดี/ข้อเสีย, **ความแตกต่างตามเวอร์ชัน Android 5→15**, ข้อผิดพลาดที่พบ
+  บ่อย, ความปลอดภัย, การทดสอบ, แนวโน้มในอนาคต และ glossary
+
+**Changed**
+- ใน `docs/android-for-programmers.md` (B3.4) เพิ่มลิงก์ชี้ไปเอกสาร Service ฉบับเจาะลึก
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
