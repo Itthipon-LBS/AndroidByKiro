@@ -193,6 +193,33 @@ fun onPlaceOrderClick() {
 **หลักกันพลาด:** อย่าตั้ง state กลับ "เฉพาะตอนสำเร็จ" — ให้ปลดล็อกใน `finally` ทุกครั้ง,
 ห้ามบล็อก main thread, และอย่า catch แล้วเงียบโดยไม่คืนสถานะปุ่ม
 
+### ปัญหาเชิงเทคนิคอื่น ๆ ที่พบบ่อยใน Cross-Platform
+
+หลายข้อ **ไม่ได้เฉพาะ cross-platform** (native ก็เจอ) แต่ cross-platform มัก **เจอบ่อย
+กว่า/แก้ยากกว่า** เพราะมีชั้น bridge/engine + ต้องดูแล 2 แพลตฟอร์มพร้อมกัน
+
+| ปัญหา | อาการ | วิธีเลี่ยงสั้น ๆ |
+|-------|-------|------------------|
+| **Memory leak** | ใช้ไปนาน ๆ อืด/แครช | ถอด listener/subscription ให้ครบ, อย่าถือ reference view/context ค้าง |
+| **List กระตุก (jank)** | เลื่อน list ยาวสะดุด | ใช้ list แบบ recycle (FlatList/LazyColumn), ทำ item ให้เบา |
+| **รูปกินแรม (OOM)** | แกลเลอรีแครช | ย่อขนาด + cache รูป (ใช้ image library) |
+| **Back stack เพี้ยน** | กด back ไปหน้าผิด/หน้าซ้อน | จัดการ navigation/stack ให้ชัด, ทดสอบ back ทุกเส้นทาง |
+| **Keyboard บัง input** | คีย์บอร์ดทับช่องกรอก | ใช้ scroll/resize เมื่อคีย์บอร์ดขึ้น, ทดสอบทั้ง Android/iOS |
+| **State หายตอน kill/rotate** | กลับมาแล้วข้อมูลหาย | persist/restore state (เทียบ SavedStateHandle ของ native) |
+| **Deep link/push ผิดหน้า** | เปิดจาก noti แล้ว route ผิด/ค้าง | ทดสอบ deep link ทุกกรณี รวมตอนแอปปิดอยู่ |
+| **Platform-specific bug** | Android ได้ iOS เพี้ยน | ทดสอบทั้ง 2 ฝั่ง (permission, safe area, ฟอนต์, timezone) |
+| **Race condition** | ยิงซ้ำ/ผลมาไม่ตามลำดับ → ข้อมูลผิด | ยกเลิก request เก่า, debounce, ตรวจลำดับผลลัพธ์ |
+| **Native module/bridge พัง** | crash ที่ debug ยาก | ใช้ plugin ตรงเวอร์ชัน, ดู native log ประกอบ |
+| **Dependency hell** | อัปเกรดแล้ว build พัง | ล็อกเวอร์ชัน, อัปเกรดทีละก้าว, อ่าน migration guide |
+| **เปลืองแบต/ร้อน** | แบตหมดเร็ว/เครื่องร้อน | หยุด timer/animation/location เมื่อไม่ใช้, ลด re-render |
+| **แอปใหญ่/startup ช้า** | cold start นาน | ลด asset, lazy-load, วัด startup time |
+| **ANR / freeze** | ระบบเตือน "แอปไม่ตอบสนอง" | อย่าทำงานหนักบน main thread |
+| **Offline/เน็ตไม่เสถียร** | ค้าง/แสดงข้อมูลเก่า | ใส่ timeout + retry + สถานะออฟไลน์ชัดเจน |
+
+> ธีมร่วมของเกือบทุกปัญหา: **อย่าบล็อก main/UI thread, จัดการ state/async ให้ครบทุกกรณี,
+> และทดสอบบนอุปกรณ์จริงทั้ง Android + iOS** — cross-platform ไม่ได้แปลว่า "เขียนครั้งเดียว
+> แล้วไม่ต้องทดสอบสองที่"
+
 > โปรเจกต์ **FoodOrder** ในที่นี้เป็น **Native Android (Kotlin + MVVM + XML)**
 
 ---

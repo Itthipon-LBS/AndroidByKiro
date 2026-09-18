@@ -788,6 +788,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   state): สาเหตุ (loading/async ค้าง, main thread บล็อก, state ไม่รีเซ็ต, exception เงียบ,
   leak), จุดสังเกตแยกสาเหตุ, วิธีหาสาเหตุ และวิธีแก้ด้วย `try/finally` + `withTimeout`
 
+## 89. เพิ่มตารางปัญหาเชิงเทคนิคที่พบบ่อยใน Cross-Platform
+
+**Added**
+- ใน `docs/android-for-programmers.md` เพิ่มตารางปัญหาเชิงเทคนิคที่พบบ่อยใน Cross-Platform
+  15 ข้อ (memory leak, jank, OOM, back stack, keyboard, state หาย, deep link, platform bug,
+  race condition, bridge, dependency hell, แบต/ร้อน, startup, ANR, offline) พร้อมอาการและ
+  วิธีเลี่ยงสั้น ๆ + ธีมร่วมของปัญหา
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
