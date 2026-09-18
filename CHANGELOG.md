@@ -781,6 +781,13 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   บ้างใน Cross-Platform: สาเหตุ (bridge/JS thread, UI thread บล็อก, touch/gesture ชน,
   hit area/overlay, debounce/state, async ไม่รอผล), ทำไม native เจอน้อยกว่า และวิธีแก้/เลี่ยง
 
+## 88. เพิ่มหัวข้อ "กดปุ่มไม่ติดถาวรจนต้องรีสตาร์ทแอป"
+
+**Added**
+- ใน `docs/android-for-programmers.md` เพิ่มหัวข้ออาการปุ่มตายสนิทจนต้องรีสตาร์ท (stuck
+  state): สาเหตุ (loading/async ค้าง, main thread บล็อก, state ไม่รีเซ็ต, exception เงียบ,
+  leak), จุดสังเกตแยกสาเหตุ, วิธีหาสาเหตุ และวิธีแก้ด้วย `try/finally` + `withTimeout`
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
