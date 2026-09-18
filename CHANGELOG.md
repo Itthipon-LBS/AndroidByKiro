@@ -918,6 +918,15 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   Foreground Service), ข้อจำกัด background ยุคใหม่ และ foreground service type ตั้งแต่
   Android 14
 
+## 103. เพิ่ม Service เฉพาะทาง + กลไกจัดตารางงานใน B3.4
+
+**Added**
+- ใน `docs/android-for-programmers.md` (B3.4) เพิ่ม 2 ส่วน: "Service เฉพาะทางที่พบบ่อย"
+  (MediaBrowserService/MediaSessionService, TileService, InputMethodService,
+  AccessibilityService, NotificationListenerService, VpnService/HostApduService/
+  DreamService และหมายเหตุว่า IntentService/JobIntentService deprecated) และ "กลไกจัด
+  ตารางงานที่เกี่ยวข้อง" (WorkManager, JobScheduler, AlarmManager)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

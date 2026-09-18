@@ -532,6 +532,23 @@ Service คือ component สำหรับงานที่ **ไม่ม�
 > notification + ประกาศ type ตั้งแต่ Android 14) • **Bound service** ใช้เมื่อต้องให้
 > component อื่นเรียกใช้แบบ interface เท่านั้น
 
+**Service เฉพาะทางที่พบบ่อย** (subclass ของ Service สำหรับงานเฉพาะ — ใช้เมื่อทำฟีเจอร์นั้น
+โดยตรงเท่านั้น)
+- **MediaBrowserService / MediaSessionService** — คุมการเล่นมีเดีย + เชื่อม Android Auto/Wear/ปุ่มหูฟัง
+- **TileService** — ปุ่มใน Quick Settings (แถบดึงลง)
+- **InputMethodService** — ทำคีย์บอร์ด (IME)
+- **AccessibilityService** — บริการช่วยการเข้าถึง / automation (เช่น screen reader)
+- **NotificationListenerService** — อ่าน/จัดการ notification ของระบบ
+- **VpnService**, **HostApduService** (NFC จ่ายเงิน), **DreamService** (screen saver) — งานเฉพาะทางมาก
+- ⚠️ **IntentService / JobIntentService** — **เลิกใช้แล้ว (deprecated)** ให้ใช้ **WorkManager** แทน
+
+**กลไกจัดตารางงานที่เกี่ยวข้อง** (มักใช้แทน/คู่กับ Service)
+- **WorkManager** — ตัวเลือกหลักสำหรับงาน background ที่เลื่อนเวลาได้ (ครอบ JobScheduler ให้)
+- **JobScheduler** — API ระบบสำหรับ schedule งานตามเงื่อนไข (WorkManager ใช้ตัวนี้เบื้องหลัง —
+  ปกติไม่ต้องเรียกเอง)
+- **AlarmManager** — ปลุกงาน **ตามเวลาเป๊ะ ๆ** (นาฬิกาปลุก, เตือนตามเวลา) ใช้เมื่อ WorkManager
+  ไม่แม่นพอเรื่องเวลา
+
 ## B4. สถาปัตยกรรมที่แนะนำ
 - **แยกชั้น (layered):** UI layer → Domain (ตัวเลือก) → Data layer
 - **รูปแบบยอดนิยม:** **MVVM** (Model-View-ViewModel) และ **MVI** (state ก้อนเดียว)
