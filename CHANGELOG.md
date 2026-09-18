@@ -941,6 +941,22 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 **Changed**
 - ใน `docs/android-for-programmers.md` (B3.4) เพิ่มลิงก์ชี้ไปเอกสาร Service ฉบับเจาะลึก
 
+## 105. สร้างเอกสาร Lifecycle ใน Android ฉบับสมบูรณ์
+
+**Added**
+- สร้าง `docs/android-lifecycle.md` เอกสารเรื่อง Lifecycle โดยเฉพาะ ครบถ้วนแบบอ่านจบไม่ต้อง
+  หาข้อมูลเพิ่ม 16 หัวข้อ: Lifecycle คืออะไร, Activity lifecycle, Fragment lifecycle,
+  View lifecycle ของ Fragment (viewLifecycleOwner/ViewBinding leak), ViewModel lifecycle
+  (viewModelScope/scope), Process death, lifecycle-aware components (repeatOnLifecycle/
+  lifecycleScope), Service/Compose/Application lifecycle, การจัดการ state 3 ระดับ
+  (ViewModel/SavedStateHandle/DataStore-Room), decision guide, ข้อดี/ข้อเสีย, **ความแตกต่าง
+  ตามเวอร์ชัน Android 3→16** (multi-window/multi-resume/predictive back), ข้อผิดพลาดที่พบ
+  บ่อย, การทดสอบ (ActivityScenario/process death/LeakCanary), แนวโน้ม และ glossary
+
+**Changed**
+- ใน `docs/android-for-programmers.md` (B5) เพิ่มลิงก์ชี้ไปเอกสาร Lifecycle ฉบับเจาะลึก
+- ใน `docs/android-services.md` เพิ่มลิงก์อ่านต่อไปเอกสาร Lifecycle
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

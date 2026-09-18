@@ -408,5 +408,6 @@ type ชัดเจน** แทน
 
 ## อ่านต่อ
 - ภาพรวม Android สำหรับโปรแกรมเมอร์: `docs/android-for-programmers.md` (หัวข้อ B3.4)
+- Lifecycle ใน Android: `docs/android-lifecycle.md`
 - ประวัติเวอร์ชัน + ศัพท์เทคนิค: `docs/android-versions.md`
 - การทำ test: `docs/android-testing-guide.md`

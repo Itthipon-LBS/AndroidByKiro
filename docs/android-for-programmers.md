@@ -569,6 +569,9 @@ onCreate → onStart → onResume → (ใช้งาน) → onPause → onSto
 - **Fragment มี 2 lifecycle:** ตัว Fragment และ view ของมัน — observe ข้อมูลด้วย
   `viewLifecycleOwner` และเคลียร์ ViewBinding ใน `onDestroyView` เพื่อกัน memory leak
 
+> **เจาะลึกเรื่อง Lifecycle ทั้งหมด** (Activity/Fragment/View/ViewModel/Process/Compose,
+> การเก็บ state, ความแตกต่างตามเวอร์ชัน, แนวโน้ม): ดู `docs/android-lifecycle.md`
+
 ## B6. การจัดการ State และข้อมูล
 - **UI state:** เปิดจาก ViewModel เป็น **StateFlow** (หรือ LiveData) แบบ read-only
 - **One-shot event** (toast/navigate): ใช้ **Channel/SharedFlow** ไม่ใช่ state ค้าง
