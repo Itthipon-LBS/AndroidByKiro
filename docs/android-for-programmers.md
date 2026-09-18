@@ -331,6 +331,39 @@ Android สร้างแอปจาก "องค์ประกอบ" ท�
 (ข้อความสั่งให้เปิด component/ส่งข้อมูลระหว่างกัน), **AndroidManifest.xml**
 (ประกาศ component, permission, ข้อมูลแอป)
 
+### B3.1 เลือกใช้ Activity หรือ Fragment ดี?
+
+ทั้งคู่เป็น "หน้าจอ/ส่วน UI" แต่บทบาทต่างกัน:
+
+| | Activity | Fragment |
+|---|----------|----------|
+| คืออะไร | จุดเข้าใช้งานที่ **ระบบ** รู้จัก (มีใน Manifest) | ส่วน UI ย่อยที่ **ต้องอยู่ในโฮสต์** (Activity/Fragment อื่น) |
+| ใช้เอง | ใช้ลำพังได้ | ต้องมี Activity โฮสต์เสมอ |
+| lifecycle | ชุดเดียว | มี 2 ชั้น (Fragment + view ของมัน) |
+| back stack | ระบบจัดการผ่าน task | จัดการเองด้วย FragmentManager/Navigation |
+| เปิดจากภายนอก | ได้ (deep link, share, launcher) | ไม่ได้ตรง ๆ ต้องผ่าน Activity |
+
+**ใช้ Activity เมื่อ**
+- เป็น **จุดเข้าแอป** (หน้า launcher, หน้าที่เปิดจาก deep link/notification/แชร์)
+- ต้องประกาศให้ระบบรู้จัก (เช่น ต้องรับ Intent จากแอปอื่น)
+- หน้าจอที่แยกขาดจริง ๆ และต้องการ task/back stack ระดับระบบ
+
+**ใช้ Fragment เมื่อ**
+- เป็น **หน้าจอทั่วไปภายในแอป** ที่สลับไปมาด้วย Navigation
+- อยากแชร์/นำ UI กลับมาใช้ซ้ำ หรือทำ **layout ตอบสนองหลายขนาดจอ** (เช่น master-detail
+  บนแท็บเล็ต: 2 Fragment ในจอเดียว)
+- ต้องการให้ ViewModel ผูกกับช่วงชีวิตของหน้าจอย่อยได้ยืดหยุ่น
+
+**แนวทางที่นิยมปัจจุบัน — single-activity**
+- ใช้ **Activity เดียว** เป็นโฮสต์ แล้วทำแต่ละหน้าจอเป็น **Fragment** (หรือ Compose
+  destination) สลับด้วย **Navigation Component**
+- ข้อดี: back stack/การส่งข้อมูลเป็นระบบเดียว, แชร์ ViewModel ระดับ graph ได้, transition
+  ระหว่างหน้าลื่นกว่า
+
+> **สรุปสั้น:** ใช้ **Activity ให้น้อย** (เท่าที่จำเป็นเป็นจุดเข้า) แล้วทำหน้าจอส่วนใหญ่เป็น
+> **Fragment** ภายใต้ single-activity • ถ้าใช้ **Compose** ล้วน อาจเหลือ Activity เดียว
+> โดยไม่ต้องใช้ Fragment เลย (ใช้ composable + Navigation-Compose แทน)
+
 ## B4. สถาปัตยกรรมที่แนะนำ
 - **แยกชั้น (layered):** UI layer → Domain (ตัวเลือก) → Data layer
 - **รูปแบบยอดนิยม:** **MVVM** (Model-View-ViewModel) และ **MVI** (state ก้อนเดียว)

@@ -864,6 +864,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   Compose, Compose Multiplatform ข้ามแพลตฟอร์ม, และ interop อยู่ร่วมกันได้ พร้อมข้อสรุป
   ว่าทิศทางระยะยาวเอียงไป Compose
 
+## 97. เพิ่มหัวข้อการเลือกใช้ Activity vs Fragment ใน B3
+
+**Added**
+- ใน `docs/android-for-programmers.md` เพิ่มหัวข้อ B3.1 "เลือกใช้ Activity หรือ Fragment
+  ดี?": ตารางเทียบบทบาท (จุดเข้าระบบ/โฮสต์, lifecycle, back stack, เปิดจากภายนอก),
+  เกณฑ์ว่าเมื่อไรใช้ Activity เมื่อไรใช้ Fragment, แนวทาง single-activity + Navigation
+  Component และหมายเหตุกรณีใช้ Compose ล้วน (Activity เดียวไม่ต้องมี Fragment)
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
