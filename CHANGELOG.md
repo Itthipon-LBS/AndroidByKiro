@@ -968,6 +968,15 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   สิ่งที่ต้องคำนึงก่อนใช้, ความปลอดภัย, ข้อผิดพลาดที่พบบ่อย, การทดสอบ, แนวโน้มในอนาคต
   (Credential Manager) และ glossary
 
+## 107. เพิ่มหัวข้อสร้าง/แก้/ลบ event แต่ละวิธีในเอกสาร Google Calendar
+
+**Added**
+- ใน `docs/google-calendar-integration.html` เพิ่มหัวข้อ "สร้าง / แก้ไข / ลบ ของแต่ละวิธี":
+  ตารางสรุปความสามารถ (Create/Update/Delete + สิ่งที่ต้องมีก่อนแก้/ลบ) ของทั้ง 3 วิธี พร้อม
+  โค้ดตัวอย่างการแก้ไข/ลบของแต่ละวิธี (Intent ACTION_EDIT/ACTION_VIEW, CalendarContract
+  update/delete, Calendar API get→update/delete) โดยแต่ละบล็อกระบุ "สิ่งที่ต้องใช้ + ได้มา
+  จากไหน" และมี comment อธิบายโค้ดทีละบรรทัด พร้อมเพิ่มลิงก์ในสารบัญด้านข้าง
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

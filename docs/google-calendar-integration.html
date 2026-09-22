@@ -77,6 +77,7 @@
   <h2>สารบัญ</h2>
   <a href="#intro">ภาพรวม</a>
   <a href="#compare">เทียบ 3 วิธี</a>
+  <a href="#crud">สร้าง/แก้/ลบ แต่ละวิธี</a>
   <h2>วิธีที่ 1</h2>
   <a href="#m1">Intent (ง่ายสุด)</a>
   <h2>วิธีที่ 2</h2>
@@ -129,6 +130,137 @@ backend → <b>วิธี 3</b></div>
   <tr><td>ทำงานฝั่ง server/ข้ามอุปกรณ์</td><td>ไม่</td><td>ไม่</td><td>ได้</td></tr>
   <tr><td>ความยากในการ setup</td><td>ต่ำสุด</td><td>ปานกลาง</td><td>สูงสุด</td></tr>
 </table>
+</section>
+
+<hr>
+
+<section id="crud">
+<h2>สร้าง / แก้ไข / ลบ ของแต่ละวิธี</h2>
+
+<h3>ตารางสรุปความสามารถ</h3>
+<table>
+  <tr><th>ความสามารถ</th><th>1. Intent</th><th>2. CalendarContract</th><th>3. Calendar API</th></tr>
+  <tr><td><b>สร้าง (Create)</b></td><td>✅ (ผู้ใช้กดบันทึก)</td><td>✅ อัตโนมัติ</td><td>✅ อัตโนมัติ</td></tr>
+  <tr><td><b>แก้ไข (Update)</b></td><td>⚠️ ได้บางส่วน (เปิดหน้าแก้ให้ผู้ใช้)</td><td>✅ อัตโนมัติ</td><td>✅ อัตโนมัติ</td></tr>
+  <tr><td><b>ลบ (Delete)</b></td><td>❌ ไม่มี Intent มาตรฐาน</td><td>✅ อัตโนมัติ</td><td>✅ อัตโนมัติ</td></tr>
+  <tr><td>ทำแบบเงียบ (ไม่มี UI)</td><td>❌</td><td>✅</td><td>✅</td></tr>
+  <tr><td><b>สิ่งที่ต้องมีก่อนแก้/ลบ</b></td><td>event id (มักไม่ได้กลับมาตอนสร้าง)</td><td><code>eventId</code> (Long) จาก uri ตอน insert</td><td><code>eventId</code> (String) จาก <code>created.id</code></td></tr>
+</table>
+<div class="warn"><b>กุญแจสำคัญ:</b> จะแก้หรือลบได้ ต้อง <b>เก็บ event id ที่ได้ตอนสร้างไว้ก่อน</b>
+เสมอ — เก็บลงฐานข้อมูลแอป (เช่น Room) โยงกับข้อมูลของเราเอง เพื่อให้ย้อนกลับมาจัดการ event
+เดิมได้</div>
+
+<h3>วิธี 1 (Intent) — แก้ไข / ลบ</h3>
+<p><b>สิ่งที่ต้องใช้:</b> <code>eventId</code> (Long) ของ event ที่จะแก้ &nbsp;•&nbsp;
+<b>ได้มาจาก:</b> ตอนสร้างด้วยวิธี 2/3 (วิธี 1 ตอนสร้างมักไม่คืน id) หรือ query จาก
+CalendarContract</p>
+<pre><code><span class="kw">import</span> android.content.ContentUris
+<span class="kw">import</span> android.content.Intent
+<span class="kw">import</span> android.provider.CalendarContract
+
+<span class="com">// ── แก้ไข: เปิดหน้าแก้ event ให้ "ผู้ใช้กดบันทึกเอง" (ไม่ใช่แก้เงียบ) ──</span>
+<span class="kw">fun</span> <span class="fn">openEditEvent</span>(activity: Activity, eventId: Long) {
+    <span class="com">// สร้าง URI ชี้ไปยัง event ที่ต้องการ: content://com.android.calendar/events/{id}</span>
+    <span class="kw">val</span> uri = ContentUris.withAppendedId(
+        CalendarContract.Events.CONTENT_URI,  <span class="com">// base URI ของตาราง events</span>
+        eventId                                <span class="com">// id ที่เก็บไว้ตอนสร้าง</span>
+    )
+    <span class="com">// ACTION_EDIT = ขอให้แอปปฏิทินเปิด "หน้าแก้ไข" ของ event นี้</span>
+    <span class="kw">val</span> intent = Intent(Intent.ACTION_EDIT).apply {
+        data = uri
+        putExtra(CalendarContract.Events.TITLE, <span class="str">"ชื่อใหม่ (ค่าเริ่มต้นในฟอร์ม)"</span>)
+    }
+    <span class="kw">if</span> (intent.resolveActivity(activity.packageManager) != <span class="kw">null</span>) {
+        activity.startActivity(intent)  <span class="com">// ผู้ใช้จะเห็นหน้าแก้ไข แล้วกดบันทึกเอง</span>
+    }
+}
+
+<span class="com">// ── ลบ: ไม่มี Intent มาตรฐานสำหรับ "ลบ" โดยตรง ──</span>
+<span class="com">// ทำได้แค่ ACTION_VIEW เปิด event ให้ผู้ใช้ไปกดลบเองในแอปปฏิทิน</span>
+<span class="kw">fun</span> <span class="fn">openViewEvent</span>(activity: Activity, eventId: Long) {
+    <span class="kw">val</span> uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
+    activity.startActivity(Intent(Intent.ACTION_VIEW).setData(uri))
+    <span class="com">// → ถ้าต้องการ "ลบอัตโนมัติ" ให้ใช้วิธี 2 หรือ 3 แทน</span>
+}</code></pre>
+<div class="note">วิธี 1 จึงเหมาะกับ "สร้าง/ให้ผู้ใช้แก้" เท่านั้น — ถ้าต้องลบอัตโนมัติต้องใช้วิธี 2/3</div>
+
+<h3>วิธี 2 (CalendarContract) — แก้ไข / ลบ (อัตโนมัติ)</h3>
+<p><b>สิ่งที่ต้องใช้:</b> <code>ContentResolver</code> + <code>eventId</code> (Long) +
+permission <code>WRITE_CALENDAR</code> &nbsp;•&nbsp; <b>ได้มาจาก:</b> <code>context.contentResolver</code>,
+และ <code>eventId</code> ได้จาก <code>uri.lastPathSegment.toLong()</code> ตอน insert (ดูหัวข้อ 2.4)</p>
+<pre><code><span class="kw">import</span> android.content.ContentResolver
+<span class="kw">import</span> android.content.ContentUris
+<span class="kw">import</span> android.content.ContentValues
+<span class="kw">import</span> android.provider.CalendarContract
+
+<span class="com">// ── แก้ไข event บนเครื่อง (เงียบ ไม่มี UI) ──</span>
+<span class="kw">fun</span> <span class="fn">updateEvent</span>(resolver: ContentResolver, eventId: Long): Int {
+    <span class="com">// URI ชี้ไปยัง event ที่ต้องการแก้ (base URI + id)</span>
+    <span class="kw">val</span> uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
+
+    <span class="com">// ใส่เฉพาะฟิลด์ที่อยากเปลี่ยน (ฟิลด์อื่นคงเดิม)</span>
+    <span class="kw">val</span> values = ContentValues().apply {
+        put(CalendarContract.Events.TITLE, <span class="str">"ประชุมทีม (เลื่อนเวลา)"</span>)
+        put(CalendarContract.Events.DTSTART, System.currentTimeMillis() + <span class="num">3600_000</span>)
+    }
+
+    <span class="com">// update() คืนจำนวนแถวที่แก้สำเร็จ (ควรได้ 1) — ต้องมี WRITE_CALENDAR</span>
+    <span class="kw">return</span> resolver.update(uri, values, <span class="kw">null</span>, <span class="kw">null</span>)
+}
+
+<span class="com">// ── ลบ event บนเครื่อง ──</span>
+<span class="kw">fun</span> <span class="fn">deleteEvent</span>(resolver: ContentResolver, eventId: Long): Int {
+    <span class="kw">val</span> uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
+    <span class="com">// delete() คืนจำนวนแถวที่ลบ (ควรได้ 1)</span>
+    <span class="kw">return</span> resolver.delete(uri, <span class="kw">null</span>, <span class="kw">null</span>)
+}</code></pre>
+<div class="warn">ต้องได้รับ runtime permission <code>WRITE_CALENDAR</code> ก่อน (ดูหัวข้อ 2.2)
+มิฉะนั้นจะเกิด <code>SecurityException</code></div>
+
+<h3>วิธี 3 (Calendar API) — แก้ไข / ลบ (อัตโนมัติ, คุยกับ Google ตรง)</h3>
+<p><b>สิ่งที่ต้องใช้:</b> <code>Calendar</code> service (ที่ auth แล้ว) + <code>calendarId</code>
+(เช่น <code>"primary"</code>) + <code>eventId</code> (String) &nbsp;•&nbsp; <b>ได้มาจาก:</b>
+<code>buildCalendarService()</code> (หัวข้อ 3.3), และ <code>eventId</code> ได้จาก
+<code>created.id</code> ตอนสร้าง (หัวข้อ 3.3)</p>
+<pre><code><span class="kw">import</span> com.google.api.client.util.DateTime
+<span class="kw">import</span> com.google.api.services.calendar.Calendar
+<span class="kw">import</span> com.google.api.services.calendar.model.Event
+<span class="kw">import</span> kotlinx.coroutines.Dispatchers
+<span class="kw">import</span> kotlinx.coroutines.withContext
+
+<span class="com">// ── แก้ไข: ต้อง get ของเดิมมาก่อน แล้วแก้ฟิลด์ แล้ว update กลับ ──</span>
+<span class="kw">suspend fun</span> <span class="fn">updateEvent</span>(
+    service: Calendar,      <span class="com">// client ที่ผ่าน OAuth แล้ว (หัวข้อ 3.3)</span>
+    calendarId: String,     <span class="com">// "primary" = ปฏิทินหลักของผู้ใช้</span>
+    eventId: String         <span class="com">// id ที่เก็บไว้จาก created.id ตอนสร้าง</span>
+): Event = withContext(Dispatchers.IO) {   <span class="com">// API = network I/O → ต้องอยู่ IO thread</span>
+
+    <span class="com">// 1) ดึง event ปัจจุบันจาก Google (กันการเขียนทับฟิลด์อื่นโดยไม่ตั้งใจ)</span>
+    <span class="kw">val</span> event = service.events().get(calendarId, eventId).execute()
+
+    <span class="com">// 2) แก้เฉพาะฟิลด์ที่ต้องการ</span>
+    event.summary = <span class="str">"ประชุมทีม (อัปเดต)"</span>
+    event.start.dateTime = DateTime(System.currentTimeMillis() + <span class="num">3600_000</span>)
+    event.end.dateTime = DateTime(System.currentTimeMillis() + <span class="num">7200_000</span>)
+
+    <span class="com">// 3) ส่งกลับไปอัปเดตบน Google (คืน Event ที่อัปเดตแล้ว)</span>
+    service.events().update(calendarId, eventId, event).execute()
+}
+
+<span class="com">// ── ลบ event ออกจาก Google โดยตรง ──</span>
+<span class="kw">suspend fun</span> <span class="fn">deleteEvent</span>(
+    service: Calendar,
+    calendarId: String,
+    eventId: String
+) = withContext(Dispatchers.IO) {
+    <span class="com">// delete ไม่มีค่าคืน — สำเร็จ = ไม่ throw; ถ้า id ไม่มีจะได้ 404/410</span>
+    service.events().delete(calendarId, eventId).execute()
+}</code></pre>
+<div class="warn">ทุกการเรียกเป็น network I/O → ต้องอยู่บน <code>Dispatchers.IO</code> เสมอ •
+ถ้า token หมดอายุต้อง handle การ re-auth</div>
+
+<div class="note"><b>สรุป:</b> ต้องการ <b>แก้/ลบอัตโนมัติ</b> → เลือก <b>วิธี 2</b> (บนเครื่อง ง่ายกว่า)
+หรือ <b>วิธี 3</b> (เต็มรูปแบบ ข้ามอุปกรณ์) • วิธี 1 ทำได้แค่พาผู้ใช้ไปแก้/ดูเอง และลบอัตโนมัติไม่ได้</div>
 </section>
 
 <hr>
