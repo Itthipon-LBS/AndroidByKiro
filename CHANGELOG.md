@@ -986,6 +986,16 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   (Credential Manager) vs Authorization (AuthorizationClient) และหมายเหตุว่าวิธี 1/2 ไม่มี
   การล็อกอินในแอป พร้อมเพิ่มลิงก์ในสารบัญ
 
+## 109. เพิ่มหัวข้อการตั้งการเตือน (reminder) ทั้ง 3 วิธีในเอกสาร Google Calendar
+
+**Added**
+- ใน `docs/google-calendar-integration.html` เพิ่มหัวข้อ "การตั้งการเตือน (reminder) ของ
+  ทั้ง 3 วิธี": อธิบายว่าตั้งเตือนได้ทั้ง 3 วิธี, ถ้าไม่กำหนดเองจะใช้ default reminder ของ
+  ปฏิทิน (ผู้ใช้ตั้งได้/อาจไม่มี), พร้อมโค้ดแต่ละวิธี — Intent (extra MINUTES),
+  CalendarContract (HAS_ALARM=1 + insert Reminders + METHOD_ALERT/EMAIL), Calendar API
+  (Event.Reminders + setUseDefault/setOverrides popup/email) และตารางสรุปเทียบการตั้งเตือน
+  พร้อมเพิ่มลิงก์ในสารบัญ
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

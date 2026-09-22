@@ -78,6 +78,7 @@
   <a href="#intro">ภาพรวม</a>
   <a href="#compare">เทียบ 3 วิธี</a>
   <a href="#crud">สร้าง/แก้/ลบ แต่ละวิธี</a>
+  <a href="#reminders">การตั้งเตือน 3 วิธี</a>
   <h2>วิธีที่ 1</h2>
   <a href="#m1">Intent (ง่ายสุด)</a>
   <h2>วิธีที่ 2</h2>
@@ -262,6 +263,77 @@ permission <code>WRITE_CALENDAR</code> &nbsp;•&nbsp; <b>ได้มาจา�
 
 <div class="note"><b>สรุป:</b> ต้องการ <b>แก้/ลบอัตโนมัติ</b> → เลือก <b>วิธี 2</b> (บนเครื่อง ง่ายกว่า)
 หรือ <b>วิธี 3</b> (เต็มรูปแบบ ข้ามอุปกรณ์) • วิธี 1 ทำได้แค่พาผู้ใช้ไปแก้/ดูเอง และลบอัตโนมัติไม่ได้</div>
+</section>
+
+<hr>
+
+<section id="reminders">
+<h2>การตั้งการเตือน (reminder) ของทั้ง 3 วิธี</h2>
+<p>ตั้งเตือนได้ <b>ทั้ง 3 วิธี</b> — ต่างกันแค่ที่วางโค้ด หลักการเหมือนกัน:</p>
+<ul>
+  <li><b>ไม่กำหนด reminder เอง</b> → event ใช้ <b>การเตือนเริ่มต้นของปฏิทิน</b> (default
+      reminder) ซึ่ง <b>ผู้ใช้ตั้งเองได้</b> — อาจมีเตือน (เช่น default 30 นาที) หรือไม่มีเลย
+      ถ้า default ปิดอยู่</li>
+  <li><b>กำหนดเอง</b> → เตือนตามที่ตั้งแน่นอน (ควบคุมได้)</li>
+</ul>
+<div class="warn"><b>อยากให้เตือนแน่ ๆ ต้องกำหนดเอง</b> — เพราะเราคุม default ของปฏิทินผู้ใช้ไม่ได้</div>
+
+<h3>วิธี 1 (Intent) — ตั้งเป็นค่าเริ่มต้นในฟอร์ม</h3>
+<pre><code><span class="kw">val</span> intent = Intent(Intent.ACTION_INSERT).apply {
+    data = CalendarContract.Events.CONTENT_URI
+    putExtra(CalendarContract.Events.TITLE, <span class="str">"ประชุมทีม"</span>)
+    <span class="com">// ตั้งเตือนล่วงหน้า 30 นาที เป็น "ค่าเริ่มต้นในฟอร์ม"</span>
+    <span class="com">// → ผู้ใช้ยังปรับ/ลบได้ก่อนกดบันทึก (ควบคุมไม่ได้ 100%)</span>
+    putExtra(CalendarContract.Reminders.MINUTES, <span class="num">30</span>)
+}</code></pre>
+
+<h3>วิธี 2 (CalendarContract) — insert ลงตาราง Reminders</h3>
+<pre><code><span class="com">// 1) ตอน insert event ควรตั้ง HAS_ALARM = 1 ให้ระบบรู้ว่า event นี้มีเตือน</span>
+<span class="kw">val</span> values = ContentValues().apply {
+    <span class="com">// ...ฟิลด์อื่น ๆ (DTSTART/DTEND/TITLE/CALENDAR_ID/EVENT_TIMEZONE)...</span>
+    put(CalendarContract.Events.HAS_ALARM, <span class="num">1</span>)   <span class="com">// สำคัญ: บอกว่ามีการเตือน</span>
+}
+<span class="kw">val</span> uri = resolver.insert(CalendarContract.Events.CONTENT_URI, values)
+
+<span class="com">// 2) แล้วเพิ่มรายการเตือนโยงกับ eventId</span>
+<span class="kw">val</span> eventId = uri!!.lastPathSegment!!.toLong()   <span class="com">// id จาก uri ที่ได้ตอน insert</span>
+<span class="kw">val</span> reminder = ContentValues().apply {
+    put(CalendarContract.Reminders.EVENT_ID, eventId)
+    put(CalendarContract.Reminders.MINUTES, <span class="num">30</span>)            <span class="com">// เตือนก่อน 30 นาที</span>
+    put(CalendarContract.Reminders.METHOD,
+        CalendarContract.Reminders.METHOD_ALERT)             <span class="com">// เด้งแจ้งเตือนบนเครื่อง</span>
+}
+resolver.insert(CalendarContract.Reminders.CONTENT_URI, reminder)
+<span class="com">// ถ้าข้ามขั้นนี้ → event จะใช้ default reminder ของปฏิทินแทน</span></code></pre>
+<div class="note"><b>METHOD ที่ใช้ได้:</b> <code>METHOD_ALERT</code> (เด้งเตือน),
+<code>METHOD_EMAIL</code> (อีเมล), <code>METHOD_DEFAULT</code></div>
+
+<h3>วิธี 3 (Calendar API) — set property reminders ของ Event</h3>
+<pre><code><span class="kw">import</span> com.google.api.services.calendar.model.Event
+<span class="kw">import</span> com.google.api.services.calendar.model.EventReminder
+
+event.reminders = Event.Reminders()
+    .setUseDefault(<span class="kw">false</span>)   <span class="com">// false = ไม่ใช้ default ของปฏิทิน, ใช้ที่เรากำหนด</span>
+    .setOverrides(listOf(
+        EventReminder().setMethod(<span class="str">"popup"</span>).setMinutes(<span class="num">30</span>),  <span class="com">// เด้งเตือน 30 นาทีก่อน</span>
+        EventReminder().setMethod(<span class="str">"email"</span>).setMinutes(<span class="num">60</span>)   <span class="com">// อีเมลเตือน 60 นาทีก่อน</span>
+    ))
+service.events().insert(<span class="str">"primary"</span>, event).execute()
+
+<span class="com">// ถ้าอยากใช้การเตือนเริ่มต้นของปฏิทินแทน:</span>
+<span class="com">// event.reminders = Event.Reminders().setUseDefault(true)</span></code></pre>
+<div class="note"><b>method (วิธี 3):</b> <code>"popup"</code> (เด้งเตือน) และ
+<code>"email"</code> (อีเมล) — email reminder ใช้ได้ดีเพราะคุยกับ Google โดยตรง</div>
+
+<h3>สรุปเทียบการตั้งเตือน</h3>
+<table>
+  <tr><th>ประเด็น</th><th>วิธี 1 (Intent)</th><th>วิธี 2 (Contract)</th><th>วิธี 3 (API)</th></tr>
+  <tr><td>ตั้งเตือนได้</td><td>✅ (เป็นค่าเริ่มต้นในฟอร์ม)</td><td>✅</td><td>✅</td></tr>
+  <tr><td>ควบคุมได้แน่นอน</td><td>❌ ผู้ใช้แก้ได้</td><td>✅</td><td>✅</td></tr>
+  <tr><td>สั่ง "ไม่ใช้ default" ได้</td><td>—</td><td>โดยการใส่ reminder เอง</td><td><code>setUseDefault(false)</code></td></tr>
+  <tr><td>เตือนแบบอีเมล</td><td>—</td><td>METHOD_EMAIL (จำกัด)</td><td><code>"email"</code> (ดี)</td></tr>
+  <tr><td>ถ้าไม่กำหนด</td><td colspan="3">ใช้ default reminder ของปฏิทิน (อาจมี/ไม่มี ตามที่ผู้ใช้ตั้ง)</td></tr>
+</table>
 </section>
 
 <hr>
