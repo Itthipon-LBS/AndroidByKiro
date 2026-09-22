@@ -84,6 +84,7 @@
   <a href="#m2">CalendarContract</a>
   <h2>วิธีที่ 3</h2>
   <a href="#m3">Google Calendar API</a>
+  <a href="#m3-login">3.0 "ล็อกอิน" คืออะไร</a>
   <a href="#m3-setup">3.1 ตั้งค่า Cloud</a>
   <a href="#m3-signin">3.2 Sign-in</a>
   <a href="#m3-code">3.3 โค้ดเรียก API</a>
@@ -422,6 +423,44 @@ resolver.delete(deleteUri, <span class="kw">null</span>, <span class="kw">null</
 <div class="warn"><b>สำคัญเรื่องความปลอดภัย:</b> ห้ามฝัง client secret ไว้ในแอป Android
 (ถอดรหัสได้ง่าย) — Android ใช้ OAuth client แบบ <b>public client</b> (ไม่มี secret) และ
 ยืนยันตัวตนด้วย package name + SHA-1 fingerprint ที่ลงทะเบียนไว้</div>
+
+<h3 id="m3-login">3.0 "ล็อกอิน Google" ที่ว่า หมายถึงแบบไหน</h3>
+<p>คำว่า "ต้องล็อกอิน Google" ในวิธีนี้ <b>ไม่ได้</b> หมายถึงให้ผู้ใช้พิมพ์อีเมล/รหัสผ่าน
+Google ลงในแอปของเรา แต่หมายถึง <b>OAuth 2.0</b> — ผู้ใช้ "เลือกบัญชี Google แล้วกดยินยอม
+(consent)" ให้แอปเราเข้าถึงปฏิทินของเขา เป็น flow เดียวกับปุ่ม "Sign in with Google" ทั่วไป</p>
+
+<h4>flow ที่ผู้ใช้เห็น</h4>
+<ol>
+  <li>กดปุ่มในแอป → เด้งหน้าจอ <b>เลือกบัญชี Google</b> (บัญชีที่มีในเครื่องอยู่แล้ว)</li>
+  <li>เด้งหน้าจอ <b>ขอความยินยอม (consent screen)</b> ว่า "แอป X ขอเข้าถึง Google Calendar
+      ของคุณ" → ผู้ใช้กด <b>อนุญาต</b></li>
+  <li>แอปได้ <b>access token</b> (ขอบเขตจำกัดเฉพาะปฏิทิน) กลับมา → ใช้ token เรียก Calendar API</li>
+</ol>
+
+<div class="danger"><b>สิ่งที่ต้องเข้าใจให้ถูก:</b>
+<ul>
+  <li>❌ <b>ไม่ใช่</b> การให้ผู้ใช้กรอกอีเมล/รหัสผ่าน Google ในช่องกรอกในแอปเรา — แบบนั้นผิด
+      นโยบายและอันตราย</li>
+  <li>✅ รหัสผ่านถูกกรอกที่ <b>หน้าจอของ Google เอง</b> (หรือใช้บัญชีที่ล็อกอินในเครื่องอยู่
+      แล้ว) — แอปเรา <b>ไม่เคยเห็นรหัสผ่าน</b></li>
+  <li>✅ แอปได้แค่ <b>token ที่มี scope จำกัด</b> เฉพาะปฏิทิน ไม่ได้สิทธิ์อย่างอื่น และผู้ใช้
+      เพิกถอนได้ทุกเมื่อ</li>
+</ul></div>
+
+<h4>Authentication vs Authorization (2 ส่วนที่ใช้คนละตัว)</h4>
+<table>
+  <tr><th>ส่วน</th><th>คืออะไร</th><th>ใช้เครื่องมือ</th></tr>
+  <tr><td><b>Authentication</b> (ระบุตัวตน)</td><td>รู้ว่าเป็นบัญชีไหน / ใครล็อกอิน</td><td><b>Credential Manager</b> (Sign in with Google)</td></tr>
+  <tr><td><b>Authorization</b> (ขอสิทธิ์)</td><td>ขออนุญาตเข้าถึงปฏิทิน (scope)</td><td><b>Authorization API</b> (<code>AuthorizationClient</code>)</td></tr>
+</table>
+<div class="note">ถ้าแค่ต้องการ "ยิงเข้าปฏิทิน" อาจข้ามส่วน authentication แล้วเรียก
+Authorization API เพื่อขอ scope ปฏิทิน + เลือกบัญชีได้เลย • ส่วน <b>GoogleSignIn API เดิม</b>
+กำลังถูกแทนที่ด้วย Credential Manager (ดูหัวข้อแนวโน้ม)</div>
+
+<div class="warn"><b>ต่างจากวิธี 1 และ 2:</b> วิธี 1 (Intent) และวิธี 2 (CalendarContract)
+<b>ไม่มีการล็อกอินในแอปเราเลย</b> เพราะใช้บัญชี Google ที่ล็อกอินไว้ในเครื่อง (ระดับ OS)
+อยู่แล้ว — วิธี 2 แค่ขอ <i>permission ปฏิทิน</i> ของระบบเท่านั้น • มีเพียง <b>วิธี 3</b>
+ที่ต้องให้ผู้ใช้ยินยอมผ่าน OAuth เพราะแอปคุยกับเซิร์ฟเวอร์ Google โดยตรง</div>
 
 <h3 id="m3-setup">3.1 ตั้งค่าใน Google Cloud Console (ทำครั้งเดียว)</h3>
 <ol>

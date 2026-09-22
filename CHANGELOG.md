@@ -977,6 +977,15 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   update/delete, Calendar API get→update/delete) โดยแต่ละบล็อกระบุ "สิ่งที่ต้องใช้ + ได้มา
   จากไหน" และมี comment อธิบายโค้ดทีละบรรทัด พร้อมเพิ่มลิงก์ในสารบัญด้านข้าง
 
+## 108. อธิบาย "ล็อกอิน Google" (OAuth) ในเอกสาร Google Calendar
+
+**Added**
+- ใน `docs/google-calendar-integration.html` เพิ่มหัวข้อ 3.0 "ล็อกอิน Google ที่ว่า หมายถึง
+  แบบไหน": อธิบายว่าเป็น OAuth 2.0 (เลือกบัญชี + ยินยอม scope) ไม่ใช่กรอกรหัสผ่านในแอป,
+  flow ที่ผู้ใช้เห็น 3 ขั้น, กล่องเตือนสิ่งที่เข้าใจผิดบ่อย, ตารางแยก Authentication
+  (Credential Manager) vs Authorization (AuthorizationClient) และหมายเหตุว่าวิธี 1/2 ไม่มี
+  การล็อกอินในแอป พร้อมเพิ่มลิงก์ในสารบัญ
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
