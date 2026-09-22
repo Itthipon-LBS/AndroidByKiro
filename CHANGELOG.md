@@ -996,6 +996,15 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   (Event.Reminders + setUseDefault/setOverrides popup/email) และตารางสรุปเทียบการตั้งเตือน
   พร้อมเพิ่มลิงก์ในสารบัญ
 
+## 110. เพิ่มหัวข้อการป้องกัน event ซ้ำในเอกสาร Google Calendar
+
+**Added**
+- ใน `docs/google-calendar-integration.html` เพิ่มหัวข้อ "การป้องกัน event ซ้ำ": อธิบายว่า
+  Calendar ไม่กันซ้ำให้ + เมื่อไรที่เกิดซ้ำ (กดรัว/retry/หมุนจอ/sync หลายเครื่อง) พร้อมโค้ด
+  3 แนวทางที่มี comment อธิบายทีละบรรทัด — (1) query เช็คก่อน insert (วิธี 2), (2) กำหนด
+  event.id เอง + ดัก 409 Conflict (วิธี 3, เด็ดขาดสุด), (3) เก็บ mapping id ฝั่งแอปด้วย Room
+  แล้ว upsert — และการกันกดซ้ำที่ UI (disable ปุ่ม) พร้อมตารางสรุปเลือกแนวทาง + ลิงก์สารบัญ
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
