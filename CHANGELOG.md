@@ -1005,6 +1005,20 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   event.id เอง + ดัก 409 Conflict (วิธี 3, เด็ดขาดสุด), (3) เก็บ mapping id ฝั่งแอปด้วย Room
   แล้ว upsert — และการกันกดซ้ำที่ UI (disable ปุ่ม) พร้อมตารางสรุปเลือกแนวทาง + ลิงก์สารบัญ
 
+## 111. ขยายหัวข้อป้องกัน event ซ้ำ — ตัวเช็ค + event_id + จัดเรียบเรียง
+
+**Added**
+- ใน `docs/google-calendar-integration.html` (หัวข้อป้องกัน event ซ้ำ) เพิ่มส่วน "จะใช้อะไร
+  เป็นตัวเช็ค" พร้อมตารางเทียบ 3 ตัวเช็ค (title+DTSTART / orderId / event_id) + กล่องอธิบาย
+  ว่า event_id ใช้เช็คได้เฉพาะหลังสร้างแล้ว (ไก่กับไข่)
+- เพิ่มโค้ด `eventStillExists(eventId)` (วิธี 2) สำหรับเช็คว่า event ที่เคยสร้างยังอยู่ไหม
+  พร้อม comment และการรวมกับ mapping
+
+**Changed**
+- ขยายกล่องข้อจำกัดของแนวทาง 1 (title+DTSTART เป็น heuristic: false positive/negative,
+  ต้องตรง millisecond, race condition) + แนะนำเช็คด้วย orderId (custom field/_SYNC_ID)
+- ปรับตารางสรุปเลือกแนวทางให้มีคอลัมน์ "ใช้อะไรเป็นตัวเช็ค" และเพิ่มข้อสรุปเรื่องตัวเช็ค
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

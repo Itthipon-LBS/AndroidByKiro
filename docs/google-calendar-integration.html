@@ -351,7 +351,22 @@ service.events().insert(<span class="str">"primary"</span>, event).execute()
   <li>sync หลายเครื่อง (วิธี 3) ที่ logic ซ้ำกัน</li>
 </ul>
 
+<h3>ก่อนอื่น: จะใช้ "อะไร" เป็นตัวเช็คว่าซ้ำ?</h3>
+<p>การกันซ้ำทั้งหมดขึ้นกับ "ตัวระบุ (key)" ที่ใช้เทียบ — เลือกให้ถูกสำคัญกว่าตัวโค้ด:</p>
+<table>
+  <tr><th>ตัวเช็ค</th><th>ความแม่น</th><th>ใช้ตอนไหน</th></tr>
+  <tr><td><b>title + DTSTART</b> (ชื่อ+เวลาเริ่ม)</td><td>⚠️ ปานกลาง (heuristic)</td><td>เช็คก่อน insert ครั้งแรก เมื่อไม่มี key อื่น</td></tr>
+  <tr><td><b>orderId ของเราเอง</b> (custom key)</td><td>✅ แม่น</td><td>ฝังไว้ตอนสร้าง แล้ว query/lookup ด้วย key นี้</td></tr>
+  <tr><td><b>event_id</b> (id ที่ระบบสร้าง)</td><td>✅ แม่นสุด</td><td><b>เฉพาะหลังสร้างแล้ว</b> (เช็คว่าของเดิมยังอยู่ไหม)</td></tr>
+</table>
+<div class="warn"><b>เรื่อง event_id ที่มักเข้าใจผิด:</b> ใช้ event_id เช็คได้ก็ต่อเมื่อ
+<b>รู้ id นั้นอยู่ก่อนแล้ว</b> — แต่ event_id เกิด <b>หลัง</b> insert สำเร็จเท่านั้น จึงเอามา
+เช็ค "ก่อน insert ครั้งแรก" ไม่ได้ (ไก่กับไข่) • event_id เหมาะกับ "เช็คว่าของที่เคยสร้างยัง
+อยู่ไหม" ไม่ใช่ "กำลังจะสร้างของซ้ำหรือเปล่าตอนยังไม่เคยสร้าง"</div>
+
 <h3>แนวทาง 1 — Query เช็คก่อน insert (วิธี 2)</h3>
+<p>ตอน insert ครั้งแรกเรายัง <b>ไม่มี</b> event_id ให้เทียบ จึงต้องเช็คด้วยเนื้อหา event
+(title + DTSTART) แทน:</p>
 <pre><code><span class="kw">import</span> android.content.ContentResolver
 <span class="kw">import</span> android.provider.CalendarContract
 
@@ -376,8 +391,16 @@ service.events().insert(<span class="str">"primary"</span>, event).execute()
 <span class="kw">if</span> (!eventExists(resolver, <span class="str">"สั่งอาหาร #1234"</span>, startMillis)) {
     resolver.insert(CalendarContract.Events.CONTENT_URI, values)
 }</code></pre>
-<div class="warn">ข้อจำกัด: มี <b>race condition</b> ได้ถ้ากดรัวเร็วมาก (เช็คพร้อมกันก่อนอีกอันจะ
-insert เสร็จ) — ควรกันกดซ้ำที่ UI ควบคู่ (ดูท้ายหัวข้อ)</div>
+<div class="warn"><b>ข้อจำกัดของการเช็ค title + DTSTART</b> (เป็นแค่ heuristic/การเดา):
+<ul>
+  <li><b>ชนผิด (false positive):</b> 2 event ที่ตั้งใจให้ชื่อ+เวลาเดียวกันจริง ๆ จะถูกมองว่าซ้ำ</li>
+  <li><b>พลาด (false negative):</b> ผู้ใช้แก้ชื่อ/เวลานิดเดียว ก็เช็คไม่เจอ → ซ้ำอยู่ดี</li>
+  <li>DTSTART ต้องตรงเป๊ะระดับ millisecond</li>
+  <li>มี <b>race condition</b> ได้ถ้ากดรัวเร็วมาก (เช็คพร้อมกันก่อนอีกอัน insert เสร็จ)</li>
+</ul></div>
+<div class="note"><b>แม่นกว่า:</b> ฝัง "คีย์ของเราเอง" (เช่น orderId) ลง event ตอนสร้าง แล้ว
+query ด้วยคีย์นั้นแทนการเดาจากชื่อ/เวลา — เก็บใน custom field เช่น
+<code>Events._SYNC_ID</code> หรือใช้แนวทาง 3 (เก็บ mapping ฝั่งแอป)</div>
 
 <h3>แนวทาง 2 — กำหนด event.id เอง แล้วดัก 409 (วิธี 3, กันได้เด็ดขาดสุด)</h3>
 <pre><code><span class="kw">import</span> com.google.api.client.googleapis.json.GoogleJsonResponseException
@@ -430,6 +453,29 @@ insert เสร็จ) — ควรกันกดซ้ำที่ UI คว
 <div class="note">ใช้ได้ทั้งวิธี 2 (เก็บ eventId เป็น Long) และวิธี 3 (String) — เป็นแนวทางที่
 คุมง่ายสุดในแอปจริง เพราะรู้เสมอว่า event ของข้อมูลเราอยู่ที่ id ไหน</div>
 
+<p>เมื่อเก็บ event_id ไว้แล้ว จะเช็ค "ของที่เคยสร้างยังอยู่ในปฏิทินไหม" (วิธี 2) ได้ตรง ๆ
+ด้วย event_id — นี่คือจุดที่ event_id ใช้เช็คได้จริง (หลังสร้างแล้ว):</p>
+<pre><code><span class="kw">import</span> android.content.ContentResolver
+<span class="kw">import</span> android.content.ContentUris
+<span class="kw">import</span> android.provider.CalendarContract
+
+<span class="com">// เช็คว่า event ที่เคยสร้าง (รู้ id แล้ว) ยังอยู่ไหม — ผู้ใช้อาจลบไปเองก็ได้</span>
+<span class="kw">fun</span> <span class="fn">eventStillExists</span>(resolver: ContentResolver, eventId: Long): Boolean {
+    <span class="com">// สร้าง URI ชี้ตรงไปยัง event id นั้น</span>
+    <span class="kw">val</span> uri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
+    resolver.query(uri, arrayOf(CalendarContract.Events._ID), <span class="kw">null</span>, <span class="kw">null</span>, <span class="kw">null</span>)
+        ?.use { <span class="kw">return</span> it.count &gt; <span class="num">0</span> }   <span class="com">// 1 = ยังอยู่, 0 = ถูกลบไปแล้ว</span>
+    <span class="kw">return false</span>
+}
+
+<span class="com">// รวมกับ mapping: มี id + ยังอยู่ → ไม่สร้างซ้ำ; ถูกลบไปแล้ว → สร้างใหม่</span>
+<span class="kw">val</span> link = dao.findByOrderId(orderId)
+<span class="kw">if</span> (link == <span class="kw">null</span> || !eventStillExists(resolver, link.eventId.toLong())) {
+    <span class="com">// สร้างใหม่ + เก็บ mapping</span>
+} <span class="kw">else</span> {
+    <span class="com">// มีอยู่แล้ว → ข้าม หรือ update</span>
+}</code></pre>
+
 <h3>กันกดซ้ำที่ UI (ทำร่วมกับทุกแนวทาง)</h3>
 <pre><code><span class="com">// disable ปุ่มระหว่างกำลังสร้าง เพื่อกันกดรัว</span>
 <span class="kw">fun</span> <span class="fn">onAddToCalendarClick</span>() {
@@ -442,12 +488,16 @@ insert เสร็จ) — ควรกันกดซ้ำที่ UI คว
 
 <h3>สรุปเลือกแนวทาง</h3>
 <table>
-  <tr><th>สถานการณ์</th><th>แนวทางที่แนะนำ</th></tr>
-  <tr><td>วิธี 2 (บนเครื่อง)</td><td>Query เช็คก่อน + เก็บ mapping (แนวทาง 1 + 3)</td></tr>
-  <tr><td>วิธี 3 (API)</td><td>กำหนด event.id เอง + ดัก 409 (แนวทาง 2) — เด็ดขาดสุด</td></tr>
-  <tr><td>อยากคุมง่าย/รู้ id เสมอ</td><td>เก็บ mapping id ฝั่งแอป (แนวทาง 3)</td></tr>
-  <tr><td>ทุกกรณี</td><td>+ กันกดซ้ำที่ UI (disable ปุ่ม)</td></tr>
+  <tr><th>สถานการณ์</th><th>แนวทางที่แนะนำ</th><th>ใช้อะไรเป็นตัวเช็ค</th></tr>
+  <tr><td>วิธี 2 (บนเครื่อง) ครั้งแรก</td><td>Query เช็คก่อน insert (แนวทาง 1)</td><td>title + DTSTART (หรือ orderId ใน custom field)</td></tr>
+  <tr><td>วิธี 2 ครั้งต่อ ๆ ไป</td><td>เก็บ mapping + <code>eventStillExists</code> (แนวทาง 3)</td><td>event_id ที่เก็บไว้</td></tr>
+  <tr><td>วิธี 3 (API)</td><td>กำหนด event.id เอง + ดัก 409 (แนวทาง 2) — เด็ดขาดสุด</td><td>event.id ที่สร้างจาก orderId</td></tr>
+  <tr><td>อยากคุมง่าย/รู้ id เสมอ</td><td>เก็บ mapping id ฝั่งแอป (แนวทาง 3)</td><td>orderId → event_id</td></tr>
+  <tr><td>ทุกกรณี</td><td>+ กันกดซ้ำที่ UI (disable ปุ่ม)</td><td>—</td></tr>
 </table>
+<div class="note"><b>สรุปเรื่องตัวเช็ค:</b> ก่อนสร้างครั้งแรกยังไม่มี event_id → เช็คด้วย
+title+DTSTART (เดา) หรือ orderId (แม่นกว่า) • หลังสร้างแล้ว → เก็บ event_id ไว้ใช้เช็ค
+"ยังอยู่ไหม" ได้แม่นสุด • วิธีเด็ดขาดสุดคือให้ Google กันซ้ำเองด้วย event.id ที่กำหนดจาก orderId</div>
 </section>
 
 <hr>
