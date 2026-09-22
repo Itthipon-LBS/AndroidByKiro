@@ -957,6 +957,17 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 - ใน `docs/android-for-programmers.md` (B5) เพิ่มลิงก์ชี้ไปเอกสาร Lifecycle ฉบับเจาะลึก
 - ใน `docs/android-services.md` เพิ่มลิงก์อ่านต่อไปเอกสาร Lifecycle
 
+## 106. สร้างเอกสาร HTML การเชื่อม Google Calendar จาก Android
+
+**Added**
+- สร้าง `docs/google-calendar-integration.html` เอกสาร standalone HTML (มีสารบัญด้านข้าง,
+  ธีมสี #00d1b2, โค้ด syntax-highlight) เรื่องการเชื่อม Google Calendar จาก Android ครบ
+  ทั้ง 3 วิธี: (1) Intent, (2) CalendarContract/CalendarProvider, (3) Google Calendar API
+  (OAuth) — พร้อมโค้ดตัวอย่างที่รันได้จริงของแต่ละวิธี (สร้าง/อ่าน/แก้/ลบ event, reminder,
+  เชิญ guest, recurring, Google Meet), ตารางเทียบ 3 วิธี, ข้อดี/ข้อเสียแต่ละวิธี, การเลือกใช้,
+  สิ่งที่ต้องคำนึงก่อนใช้, ความปลอดภัย, ข้อผิดพลาดที่พบบ่อย, การทดสอบ, แนวโน้มในอนาคต
+  (Credential Manager) และ glossary
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

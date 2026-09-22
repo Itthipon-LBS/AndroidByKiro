@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>การเชื่อม Google Calendar จาก Android</title>
+<style>
+  :root {
+    --accent: #00d1b2;
+    --accent-dark: #00a88f;
+    --bg: #0f1419;
+    --surface: #1a2029;
+    --surface2: #232b36;
+    --text: #e6edf3;
+    --muted: #9aa7b4;
+    --border: #2d3742;
+    --code-bg: #11161c;
+    --warn: #ffb454;
+    --danger: #ff6b6b;
+    --ok: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", "Sarabun", Tahoma, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+  .layout { display: flex; }
+  /* Sidebar */
+  nav.toc {
+    position: sticky; top: 0;
+    width: 300px; height: 100vh;
+    overflow-y: auto;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 18px;
+    flex-shrink: 0;
+  }
+  nav.toc h2 { color: var(--accent); font-size: 15px; margin: 18px 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+  nav.toc h2:first-child { margin-top: 0; }
+  nav.toc a { display: block; color: var(--muted); text-decoration: none; font-size: 14px; padding: 5px 10px; border-radius: 6px; }
+  nav.toc a:hover { background: var(--surface2); color: var(--text); }
+  /* Main */
+  main { flex: 1; max-width: 900px; margin: 0 auto; padding: 40px 48px 120px; }
+  h1 { color: var(--accent); font-size: 30px; border-bottom: 2px solid var(--border); padding-bottom: 16px; }
+  h2 { color: var(--accent); font-size: 24px; margin-top: 48px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { color: var(--accent-dark); font-size: 19px; margin-top: 32px; }
+  h4 { color: var(--text); font-size: 16px; margin-top: 22px; }
+  p, li { color: var(--text); }
+  code { background: var(--code-bg); color: var(--accent); padding: 2px 6px; border-radius: 4px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 13.5px; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; }
+  pre code { background: none; color: #d6dee6; padding: 0; }
+  .kw { color: #ff7edb; } .str { color: #8ce99a; } .com { color: #6b7683; font-style: italic; } .num { color: #ffd580; } .fn { color: #66d9ef; }
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14.5px; }
+  th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--surface2); color: var(--accent); }
+  tr:nth-child(even) td { background: var(--surface); }
+  .note, .warn, .danger, .ok { border-radius: 10px; padding: 14px 18px; margin: 18px 0; border-left: 4px solid; }
+  .note { background: rgba(0,209,178,.08); border-color: var(--accent); }
+  .warn { background: rgba(255,180,84,.08); border-color: var(--warn); }
+  .danger { background: rgba(255,107,107,.08); border-color: var(--danger); }
+  .ok { background: rgba(74,222,128,.08); border-color: var(--ok); }
+  .pill { display: inline-block; font-size: 12px; padding: 2px 10px; border-radius: 20px; background: var(--surface2); color: var(--accent); border: 1px solid var(--border); margin-right: 6px; }
+  .pros li { color: var(--ok); } .pros li span { color: var(--text); }
+  .cons li { color: var(--danger); } .cons li span { color: var(--text); }
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+  .lead { color: var(--muted); font-size: 16px; }
+  a.inline { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc">
+  <h2>สารบัญ</h2>
+  <a href="#intro">ภาพรวม</a>
+  <a href="#compare">เทียบ 3 วิธี</a>
+  <h2>วิธีที่ 1</h2>
+  <a href="#m1">Intent (ง่ายสุด)</a>
+  <h2>วิธีที่ 2</h2>
+  <a href="#m2">CalendarContract</a>
+  <h2>วิธีที่ 3</h2>
+  <a href="#m3">Google Calendar API</a>
+  <a href="#m3-setup">3.1 ตั้งค่า Cloud</a>
+  <a href="#m3-signin">3.2 Sign-in</a>
+  <a href="#m3-code">3.3 โค้ดเรียก API</a>
+  <a href="#m3-ops">3.4 CRUD เต็ม</a>
+  <h2>รอบด้าน</h2>
+  <a href="#choose">เลือกวิธีไหน</a>
+  <a href="#consider">สิ่งที่ต้องคำนึง</a>
+  <a href="#security">ความปลอดภัย</a>
+  <a href="#pitfalls">ข้อผิดพลาดที่พบบ่อย</a>
+  <a href="#testing">การทดสอบ</a>
+  <a href="#trends">แนวโน้มในอนาคต</a>
+  <a href="#glossary">ศัพท์เทคนิค</a>
+</nav>
+<main>
+
+<h1>การเชื่อม Google Calendar จาก Android</h1>
+<p class="lead">เอกสารนี้อธิบายวิธีให้แอป Android เขียน/จัดการ event บน Google Calendar
+แบบครบทุกวิธี พร้อมข้อดี/ข้อเสีย สิ่งที่ต้องคำนึงก่อนใช้ โค้ดตัวอย่างที่นำไปรันได้จริง
+ความปลอดภัย การทดสอบ และแนวโน้มในอนาคต อ่านจบแล้วเลือกและลงมือทำได้ทันที</p>
+
+<section id="intro">
+<h2>ภาพรวม: มี 3 วิธีหลัก</h2>
+<p>การพา event ไปที่ Google Calendar ทำได้ 3 ทาง เรียงจาก <b>ง่าย → ยืดหยุ่น</b>:</p>
+<ul>
+  <li><span class="pill">วิธี 1</span> <b>Intent</b> — เปิดแอปปฏิทินพร้อมข้อมูล ให้ผู้ใช้กดบันทึกเอง (ไม่ต้องล็อกอิน/ไม่ต้อง permission)</li>
+  <li><span class="pill">วิธี 2</span> <b>CalendarContract (CalendarProvider)</b> — เขียนลงปฏิทินในเครื่องโดยตรง (ต้องขอ permission ปฏิทิน)</li>
+  <li><span class="pill">วิธี 3</span> <b>Google Calendar API</b> — คุยกับ Google โดยตรงผ่าน OAuth (ยืดหยุ่นสูงสุด แต่ตั้งค่าเยอะสุด)</li>
+</ul>
+<div class="note"><b>เลือกเร็ว ๆ:</b> แค่ช่วยผู้ใช้สร้าง event → <b>วิธี 1</b> •
+เขียนเข้าปฏิทินเครื่องอัตโนมัติ → <b>วิธี 2</b> • จัดการ event เต็มรูปแบบ/ข้ามอุปกรณ์/มี
+backend → <b>วิธี 3</b></div>
+</section>
+
+<section id="compare">
+<h2>ตารางเทียบ 3 วิธี</h2>
+<table>
+  <tr><th>ประเด็น</th><th>1. Intent</th><th>2. CalendarContract</th><th>3. Calendar API</th></tr>
+  <tr><td>ต้องล็อกอิน Google</td><td>ไม่ต้อง</td><td>ไม่ต้อง (ใช้บัญชีที่ sync)</td><td>ต้อง (OAuth)</td></tr>
+  <tr><td>ต้องขอ permission</td><td>ไม่ต้อง</td><td>READ/WRITE_CALENDAR</td><td>ไม่ต้อง (ขอ scope ผ่าน OAuth)</td></tr>
+  <tr><td>ตั้งค่า Cloud Console</td><td>ไม่ต้อง</td><td>ไม่ต้อง</td><td>ต้อง (เปิด API + OAuth)</td></tr>
+  <tr><td>เขียนแบบเงียบ (ไม่มี UI)</td><td>ไม่ได้ (ผู้ใช้กดยืนยัน)</td><td>ได้</td><td>ได้</td></tr>
+  <tr><td>คุยกับ Google โดยตรง</td><td>ไม่</td><td>ไม่ (ผ่าน sync เครื่อง)</td><td>ใช่</td></tr>
+  <tr><td>จัดการ event เต็ม (แก้/ลบ/เชิญคน/recurring)</td><td>จำกัด</td><td>ได้ (บนเครื่อง)</td><td>ได้เต็มที่</td></tr>
+  <tr><td>ทำงานฝั่ง server/ข้ามอุปกรณ์</td><td>ไม่</td><td>ไม่</td><td>ได้</td></tr>
+  <tr><td>ความยากในการ setup</td><td>ต่ำสุด</td><td>ปานกลาง</td><td>สูงสุด</td></tr>
+</table>
+</section>
+
+<hr>
+<section id="m1">
+<h2>วิธีที่ 1 — Intent (ง่ายสุด)</h2>
+<p>ส่ง <code>Intent</code> ให้แอปปฏิทิน (Google Calendar หรือแอปปฏิทินใดก็ได้) เปิดหน้า
+"สร้าง event" พร้อมข้อมูลที่กรอกไว้ให้ล่วงหน้า แล้ว <b>ผู้ใช้กดบันทึกเอง</b> ไม่ต้องล็อกอิน
+ไม่ต้องขอ permission ไม่ต้องตั้งค่าอะไรเลย</p>
+
+<h3>1.1 สร้าง event (โค้ดเต็ม รันได้จริง)</h3>
+<pre><code><span class="kw">import</span> android.content.Intent
+<span class="kw">import</span> android.provider.CalendarContract
+<span class="kw">import</span> java.util.Calendar
+
+<span class="kw">fun</span> <span class="fn">openCreateEventInCalendar</span>(activity: Activity) {
+    <span class="com">// เวลาเริ่ม: พรุ่งนี้ 14:00 / เวลาจบ 15:00 (ตัวอย่าง)</span>
+    <span class="kw">val</span> begin = Calendar.getInstance().apply {
+        add(Calendar.DAY_OF_YEAR, <span class="num">1</span>)
+        set(Calendar.HOUR_OF_DAY, <span class="num">14</span>); set(Calendar.MINUTE, <span class="num">0</span>)
+    }
+    <span class="kw">val</span> end = (begin.clone() <span class="kw">as</span> Calendar).apply { add(Calendar.HOUR_OF_DAY, <span class="num">1</span>) }
+
+    <span class="kw">val</span> intent = Intent(Intent.ACTION_INSERT).apply {
+        data = CalendarContract.Events.CONTENT_URI
+        putExtra(CalendarContract.Events.TITLE, <span class="str">"ประชุมทีม"</span>)
+        putExtra(CalendarContract.Events.EVENT_LOCATION, <span class="str">"ห้องประชุม A"</span>)
+        putExtra(CalendarContract.Events.DESCRIPTION, <span class="str">"วาระ: สรุปสปรินต์"</span>)
+        putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, begin.timeInMillis)
+        putExtra(CalendarContract.EXTRA_EVENT_END_TIME, end.timeInMillis)
+        <span class="com">// putExtra(Intent.EXTRA_EMAIL, "a@x.com,b@y.com") // เชิญผู้เข้าร่วม</span>
+        <span class="com">// putExtra(CalendarContract.Events.ALL_DAY, true)   // ทั้งวัน</span>
+    }
+    <span class="com">// ป้องกันกรณีไม่มีแอปปฏิทิน</span>
+    <span class="kw">if</span> (intent.resolveActivity(activity.packageManager) != <span class="kw">null</span>) {
+        activity.startActivity(intent)
+    } <span class="kw">else</span> {
+        Toast.makeText(activity, <span class="str">"ไม่พบแอปปฏิทิน"</span>, Toast.LENGTH_SHORT).show()
+    }
+}</code></pre>
+
+<div class="ok"><b>ผลลัพธ์:</b> เปิดหน้าสร้าง event ในแอปปฏิทินพร้อมข้อมูลครบ ผู้ใช้แค่กด "บันทึก"</div>
+
+<h3>1.2 ข้อดี / ข้อเสีย</h3>
+<ul class="pros">
+  <li>✅ <span>ไม่ต้องขอ permission, ไม่ต้อง OAuth, ไม่ต้อง config อะไรเลย</span></li>
+  <li>✅ <span>ปลอดภัยเรื่อง privacy — ผู้ใช้เห็นและควบคุมทุกอย่าง</span></li>
+  <li>✅ <span>ใช้ได้กับแอปปฏิทินทุกยี่ห้อ ไม่ผูกกับ Google อย่างเดียว</span></li>
+</ul>
+<ul class="cons">
+  <li>❌ <span>ไม่ใช่การเขียนอัตโนมัติ — ผู้ใช้ต้องกดยืนยันทุกครั้ง</span></li>
+  <li>❌ <span>ควบคุมรายละเอียด/ปฏิทินปลายทางไม่ได้ 100%</span></li>
+  <li>❌ <span>อ่าน/แก้/ลบ event ที่มีอยู่ไม่ได้</span></li>
+</ul>
+<div class="note"><b>เหมาะเมื่อ:</b> อยากช่วยผู้ใช้สร้าง event สะดวก ๆ โดยไม่แตะข้อมูลปฏิทินเอง</div>
+</section>
+
+<hr>
+
+<section id="m2">
+<h2>วิธีที่ 2 — CalendarContract (เขียนลงปฏิทินในเครื่อง)</h2>
+<p>เขียน event ลงปฏิทินบนเครื่องโดยตรงผ่าน <b>ContentProvider</b> (<code>CalendarContract</code>)
+โดยไม่ต้องเปิดแอปปฏิทิน หากบัญชี Google ถูก sync อยู่ event จะไปโผล่บน Google Calendar
+ผ่านการ sync ของระบบ</p>
+
+<h3>2.1 ประกาศ permission</h3>
+<pre><code><span class="com">&lt;!-- AndroidManifest.xml --&gt;</span>
+&lt;uses-permission android:name=<span class="str">"android.permission.READ_CALENDAR"</span> /&gt;
+&lt;uses-permission android:name=<span class="str">"android.permission.WRITE_CALENDAR"</span> /&gt;</code></pre>
+<div class="warn">ทั้งสองเป็น <b>runtime permission กลุ่มอ่อนไหว</b> ต้องขอตอนใช้งานจริง (ผู้ใช้ปฏิเสธได้)</div>
+
+<h3>2.2 ขอ permission (Activity Result API)</h3>
+<pre><code><span class="kw">private val</span> permLauncher = registerForActivityResult(
+    ActivityResultContracts.RequestMultiplePermissions()
+) { result -&gt;
+    <span class="kw">val</span> granted = result.values.all { it }
+    <span class="kw">if</span> (granted) insertEvent() <span class="kw">else</span> showNeedPermission()
+}
+
+<span class="kw">fun</span> <span class="fn">requestCalendarPermission</span>() {
+    permLauncher.launch(arrayOf(
+        Manifest.permission.READ_CALENDAR,
+        Manifest.permission.WRITE_CALENDAR
+    ))
+}</code></pre>
+
+<h3>2.3 หา calendar_id ปลายทาง (เลือกปฏิทิน Google)</h3>
+<pre><code><span class="com">// คืน id ของปฏิทินหลักของบัญชี Google ที่ต้องการ (เช่น me@gmail.com)</span>
+<span class="kw">fun</span> <span class="fn">findGoogleCalendarId</span>(resolver: ContentResolver, accountEmail: String): Long? {
+    <span class="kw">val</span> proj = arrayOf(CalendarContract.Calendars._ID)
+    <span class="kw">val</span> sel = <span class="str">"${CalendarContract.Calendars.ACCOUNT_NAME} = ? AND " +
+              "${CalendarContract.Calendars.ACCOUNT_TYPE} = ?"</span>
+    <span class="kw">val</span> args = arrayOf(accountEmail, <span class="str">"com.google"</span>)
+    resolver.query(CalendarContract.Calendars.CONTENT_URI, proj, sel, args, <span class="kw">null</span>)
+        ?.use { c -&gt; <span class="kw">if</span> (c.moveToFirst()) <span class="kw">return</span> c.getLong(<span class="num">0</span>) }
+    <span class="kw">return null</span>
+}</code></pre>
+
+<h3>2.4 เขียน event (โค้ดเต็ม)</h3>
+<pre><code><span class="kw">fun</span> <span class="fn">insertEvent</span>(resolver: ContentResolver, calendarId: Long): Uri? {
+    <span class="kw">val</span> start = Calendar.getInstance().apply { add(Calendar.HOUR_OF_DAY, <span class="num">2</span>) }
+    <span class="kw">val</span> end = (start.clone() <span class="kw">as</span> Calendar).apply { add(Calendar.HOUR_OF_DAY, <span class="num">1</span>) }
+
+    <span class="kw">val</span> values = ContentValues().apply {
+        put(CalendarContract.Events.DTSTART, start.timeInMillis)
+        put(CalendarContract.Events.DTEND, end.timeInMillis)
+        put(CalendarContract.Events.TITLE, <span class="str">"ตรวจสุขภาพประจำปี"</span>)
+        put(CalendarContract.Events.DESCRIPTION, <span class="str">"อดอาหารก่อน 8 ชม."</span>)
+        put(CalendarContract.Events.CALENDAR_ID, calendarId)
+        put(CalendarContract.Events.EVENT_TIMEZONE, <span class="str">"Asia/Bangkok"</span>)
+    }
+    <span class="kw">val</span> uri = resolver.insert(CalendarContract.Events.CONTENT_URI, values)
+
+    <span class="com">// (ตัวเลือก) เพิ่มการเตือนล่วงหน้า 30 นาที</span>
+    uri?.lastPathSegment?.toLong()?.let { eventId -&gt;
+        <span class="kw">val</span> reminder = ContentValues().apply {
+            put(CalendarContract.Reminders.EVENT_ID, eventId)
+            put(CalendarContract.Reminders.MINUTES, <span class="num">30</span>)
+            put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
+        }
+        resolver.insert(CalendarContract.Reminders.CONTENT_URI, reminder)
+    }
+    <span class="kw">return</span> uri
+}</code></pre>
+
+<h3>2.5 แก้ / ลบ event</h3>
+<pre><code><span class="com">// แก้ไข</span>
+<span class="kw">val</span> updateUri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
+resolver.update(updateUri, ContentValues().apply {
+    put(CalendarContract.Events.TITLE, <span class="str">"ชื่อใหม่"</span>)
+}, <span class="kw">null</span>, <span class="kw">null</span>)
+
+<span class="com">// ลบ</span>
+<span class="kw">val</span> deleteUri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId)
+resolver.delete(deleteUri, <span class="kw">null</span>, <span class="kw">null</span>)</code></pre>
+
+<h3>2.6 ข้อดี / ข้อเสีย</h3>
+<ul class="pros">
+  <li>✅ <span>เขียนอัตโนมัติได้ ไม่ต้องเปิด UI ปฏิทิน</span></li>
+  <li>✅ <span>ใช้บัญชี Google ที่ผู้ใช้ sync ไว้แล้ว — ไม่ต้องล็อกอินซ้ำ</span></li>
+  <li>✅ <span>อ่าน/แก้/ลบ event บนเครื่องได้</span></li>
+</ul>
+<ul class="cons">
+  <li>❌ <span>ต้องขอ permission ปฏิทิน (อ่อนไหว — ผู้ใช้อาจปฏิเสธ)</span></li>
+  <li>❌ <span>พึ่งการ sync ของเครื่อง ไม่ได้คุยกับ Google โดยตรง (มี delay ได้)</span></li>
+  <li>❌ <span>ทำงานเฉพาะบนอุปกรณ์ ทำฝั่ง server ไม่ได้</span></li>
+  <li>❌ <span>ฟีเจอร์ขั้นสูง (เชิญ guest แบบส่งเมล, conferencing) จำกัด</span></li>
+</ul>
+<div class="note"><b>เหมาะเมื่อ:</b> อยากเขียนเข้าปฏิทินผู้ใช้บนอุปกรณ์อัตโนมัติ โดยไม่อยากยุ่งกับ OAuth</div>
+</section>
+
+<hr>
+
+<section id="m3">
+<h2>วิธีที่ 3 — Google Calendar API (ยืดหยุ่นสูงสุด)</h2>
+<p>เรียก REST API ของ Google Calendar โดยตรงผ่าน <b>OAuth 2.0</b> — สร้าง/แก้/ลบ event,
+เชิญคน (ส่งอีเมล), ตั้ง recurring, สร้างลิงก์ Google Meet, เข้าถึงปฏิทินหลายอัน และทำงาน
+ข้ามอุปกรณ์/ฝั่ง server ได้เต็มที่</p>
+
+<div class="warn"><b>สำคัญเรื่องความปลอดภัย:</b> ห้ามฝัง client secret ไว้ในแอป Android
+(ถอดรหัสได้ง่าย) — Android ใช้ OAuth client แบบ <b>public client</b> (ไม่มี secret) และ
+ยืนยันตัวตนด้วย package name + SHA-1 fingerprint ที่ลงทะเบียนไว้</div>
+
+<h3 id="m3-setup">3.1 ตั้งค่าใน Google Cloud Console (ทำครั้งเดียว)</h3>
+<ol>
+  <li>เข้า <a class="inline" href="https://console.cloud.google.com">Google Cloud Console</a> → สร้าง Project ใหม่</li>
+  <li><b>APIs &amp; Services → Library</b> → ค้น "Google Calendar API" → กด <b>Enable</b></li>
+  <li><b>OAuth consent screen</b> → เลือก External → กรอกชื่อแอป/อีเมล → เพิ่ม scope
+      <code>.../auth/calendar</code> → เพิ่ม test users (ช่วงยังไม่ publish)</li>
+  <li><b>Credentials → Create Credentials → OAuth client ID</b> → เลือก <b>Android</b>
+      → กรอก <b>package name</b> และ <b>SHA-1</b> ของ signing key</li>
+</ol>
+<pre><code><span class="com"># หา SHA-1 ของ debug key (ใช้ตอนพัฒนา)</span>
+keytool -list -v -keystore ~/.android/debug.keystore \
+  -alias androiddebugkey -storepass android -keypass android
+
+<span class="com"># หรือผ่าน Gradle</span>
+./gradlew signingReport</code></pre>
+<div class="warn">ตอนขึ้น production ต้องเพิ่ม SHA-1 ของ <b>release keystore</b> (หรือ SHA-1
+จาก Play App Signing) ด้วย มิฉะนั้น sign-in จะล้มเหลวบนเครื่องผู้ใช้จริง</div>
+
+<h3>3.2 เพิ่ม dependency</h3>
+<pre><code><span class="com">// build.gradle.kts (module :app)</span>
+dependencies {
+    <span class="com">// การล็อกอินสมัยใหม่ที่ Google แนะนำ</span>
+    implementation(<span class="str">"androidx.credentials:credentials:1.3.0"</span>)
+    implementation(<span class="str">"androidx.credentials:credentials-play-services-auth:1.3.0"</span>)
+    implementation(<span class="str">"com.google.android.libraries.identity.googleid:googleid:1.1.1"</span>)
+
+    <span class="com">// ตัว client ของ Calendar API + การขอ access token</span>
+    implementation(<span class="str">"com.google.android.gms:play-services-auth:21.2.0"</span>)
+    implementation(<span class="str">"com.google.api-client:google-api-client-android:2.6.0"</span>)
+    implementation(<span class="str">"com.google.apis:google-api-services-calendar:v3-rev20240523-2.0.0"</span>)
+    implementation(<span class="str">"com.google.oauth-client:google-oauth-client-jetty:1.36.0"</span>)
+}</code></pre>
+
+<h3 id="m3-signin">3.2.1 ให้ผู้ใช้ Sign in + ขอสิทธิ์ปฏิทิน</h3>
+<p>ใช้ <b>Credential Manager</b> (แนวทางล็อกอินปัจจุบัน) เพื่อระบุตัวตน แล้วขอ
+<b>authorization</b> สำหรับ scope ปฏิทินผ่าน AuthorizationClient:</p>
+<pre><code><span class="kw">import</span> com.google.android.gms.auth.api.identity.AuthorizationRequest
+<span class="kw">import</span> com.google.android.gms.auth.api.identity.Identity
+<span class="kw">import</span> com.google.api.services.calendar.CalendarScopes
+
+<span class="kw">fun</span> <span class="fn">requestCalendarAuthorization</span>(activity: Activity, onGranted: (account: Account) -&gt; Unit) {
+    <span class="kw">val</span> request = AuthorizationRequest.builder()
+        .setRequestedScopes(listOf(Scope(CalendarScopes.CALENDAR)))
+        .build()
+
+    Identity.getAuthorizationClient(activity)
+        .authorize(request)
+        .addOnSuccessListener { result -&gt;
+            <span class="kw">if</span> (result.hasResolution()) {
+                <span class="com">// ต้องให้ผู้ใช้ยินยอม → เปิดหน้าจอ consent</span>
+                <span class="kw">val</span> pi = result.pendingIntent!!
+                activity.startIntentSenderForResult(
+                    pi.intentSender, RC_AUTH, <span class="kw">null</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="kw">null</span>)
+            } <span class="kw">else</span> {
+                <span class="com">// ได้สิทธิ์แล้ว — ใช้บัญชีนี้เรียก API ได้</span>
+                onGranted(result.toGoogleSignInAccount()!!.account!!)
+            }
+        }
+        .addOnFailureListener { e -&gt; Log.e(<span class="str">"Auth"</span>, <span class="str">"failed"</span>, e) }
+}</code></pre>
+<div class="note">ใน <code>onActivityResult(RC_AUTH)</code> ให้เรียก
+<code>authorizationClient.getAuthorizationResultFromIntent(data)</code> เพื่อรับผลหลังผู้ใช้ยินยอม</div>
+
+<h3 id="m3-code">3.3 สร้าง Calendar client แล้วเรียก API</h3>
+<pre><code><span class="kw">import</span> com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+<span class="kw">import</span> com.google.api.client.util.DateTime
+<span class="kw">import</span> com.google.api.services.calendar.Calendar
+<span class="kw">import</span> com.google.api.services.calendar.model.Event
+<span class="kw">import</span> com.google.api.services.calendar.model.EventDateTime
+
+<span class="com">// สร้าง client จากบัญชีที่ได้สิทธิ์แล้ว</span>
+<span class="kw">fun</span> <span class="fn">buildCalendarService</span>(context: Context, account: Account): Calendar {
+    <span class="kw">val</span> credential = GoogleAccountCredential.usingOAuth2(
+        context, listOf(CalendarScopes.CALENDAR)
+    ).apply { selectedAccount = account }
+
+    <span class="kw">return</span> Calendar.Builder(
+        NetHttpTransport(),
+        GsonFactory.getDefaultInstance(),
+        credential
+    ).setApplicationName(<span class="str">"FoodOrder"</span>).build()
+}
+
+<span class="com">// สร้าง event — ต้องรันบน background thread (I/O)</span>
+<span class="kw">suspend fun</span> <span class="fn">createEvent</span>(service: Calendar): String = withContext(Dispatchers.IO) {
+    <span class="kw">val</span> event = Event().apply {
+        summary = <span class="str">"สั่งอาหาร #1234"</span>
+        location = <span class="str">"ร้าน FoodOrder"</span>
+        description = <span class="str">"ยอดรวม 250 บาท — รับที่ร้าน"</span>
+        start = EventDateTime()
+            .setDateTime(DateTime(System.currentTimeMillis() + <span class="num">3600_000</span>))
+            .setTimeZone(<span class="str">"Asia/Bangkok"</span>)
+        end = EventDateTime()
+            .setDateTime(DateTime(System.currentTimeMillis() + <span class="num">7200_000</span>))
+            .setTimeZone(<span class="str">"Asia/Bangkok"</span>)
+    }
+    <span class="kw">val</span> created = service.events().insert(<span class="str">"primary"</span>, event).execute()
+    created.htmlLink   <span class="com">// ลิงก์เปิด event บนเว็บ</span>
+}</code></pre>
+<div class="warn">ทุกการเรียก API เป็น <b>network I/O</b> — ต้องอยู่บน <code>Dispatchers.IO</code>
+(coroutine) หรือ background thread เสมอ ห้ามเรียกบน main thread (ANR + NetworkOnMainThreadException)</div>
+
+<h3 id="m3-ops">3.4 การจัดการ event แบบเต็ม (CRUD + ขั้นสูง)</h3>
+<pre><code><span class="com">// อ่านรายการ event ที่กำลังจะมาถึง</span>
+<span class="kw">suspend fun</span> <span class="fn">listUpcoming</span>(service: Calendar): List&lt;Event&gt; = withContext(Dispatchers.IO) {
+    service.events().list(<span class="str">"primary"</span>)
+        .setMaxResults(<span class="num">10</span>)
+        .setTimeMin(DateTime(System.currentTimeMillis()))
+        .setOrderBy(<span class="str">"startTime"</span>).setSingleEvents(<span class="kw">true</span>)
+        .execute().items ?: emptyList()
+}
+
+<span class="com">// แก้ไข</span>
+<span class="kw">suspend fun</span> <span class="fn">updateEvent</span>(service: Calendar, id: String) = withContext(Dispatchers.IO) {
+    <span class="kw">val</span> e = service.events().get(<span class="str">"primary"</span>, id).execute()
+    e.summary = <span class="str">"ชื่อใหม่"</span>
+    service.events().update(<span class="str">"primary"</span>, id, e).execute()
+}
+
+<span class="com">// ลบ</span>
+<span class="kw">suspend fun</span> <span class="fn">deleteEvent</span>(service: Calendar, id: String) = withContext(Dispatchers.IO) {
+    service.events().delete(<span class="str">"primary"</span>, id).execute()
+}
+
+<span class="com">// เชิญผู้เข้าร่วม + ส่งอีเมลแจ้ง</span>
+event.attendees = listOf(
+    EventAttendee().setEmail(<span class="str">"guest@example.com"</span>)
+)
+service.events().insert(<span class="str">"primary"</span>, event).setSendUpdates(<span class="str">"all"</span>).execute()
+
+<span class="com">// event ประจำ (recurring) ทุกสัปดาห์ 10 ครั้ง</span>
+event.recurrence = listOf(<span class="str">"RRULE:FREQ=WEEKLY;COUNT=10"</span>)
+
+<span class="com">// สร้างลิงก์ Google Meet อัตโนมัติ</span>
+event.conferenceData = ConferenceData().setCreateRequest(
+    CreateConferenceRequest().setRequestId(UUID.randomUUID().toString())
+)
+service.events().insert(<span class="str">"primary"</span>, event).setConferenceDataVersion(<span class="num">1</span>).execute()</code></pre>
+
+<h3>3.5 ข้อดี / ข้อเสีย</h3>
+<ul class="pros">
+  <li>✅ <span>ควบคุมได้ทุกอย่าง — CRUD, เชิญคน, recurring, Meet, หลายปฏิทิน</span></li>
+  <li>✅ <span>คุยกับ Google โดยตรง ไม่พึ่ง sync ของเครื่อง</span></li>
+  <li>✅ <span>ทำฝั่ง server / ข้ามอุปกรณ์ได้ (ใช้ refresh token)</span></li>
+  <li>✅ <span>ไม่ต้องขอ permission ปฏิทินของระบบ (ใช้ OAuth scope แทน)</span></li>
+</ul>
+<ul class="cons">
+  <li>❌ <span>ตั้งค่าเยอะสุด: Cloud Console + OAuth consent + SHA-1</span></li>
+  <li>❌ <span>ผู้ใช้ต้องล็อกอิน Google + ยินยอม scope</span></li>
+  <li>❌ <span>ต้องจัดการ token/error/quota เอง + ต้องมีเน็ต</span></li>
+  <li>❌ <span>OAuth consent ที่ขอ scope อ่อนไหวอาจต้องผ่าน verification ของ Google ก่อน publish</span></li>
+</ul>
+<div class="note"><b>เหมาะเมื่อ:</b> แอปจริงจังที่ต้องจัดการ event เต็มรูปแบบ ทำงานข้ามอุปกรณ์ หรือมี backend</div>
+</section>
+
+<hr>
+
+<section id="choose">
+<h2>เลือกวิธีไหนดี</h2>
+<table>
+  <tr><th>ต้องการ</th><th>เลือก</th></tr>
+  <tr><td>ให้ผู้ใช้กดสร้าง event เอง สะดวก ๆ ไม่แตะข้อมูล</td><td><b>วิธี 1 — Intent</b></td></tr>
+  <tr><td>เขียนเข้าปฏิทินบนเครื่องอัตโนมัติ ไม่อยากยุ่ง OAuth</td><td><b>วิธี 2 — CalendarContract</b></td></tr>
+  <tr><td>จัดการ event เต็มรูปแบบ / ข้ามอุปกรณ์ / มี backend</td><td><b>วิธี 3 — Calendar API</b></td></tr>
+  <tr><td>ยิงเข้าบัญชี Google โดยตรงแบบเงียบ ๆ</td><td><b>วิธี 3</b></td></tr>
+  <tr><td>อยากได้เร็วสุด ไม่ต้อง setup</td><td><b>วิธี 1</b></td></tr>
+</table>
+<div class="note"><b>เคสแอป FoodOrder:</b> ถ้าจะเพิ่มปุ่ม "เพิ่มลงปฏิทิน" ให้ผู้ใช้จำเวลารับอาหาร
+→ เริ่มด้วย <b>วิธี 1 (Intent)</b> ก่อน (ทำเสร็จใน 10 นาที ไม่ต้อง setup) แล้วค่อยอัปเกรดเป็น
+วิธี 3 ถ้าต้องซิงก์อัตโนมัติหลายเครื่องภายหลัง</div>
+</section>
+
+<section id="consider">
+<h2>สิ่งที่ต้องคำนึงถึงก่อนใช้</h2>
+<ul>
+  <li><b>ความเป็นส่วนตัว (privacy):</b> ปฏิทินเป็นข้อมูลอ่อนไหว — ขอสิทธิ์เท่าที่จำเป็น
+      และอธิบายเหตุผลให้ผู้ใช้ชัดเจน</li>
+  <li><b>Time zone:</b> ระบุ timezone ให้ถูกเสมอ (เช่น <code>Asia/Bangkok</code>) มิฉะนั้น
+      เวลาเพี้ยนข้ามโซน</li>
+  <li><b>ต้องมีเน็ตไหม:</b> วิธี 3 ต้องออนไลน์; วิธี 2 เขียนลงเครื่องก่อนแล้ว sync ทีหลังได้</li>
+  <li><b>OAuth verification:</b> scope <code>calendar</code> เป็น sensitive/restricted —
+      แอป production ที่ให้คนทั่วไปใช้อาจต้องผ่านการรีวิวของ Google ก่อน (มีเวลารอ)</li>
+  <li><b>SHA-1 ต่าง environment:</b> debug กับ release คนละค่า — ต้องลงทะเบียนทั้งคู่
+      (รวม Play App Signing) ไม่งั้น sign-in พังเฉพาะบน production</li>
+  <li><b>Quota &amp; rate limit:</b> Calendar API มีโควตาต่อโปรเจกต์/ต่อผู้ใช้ — ออกแบบให้
+      batch/cache ไม่ยิงถี่เกิน</li>
+  <li><b>ประสบการณ์ผู้ใช้:</b> วิธี 1 ผู้ใช้ยืนยันเอง (ไว้ใจได้) ส่วนวิธี 2/3 เขียนเงียบ ๆ
+      ควรมี feedback ว่าเพิ่ม event สำเร็จ</li>
+  <li><b>รองรับแอปปฏิทินหลากหลาย (วิธี 1):</b> เช็ค <code>resolveActivity</code> เผื่อไม่มี
+      แอปปฏิทิน</li>
+</ul>
+</section>
+
+<section id="security">
+<h2>ความปลอดภัย</h2>
+<ul>
+  <li><b>ห้ามฝัง client secret ในแอป</b> — Android OAuth client เป็น public client (ไม่มี
+      secret) ยืนยันด้วย package name + SHA-1</li>
+  <li><b>อย่า log access/refresh token</b> และอย่าเก็บ token แบบ plain text — ใช้ที่จัดเก็บ
+      ปลอดภัย (EncryptedSharedPreferences/Keystore) หรือให้ library จัดการ</li>
+  <li><b>ขอ scope น้อยที่สุด:</b> ถ้าแค่เพิ่ม event ใช้ <code>calendar.events</code> แทน
+      <code>calendar</code> เต็ม</li>
+  <li><b>ตรวจ input:</b> ข้อมูลที่ผู้ใช้/ระบบภายนอกป้อน ควร validate ก่อนสร้าง event</li>
+  <li><b>ฝั่ง server:</b> ถ้าเก็บ refresh token ไว้ที่ backend ต้องเข้ารหัสและจำกัดสิทธิ์เข้าถึง</li>
+</ul>
+</section>
+
+<section id="pitfalls">
+<h2>ข้อผิดพลาดที่พบบ่อย</h2>
+<table>
+  <tr><th>อาการ</th><th>สาเหตุ / วิธีแก้</th></tr>
+  <tr><td><code>NetworkOnMainThreadException</code> / ANR</td><td>เรียก API บน main thread → ย้ายไป <code>Dispatchers.IO</code></td></tr>
+  <tr><td>Sign-in สำเร็จบน debug แต่พังบน production</td><td>ไม่ได้ลงทะเบียน SHA-1 ของ release/Play App Signing</td></tr>
+  <tr><td>เวลา event เพี้ยน</td><td>ไม่ได้ตั้ง <code>EVENT_TIMEZONE</code>/timeZone</td></tr>
+  <tr><td>วิธี 2 เขียนแล้วไม่ขึ้นบน Google Calendar</td><td>ใช้ calendar_id ผิด (ไม่ใช่บัญชี com.google) หรือรอ sync</td></tr>
+  <tr><td><code>403 accessNotConfigured</code></td><td>ยังไม่ Enable Calendar API ใน Cloud Console</td></tr>
+  <tr><td><code>403 insufficient scope</code></td><td>ขอ scope ไม่ครบ/ผู้ใช้ไม่ยินยอม scope ปฏิทิน</td></tr>
+  <tr><td>ผู้ใช้ปฏิเสธ permission (วิธี 2)</td><td>ต้องเผื่อ flow ปฏิเสธ + อธิบายเหตุผล/ลิงก์ไป Settings</td></tr>
+</table>
+</section>
+
+<section id="testing">
+<h2>การทดสอบ</h2>
+<ul>
+  <li><b>Unit test:</b> แยก logic สร้าง <code>Event</code>/คำนวณเวลา/timezone ออกมาเป็น
+      pure function แล้วเทสต์ (ไม่ต้องต่อเน็ต)</li>
+  <li><b>Repository + fake:</b> ห่อการเรียก API ไว้หลัง interface แล้ว mock ในเทสต์ ViewModel</li>
+  <li><b>วิธี 2:</b> ใช้ Robolectric + fake ContentProvider หรือ instrumented test ตรวจว่า
+      insert/update/delete ทำงาน</li>
+  <li><b>End-to-end (วิธี 3):</b> ใช้ test Google account + test users บน OAuth consent
+      ทดสอบบนอุปกรณ์จริง</li>
+  <li><b>ตรวจ error path:</b> ไม่มีเน็ต, ผู้ใช้ยกเลิก consent, token หมดอายุ</li>
+</ul>
+</section>
+
+<section id="trends">
+<h2>แนวโน้มในอนาคต</h2>
+<ul>
+  <li><b>Credential Manager เป็นมาตรฐานล็อกอิน</b> — Google ผลักดันแทน GoogleSignIn API เดิม
+      (ตัวเก่าเริ่ม deprecated) แอปใหม่ควรเริ่มด้วย Credential Manager</li>
+  <li><b>OAuth เข้มขึ้นเรื่องความเป็นส่วนตัว</b> — scope อ่อนไหวต้องผ่าน verification,
+      แนวโน้มบังคับขอสิทธิ์แบบละเอียด (granular) และ least-privilege</li>
+  <li><b>ฝั่ง server + refresh token ยังเป็นแนวทางหลัก</b> สำหรับแอปที่ต้องซิงก์ต่อเนื่อง/
+      หลายอุปกรณ์</li>
+  <li><b>Intent-based ยังอยู่ยาว</b> — เป็นวิธีที่ privacy-friendly และไม่ต้อง maintenance
+      เหมาะกับกรณีทั่วไปตลอดไป</li>
+  <li><b>สรุป:</b> ถ้าเริ่มโปรเจกต์ใหม่วันนี้ → ใช้ <b>Credential Manager + Calendar API</b>
+      สำหรับงานจริงจัง และ <b>Intent</b> สำหรับงานเบา ๆ; หลีกเลี่ยงการพึ่ง GoogleSignIn API เดิม</li>
+</ul>
+</section>
+
+<section id="glossary">
+<h2>ศัพท์ทางเทคนิค (Glossary)</h2>
+<ul>
+  <li><b>OAuth 2.0</b> — มาตรฐานให้แอปขอสิทธิ์เข้าถึงข้อมูลผู้ใช้โดยไม่ต้องรู้รหัสผ่าน</li>
+  <li><b>Scope</b> — ขอบเขตสิทธิ์ที่ขอ (เช่น <code>.../auth/calendar</code>)</li>
+  <li><b>Access token / Refresh token</b> — โทเคนเข้าถึงระยะสั้น / โทเคนต่ออายุระยะยาว</li>
+  <li><b>Public client</b> — OAuth client ที่ไม่มี secret (แอปมือถือ) ยืนยันด้วย package+SHA-1</li>
+  <li><b>SHA-1 fingerprint</b> — ลายนิ้วมือของ signing key ที่ใช้ยืนยันตัวตนแอป</li>
+  <li><b>Credential Manager</b> — API ล็อกอินรวมยุคใหม่ของ Android (แทน GoogleSignIn เดิม)</li>
+  <li><b>CalendarContract</b> — ContentProvider ของระบบสำหรับเข้าถึงปฏิทินบนเครื่อง</li>
+  <li><b>calendar_id</b> — id ของปฏิทินปลายทางบนเครื่อง</li>
+  <li><b>RRULE</b> — กติกากำหนด event ประจำ (recurring) เช่น <code>FREQ=WEEKLY</code></li>
+  <li><b>OAuth consent screen</b> — หน้าจอขอความยินยอมจากผู้ใช้ + ที่ตั้งค่า scope/verification</li>
+  <li><b>sendUpdates</b> — พารามิเตอร์บอกให้ส่งอีเมลแจ้งผู้เข้าร่วมเมื่อสร้าง/แก้ event</li>
+</ul>
+</section>
+
+<hr>
+<p class="lead">เอกสารที่เกี่ยวข้อง: ภาพรวม Android — <code>docs/android-for-programmers.md</code> •
+Service — <code>docs/android-services.md</code> • Lifecycle — <code>docs/android-lifecycle.md</code></p>
+<p style="color:var(--muted);font-size:13px">หมายเหตุ: โค้ดตัวอย่างเรียบเรียงตามแนวทางที่ใช้กันจริง
+เวอร์ชัน dependency อาจมีรุ่นใหม่กว่านี้ — ตรวจสอบรุ่นล่าสุดก่อนใช้งาน production</p>
+</main>
+</div>
+</body>
+</html>
