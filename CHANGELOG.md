@@ -1135,6 +1135,20 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 **Changed**
 - ใน `docs/android-for-programmers.md` (B6) เพิ่มลิงก์ไปฉบับ HTML
 
+## 122. สร้างเอกสาร HTML เรื่อง Navigation
+
+**Added**
+- สร้าง `docs/android-navigation.html` เอกสาร standalone HTML ครบ 16 หัวข้อ ทฤษฎี+ปฏิบัติ:
+  Navigation คืออะไร, แนวคิดหลัก (graph/host/controller), back stack (popUpTo/inclusive/
+  launchSingleTop), Safe Args, single-activity, XML vs Navigation-Compose, deep link, nested
+  graph + bottom nav, การเลือกใช้, ข้อดี/ข้อเสีย, **ภาคปฏิบัติสร้างจริง step-by-step ทั้ง XML**
+  (dependency→graph→NavHost→NavController→navigate/navArgs) **และ Compose** (NavHost/composable/
+  route), ข้อผิดพลาดที่พบบ่อย, การทดสอบ (TestNavHostController), แนวโน้ม (type-safe route/
+  predictive back) และ glossary
+
+**Changed**
+- ใน `docs/android-for-programmers.md` (B7) เพิ่มลิงก์ไปฉบับ HTML
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

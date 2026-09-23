@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Navigation ใน Android (ฉบับสมบูรณ์)</title>
+<style>
+  :root {
+    --accent: #00d1b2; --accent-dark: #00a88f;
+    --bg: #0f1419; --surface: #1a2029; --surface2: #232b36;
+    --text: #e6edf3; --muted: #9aa7b4; --border: #2d3742;
+    --code-bg: #11161c; --warn: #ffb454; --danger: #ff6b6b; --ok: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: -apple-system, "Segoe UI", "Sarabun", Tahoma, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.7; }
+  .layout { display: flex; }
+  nav.toc { position: sticky; top: 0; width: 320px; height: 100vh; overflow-y: auto;
+    background: var(--surface); border-right: 1px solid var(--border); padding: 24px 18px; flex-shrink: 0; }
+  nav.toc h2 { color: var(--accent); font-size: 14px; margin: 18px 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+  nav.toc h2:first-child { margin-top: 0; }
+  nav.toc a { display: block; color: var(--muted); text-decoration: none; font-size: 13.5px; padding: 5px 10px; border-radius: 6px; }
+  nav.toc a:hover { background: var(--surface2); color: var(--text); }
+  main { flex: 1; max-width: 900px; margin: 0 auto; padding: 40px 48px 120px; }
+  h1 { color: var(--accent); font-size: 30px; border-bottom: 2px solid var(--border); padding-bottom: 16px; }
+  h2 { color: var(--accent); font-size: 24px; margin-top: 48px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { color: var(--accent-dark); font-size: 19px; margin-top: 32px; }
+  h4 { color: var(--text); font-size: 16px; margin-top: 22px; }
+  p, li { color: var(--text); }
+  code { background: var(--code-bg); color: var(--accent); padding: 2px 6px; border-radius: 4px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 13.5px; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; }
+  pre code { background: none; color: #d6dee6; padding: 0; }
+  .kw { color: #ff7edb; } .str { color: #8ce99a; } .com { color: #6b7683; font-style: italic; } .num { color: #ffd580; } .fn { color: #66d9ef; } .xml { color: #7fd0ff; }
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14.5px; }
+  th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--surface2); color: var(--accent); }
+  tr:nth-child(even) td { background: var(--surface); }
+  .note, .warn, .danger, .ok { border-radius: 10px; padding: 14px 18px; margin: 18px 0; border-left: 4px solid; }
+  .note { background: rgba(0,209,178,.08); border-color: var(--accent); }
+  .warn { background: rgba(255,180,84,.08); border-color: var(--warn); }
+  .danger { background: rgba(255,107,107,.08); border-color: var(--danger); }
+  .ok { background: rgba(74,222,128,.08); border-color: var(--ok); }
+  .pros li { color: var(--ok); } .pros li span { color: var(--text); }
+  .cons li { color: var(--danger); } .cons li span { color: var(--text); }
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+  .lead { color: var(--muted); font-size: 16px; }
+  .diagram { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 13px; white-space: pre; overflow-x: auto; color: #d6dee6; }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc">
+  <h2>ภาคทฤษฎี</h2>
+  <a href="#intro">1. Navigation คืออะไร</a>
+  <a href="#concepts">2. แนวคิดหลัก (graph/host/controller)</a>
+  <a href="#backstack">3. Back stack</a>
+  <a href="#args">4. ส่งข้อมูล (Safe Args)</a>
+  <a href="#singleactivity">5. Single-activity</a>
+  <a href="#approaches">6. XML vs Compose Navigation</a>
+  <a href="#deeplink">7. Deep link</a>
+  <a href="#nested">8. Nested graph + bottom nav</a>
+  <h2>เลือกใช้</h2>
+  <a href="#choose">9. การเลือกใช้</a>
+  <a href="#proscons">10. ข้อดี/ข้อเสีย</a>
+  <h2>ภาคปฏิบัติ</h2>
+  <a href="#practical">11. สร้างจริง step-by-step (XML)</a>
+  <a href="#compose-practical">12. ภาคปฏิบัติ (Compose)</a>
+  <a href="#pitfalls">13. ข้อผิดพลาดที่พบบ่อย</a>
+  <a href="#testing">14. การทดสอบ</a>
+  <a href="#trends">15. แนวโน้มในอนาคต</a>
+  <a href="#glossary">16. ศัพท์เทคนิค</a>
+</nav>
+<main>
+
+<h1>Navigation ใน Android (ฉบับสมบูรณ์)</h1>
+<p class="lead">อธิบายการนำทาง (Navigation) ระหว่างหน้าจอบน Android ครบทุกส่วน — แนวคิด
+graph/host/controller, back stack, การส่งข้อมูล (Safe Args), single-activity, XML vs Compose
+Navigation, deep link, nested graph + bottom nav — พร้อมภาคปฏิบัติสร้างจริง, ข้อดี/ข้อเสีย,
+การเลือกใช้ และแนวโน้ม อ่านจบแล้วนำไปใช้ได้ทันที</p>
+
+<div class="note"><b>สรุปสั้นสุด:</b> ใช้ <b>Navigation Component</b> (Jetpack) จัดการย้ายหน้า
++ back stack แบบรวมศูนย์ • วางทุกหน้าจอไว้ใน <b>nav graph</b> เดียว มี <b>NavHost</b> เป็นที่
+แสดง และ <b>NavController</b> เป็นตัวสั่งย้าย • ส่งข้อมูลด้วย <b>Safe Args</b> (type-safe) •
+นิยมทำแบบ <b>single-activity</b></div>
+
+<section id="intro">
+<h2>1. Navigation คืออะไร</h2>
+<p><b>Navigation</b> คือการย้ายผู้ใช้ระหว่างหน้าจอในแอป และจัดการ "ประวัติการย้าย" (back stack)
+ให้กดปุ่ม back ย้อนกลับได้ถูกต้อง</p>
+<p>เดิมทำเองด้วย <code>FragmentManager.beginTransaction()</code> หรือ <code>startActivity()</code>
+ซึ่งจัดการ back stack/ส่งข้อมูล/animation ยุ่งและพลาดง่าย — ปัจจุบันใช้ <b>Navigation Component</b>
+(Jetpack) ที่รวมทุกอย่างไว้ที่เดียว</p>
+<div class="note">Navigation Component จัดการให้: การย้ายหน้า, back stack, ส่งข้อมูลแบบ
+type-safe (Safe Args), transition/animation, deep link — แบบรวมศูนย์ในที่เดียว</div>
+</section>
+
+<section id="concepts">
+<h2>2. แนวคิดหลัก 3 อย่าง</h2>
+<table>
+  <tr><th>องค์ประกอบ</th><th>คือ</th><th>เปรียบเทียบ</th></tr>
+  <tr><td><b>Navigation Graph</b></td><td>แผนที่รวมทุกหน้าจอ (destination) + เส้นทางเชื่อม (action)</td><td>"แผนผังเส้นทาง"</td></tr>
+  <tr><td><b>NavHost</b></td><td>ที่ว่างในหน้าจอที่ใช้แสดง destination ปัจจุบัน</td><td>"กรอบที่สลับหน้า"</td></tr>
+  <tr><td><b>NavController</b></td><td>ตัวสั่งย้ายหน้า/ย้อนกลับ + คุม back stack</td><td>"คนขับ/รีโมท"</td></tr>
+</table>
+<ul>
+  <li><b>Destination</b> — ปลายทาง 1 อัน (Fragment / composable / dialog)</li>
+  <li><b>Action</b> — เส้นทางย้ายจาก destination หนึ่งไปอีกอัน</li>
+  <li><b>startDestination</b> — หน้าแรกที่แสดงเมื่อเข้า graph</li>
+</ul>
+<div class="diagram">Navigation Graph (nav_graph.xml / NavHost)
+  ├─ HomeFragment      (startDestination)
+  │      │ action → detail
+  ├─ DetailFragment
+  └─ ProfileFragment
+
+NavController.navigate(action)  → เปลี่ยน destination ใน NavHost</div>
+</section>
+
+<section id="backstack">
+<h2>3. Back stack (กองประวัติ)</h2>
+<p>ทุกครั้งที่ <code>navigate()</code> ไปหน้าใหม่ หน้าเดิมจะถูก "วางซ้อน" ใน back stack เมื่อ
+กด back จะ pop หน้าบนสุดออก กลับไปหน้าก่อน</p>
+<div class="diagram">navigate A → B → C     back stack: [A, B, C]   (แสดง C)
+กด back                back stack: [A, B]      (แสดง B)
+กด back                back stack: [A]         (แสดง A)</div>
+<h4>ควบคุม back stack ด้วย popUpTo</h4>
+<pre><code><span class="com">// ไป Home แล้วล้างทุกหน้าจนถึง Home (เช่นหลัง login สำเร็จ)</span>
+navController.navigate(R.id.homeFragment) {
+    popUpTo(R.id.loginFragment) { inclusive = <span class="kw">true</span> }  <span class="com">// เอา login ออกด้วย</span>
+    launchSingleTop = <span class="kw">true</span>                            <span class="com">// ไม่ซ้อน Home ถ้าอยู่แล้ว</span>
+}</code></pre>
+<ul>
+  <li><b>popUpTo</b> — ย้อน pop ถึง destination ที่ระบุก่อน navigate</li>
+  <li><b>inclusive = true</b> — pop รวม destination นั้นด้วย</li>
+  <li><b>launchSingleTop</b> — ไม่สร้างซ้ำถ้าอยู่หน้านั้นอยู่แล้ว (กันกดรัวเปิดซ้อน)</li>
+</ul>
+</section>
+
+<section id="args">
+<h2>4. ส่งข้อมูลระหว่างหน้า (Safe Args)</h2>
+<p><b>Safe Args</b> = Gradle plugin ที่ generate โค้ดให้ส่ง/รับ argument แบบ <b>type-safe</b>
+(รู้ชนิดตอน compile ไม่ต้องใส่ key เป็น string เอง)</p>
+<h4>ประกาศ argument ใน graph</h4>
+<pre><code><span class="xml">&lt;fragment android:id="@+id/detailFragment" ...&gt;
+    &lt;argument
+        android:name="orderId"
+        app:argType="string" /&gt;
+&lt;/fragment&gt;</span></code></pre>
+<h4>ส่ง (ต้นทาง) และรับ (ปลายทาง)</h4>
+<pre><code><span class="com">// ส่ง — Safe Args generate action ที่รับ orderId ให้เลย</span>
+<span class="kw">val</span> action = HomeFragmentDirections.actionHomeToDetail(orderId = <span class="str">"1234"</span>)
+findNavController().navigate(action)
+
+<span class="com">// รับ — ปลายทางใช้ navArgs()</span>
+<span class="kw">class</span> DetailFragment : Fragment() {
+    <span class="kw">private val</span> args: DetailFragmentArgs <span class="kw">by</span> navArgs()
+    <span class="com">// ... args.orderId  (type-safe, เป็น String แน่นอน)</span>
+}</code></pre>
+<div class="warn">อย่าส่ง object ใหญ่/ทั้งก้อนผ่าน args — ส่งแค่ <b>id</b> แล้วให้ปลายทางโหลด
+ข้อมูลเองจาก repository (กัน state คู่กัน + Bundle ใหญ่เกิน)</div>
+</section>
+
+<section id="singleactivity">
+<h2>5. Single-activity architecture</h2>
+<p>แนวทางที่นิยม: ใช้ <b>Activity เดียว</b> เป็นโฮสต์ แล้วทำแต่ละหน้าจอเป็น
+<b>Fragment/composable destination</b> สลับด้วย Navigation Component</p>
+<ul>
+  <li>back stack/การส่งข้อมูลเป็นระบบเดียว จัดการง่าย</li>
+  <li>แชร์ ViewModel ระดับ graph ได้ (<code>navGraphViewModels</code>)</li>
+  <li>transition ระหว่างหน้าลื่นกว่าเปิด Activity ใหม่</li>
+</ul>
+<div class="note">ยังต้องมีหลาย Activity เฉพาะกรณี: จุดเข้าจากแอปอื่น/deep link แยก, แยก task,
+Activity จาก SDK ภายนอก — นอกนั้น single-activity พอ</div>
+</section>
+
+<section id="approaches">
+<h2>6. XML Navigation vs Navigation-Compose</h2>
+<table>
+  <tr><th>ประเด็น</th><th>XML Navigation</th><th>Navigation-Compose</th></tr>
+  <tr><td>นิยาม graph</td><td>ไฟล์ <code>nav_graph.xml</code> (มี editor ลากวาง)</td><td>เขียนใน Kotlin (<code>NavHost { composable(...) }</code>)</td></tr>
+  <tr><td>destination</td><td>Fragment</td><td>composable</td></tr>
+  <tr><td>ส่งข้อมูล</td><td>Safe Args (generate)</td><td>route + arguments (หรือ type-safe API ใหม่)</td></tr>
+  <tr><td>เหมาะกับ</td><td>โปรเจกต์ View/XML</td><td>โปรเจกต์ Compose</td></tr>
+</table>
+<div class="note">เลือกตาม UI ที่ใช้: ถ้าเขียน View/XML → XML Navigation • ถ้าเขียน Compose →
+Navigation-Compose • ทั้งคู่เป็น Navigation Component ตัวเดียวกันแค่คนละหน้าตา</div>
+</section>
+
+<section id="deeplink">
+<h2>7. Deep link (เปิดหน้าจากลิงก์/ภายนอก)</h2>
+<p>Deep link = เปิดแอปไปที่ destination เฉพาะโดยตรง (จาก URL, notification, แอปอื่น)</p>
+<pre><code><span class="xml">&lt;!-- ประกาศใน graph --&gt;
+&lt;fragment android:id="@+id/detailFragment" ...&gt;
+    &lt;deepLink app:uri="myapp://order/{orderId}" /&gt;
+&lt;/fragment&gt;</span></code></pre>
+<ul>
+  <li><b>implicit deep link</b> — ระบบ route ให้ตาม uri ที่ประกาศ (เปิดจากภายนอกได้)</li>
+  <li><b>explicit deep link</b> — สร้าง PendingIntent สำหรับ notification</li>
+  <li>ต้องประกาศ <code>&lt;nav-graph&gt;</code> ใน Manifest เพื่อรับ link จากภายนอก</li>
+</ul>
+</section>
+
+<section id="nested">
+<h2>8. Nested graph + Bottom Navigation</h2>
+<p><b>Nested graph</b> = graph ย่อยซ้อนใน graph ใหญ่ — ใช้จัดกลุ่ม flow (เช่น flow ล็อกอิน)
+หรือให้แต่ละแท็บของ bottom nav มี back stack ของตัวเอง</p>
+<pre><code><span class="com">// ผูก BottomNavigationView กับ NavController — แต่ละแท็บ = destination/graph</span>
+binding.bottomNav.setupWithNavController(navController)
+
+<span class="com">// toolbar + ปุ่ม back อัตโนมัติ (top-level = ไม่มี back, ที่เหลือมีลูกศร back)</span>
+<span class="kw">val</span> appBarConfig = AppBarConfiguration(
+    setOf(R.id.homeFragment, R.id.searchFragment, R.id.profileFragment)
+)
+binding.toolbar.setupWithNavController(navController, appBarConfig)</code></pre>
+<div class="note">แต่ละแท็บ bottom nav ควรมี nested graph ของตัวเองเพื่อเก็บ back stack แยก —
+Navigation Component เวอร์ชันใหม่จัดการ multiple back stack ให้อัตโนมัติ</div>
+</section>
+
+<section id="choose">
+<h2>9. การเลือกใช้</h2>
+<table>
+  <tr><th>สถานการณ์</th><th>แนะนำ</th></tr>
+  <tr><td>โปรเจกต์ View/XML</td><td>Navigation Component + nav_graph.xml + Safe Args</td></tr>
+  <tr><td>โปรเจกต์ Compose</td><td>Navigation-Compose (NavHost/composable)</td></tr>
+  <tr><td>ย้ายหน้าภายในแอป</td><td>NavController.navigate (ไม่ใช่ startActivity)</td></tr>
+  <tr><td>เปิดจากลิงก์/notification/แอปอื่น</td><td>Deep link</td></tr>
+  <tr><td>bottom nav / แท็บ</td><td>nested graph + setupWithNavController</td></tr>
+  <tr><td>ส่งข้อมูล</td><td>Safe Args (ส่งแค่ id)</td></tr>
+  <tr><td>flow ที่ต้องล้าง back stack (login)</td><td>popUpTo + inclusive</td></tr>
+</table>
+<div class="note"><b>หลักคิด:</b> ใช้ Navigation Component เสมอสำหรับการนำทางในแอป — อย่ากลับไป
+จัดการ FragmentTransaction/back stack เองเพราะพลาดง่าย</div>
+</section>
+
+<section id="proscons">
+<h2>10. ข้อดี / ข้อเสีย ของ Navigation Component</h2>
+<ul class="pros">
+  <li>✅ <span>จัดการ back stack ให้อัตโนมัติ ถูกต้องตามหลัก</span></li>
+  <li>✅ <span>Safe Args ส่งข้อมูล type-safe (ลดบั๊ก key พิมพ์ผิด)</span></li>
+  <li>✅ <span>graph เห็นภาพรวมการนำทางทั้งแอปในที่เดียว (มี visual editor)</span></li>
+  <li>✅ <span>deep link, transition, bottom nav integration ในตัว</span></li>
+  <li>✅ <span>รองรับ multiple back stack (แต่ละแท็บแยก)</span></li>
+</ul>
+<ul class="cons">
+  <li>❌ <span>เรียนรู้ concept เพิ่ม (graph/host/controller) สำหรับมือใหม่</span></li>
+  <li>❌ <span>setup Safe Args plugin + dependency</span></li>
+  <li>❌ <span>เคสซับซ้อนมาก (nested graph หลายชั้น) config ยุ่งได้</span></li>
+  <li>❌ <span>ผูกกับ Jetpack (แต่เป็นมาตรฐานอยู่แล้ว)</span></li>
+</ul>
+</section>
+
+<section id="practical">
+<h2>11. ภาคปฏิบัติ: สร้างจริง step-by-step (XML)</h2>
+<p>โจทย์: Home → กดรายการ → Detail (ส่ง orderId) → ปุ่ม back กลับ Home</p>
+
+<h4>ขั้น 1 — เพิ่ม dependency + Safe Args plugin</h4>
+<pre><code><span class="com">// build.gradle.kts (module :app)</span>
+plugins {
+    id(<span class="str">"androidx.navigation.safeargs.kotlin"</span>)
+}
+dependencies {
+    implementation(<span class="str">"androidx.navigation:navigation-fragment-ktx:2.8.0"</span>)
+    implementation(<span class="str">"androidx.navigation:navigation-ui-ktx:2.8.0"</span>)
+}</code></pre>
+
+<h4>ขั้น 2 — สร้าง nav graph (res/navigation/nav_graph.xml)</h4>
+<pre><code><span class="xml">&lt;navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment"&gt;
+
+    &lt;fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.HomeFragment"
+        android:label="หน้าแรก"&gt;
+        &lt;!-- action ไป detail พร้อมส่ง orderId --&gt;
+        &lt;action
+            android:id="@+id/action_home_to_detail"
+            app:destination="@id/detailFragment" /&gt;
+    &lt;/fragment&gt;
+
+    &lt;fragment
+        android:id="@+id/detailFragment"
+        android:name="com.example.DetailFragment"
+        android:label="รายละเอียด"&gt;
+        &lt;argument android:name="orderId" app:argType="string" /&gt;
+    &lt;/fragment&gt;
+&lt;/navigation&gt;</span></code></pre>
+
+<h4>ขั้น 3 — วาง NavHost ใน Activity layout</h4>
+<pre><code><span class="xml">&lt;androidx.fragment.app.FragmentContainerView
+    android:id="@+id/nav_host"
+    android:name="androidx.navigation.fragment.NavHostFragment"
+    app:navGraph="@navigation/nav_graph"
+    app:defaultNavHost="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" /&gt;</span></code></pre>
+
+<h4>ขั้น 4 — เชื่อม NavController + toolbar ใน Activity</h4>
+<pre><code><span class="kw">class</span> MainActivity : AppCompatActivity() {
+    <span class="kw">override fun</span> <span class="fn">onCreate</span>(s: Bundle?) {
+        <span class="kw">super</span>.onCreate(s)
+        <span class="kw">val</span> binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        <span class="kw">val</span> navController = (supportFragmentManager
+            .findFragmentById(R.id.nav_host) <span class="kw">as</span> NavHostFragment).navController
+
+        setSupportActionBar(binding.toolbar)
+        <span class="com">// Home เป็น top-level (ไม่มีปุ่ม back), หน้าอื่นโชว์ลูกศร back อัตโนมัติ</span>
+        <span class="kw">val</span> config = AppBarConfiguration(setOf(R.id.homeFragment))
+        binding.toolbar.setupWithNavController(navController, config)
+    }
+}</code></pre>
+
+<h4>ขั้น 5 — navigate + รับ argument</h4>
+<pre><code><span class="com">// HomeFragment — กดรายการแล้วไป detail</span>
+binding.item.setOnClickListener {
+    <span class="kw">val</span> action = HomeFragmentDirections.actionHomeToDetail(orderId = <span class="str">"1234"</span>)
+    findNavController().navigate(action)
+}
+
+<span class="com">// DetailFragment — รับ orderId แบบ type-safe</span>
+<span class="kw">class</span> DetailFragment : Fragment() {
+    <span class="kw">private val</span> args: DetailFragmentArgs <span class="kw">by</span> navArgs()
+    <span class="kw">override fun</span> <span class="fn">onViewCreated</span>(v: View, s: Bundle?) {
+        <span class="kw">val</span> id = args.orderId          <span class="com">// "1234"</span>
+        viewModel.load(id)
+    }
+}</code></pre>
+<div class="ok">เสร็จแล้ว! ปุ่ม back บน toolbar และปุ่ม back ของระบบทำงานอัตโนมัติจาก Navigation
+Component — ไม่ต้องเขียน onBackPressed เอง</div>
+</section>
+
+<section id="compose-practical">
+<h2>12. ภาคปฏิบัติ (Navigation-Compose)</h2>
+<pre><code><span class="com">// dependency: androidx.navigation:navigation-compose</span>
+
+@Composable
+<span class="kw">fun</span> <span class="fn">AppNavHost</span>(navController: NavHostController = rememberNavController()) {
+    NavHost(navController, startDestination = <span class="str">"home"</span>) {
+
+        composable(<span class="str">"home"</span>) {
+            HomeScreen(onItemClick = { id -&gt;
+                navController.navigate(<span class="str">"detail/$id"</span>)   <span class="com">// ส่ง id ผ่าน route</span>
+            })
+        }
+
+        composable(
+            route = <span class="str">"detail/{orderId}"</span>,
+            arguments = listOf(navArgument(<span class="str">"orderId"</span>) { type = NavType.StringType })
+        ) { backStackEntry -&gt;
+            <span class="kw">val</span> id = backStackEntry.arguments?.getString(<span class="str">"orderId"</span>)
+            DetailScreen(orderId = id)
+        }
+    }
+}
+
+<span class="com">// ย้อนกลับ</span>
+navController.popBackStack()
+
+<span class="com">// ล้าง back stack (เช่นหลัง login)</span>
+navController.navigate(<span class="str">"home"</span>) {
+    popUpTo(<span class="str">"login"</span>) { inclusive = <span class="kw">true</span> }
+    launchSingleTop = <span class="kw">true</span>
+}</code></pre>
+<div class="note">Navigation-Compose เวอร์ชันใหม่มี <b>type-safe navigation</b> (ใช้ <code>@Serializable</code>
+data class เป็น route แทน string) ลดบั๊กจากการพิมพ์ route ผิด</div>
+</section>
+
+<section id="pitfalls">
+<h2>13. ข้อผิดพลาดที่พบบ่อย</h2>
+<table>
+  <tr><th>ข้อผิดพลาด</th><th>ผล / วิธีแก้</th></tr>
+  <tr><td>กดปุ่มรัว → navigate ซ้อนหลายหน้า</td><td>เพิ่ม <code>launchSingleTop = true</code> หรือเช็ค currentDestination</td></tr>
+  <tr><td>import navGraphViewModels ผิด package</td><td>ต้องเป็น <code>androidx.navigation</code> ไม่ใช่ <code>...fragment</code></td></tr>
+  <tr><td>ส่ง object ใหญ่ผ่าน args</td><td>Bundle ใหญ่/state คู่กัน → ส่งแค่ id แล้วโหลดเอง</td></tr>
+  <tr><td>ไม่ตั้ง defaultNavHost="true"</td><td>ปุ่ม back ระบบไม่ทำงานกับ NavHost</td></tr>
+  <tr><td>observe/navigate ใน Fragment ด้วย this แทน viewLifecycleOwner</td><td>navigate ซ้ำ/รั่ว → ใช้ viewLifecycleOwner</td></tr>
+  <tr><td>ลืม popUpTo หลัง login</td><td>กด back กลับไปหน้า login ได้ → ใช้ popUpTo + inclusive</td></tr>
+  <tr><td>navigate จาก state (ไม่ใช่ event)</td><td>navigate ซ้ำตอนหมุนจอ → ใช้ one-shot event</td></tr>
+</table>
+</section>
+
+<section id="testing">
+<h2>14. การทดสอบ</h2>
+<pre><code><span class="com">// ทดสอบ navigation ด้วย TestNavHostController</span>
+@Test <span class="kw">fun</span> `<span class="fn">กดรายการแล้วไป detail</span>`() {
+    <span class="kw">val</span> navController = TestNavHostController(context)
+    <span class="kw">val</span> scenario = launchFragmentInContainer&lt;HomeFragment&gt;()
+    scenario.onFragment { f -&gt;
+        navController.setGraph(R.navigation.nav_graph)
+        Navigation.setViewNavController(f.requireView(), navController)
+    }
+    onView(withId(R.id.item)).perform(click())
+    assertEquals(R.id.detailFragment, navController.currentDestination?.id)
+}</code></pre>
+<ul>
+  <li><b>TestNavHostController</b> — จำลอง NavController ในเทสต์ เช็ค destination ปัจจุบัน</li>
+  <li><b>FragmentScenario</b> — launch Fragment แยกในเทสต์</li>
+  <li>Compose → ใช้ <code>createComposeRule</code> + <code>rememberNavController</code> ในเทสต์</li>
+</ul>
+</section>
+
+<section id="trends">
+<h2>15. แนวโน้มในอนาคต</h2>
+<ul>
+  <li><b>Navigation-Compose + type-safe routes เป็นค่าเริ่มต้น</b> — ใช้ <code>@Serializable</code>
+      data class แทน string route (ลดบั๊ก)</li>
+  <li><b>Predictive back gesture</b> — Android 14+ แสดง preview หน้าก่อนหน้าตอนปัดกลับ →
+      Navigation Component รองรับให้</li>
+  <li><b>multiple back stack เป็นมาตรฐาน</b> — แต่ละแท็บ bottom nav เก็บ back stack แยก</li>
+  <li><b>Navigation 3 / adaptive navigation</b> — รองรับจอใหญ่/พับได้ (list-detail layout)</li>
+  <li><b>สรุป:</b> ทิศทางไป Compose + type-safe + adaptive (หลายขนาดจอ) แต่แนวคิดหลัก
+      (graph/host/controller/back stack) คงเดิม</li>
+</ul>
+</section>
+
+<section id="glossary">
+<h2>16. ศัพท์ทางเทคนิค (Glossary)</h2>
+<ul>
+  <li><b>Navigation Component</b> — ไลบรารี Jetpack จัดการการนำทาง</li>
+  <li><b>Navigation Graph</b> — แผนที่รวม destination + action</li>
+  <li><b>NavHost / NavHostFragment</b> — ที่แสดง destination ปัจจุบัน</li>
+  <li><b>NavController</b> — ตัวสั่งย้ายหน้า/คุม back stack</li>
+  <li><b>Destination</b> — ปลายทาง 1 อัน (Fragment/composable/dialog)</li>
+  <li><b>Action</b> — เส้นทางย้ายระหว่าง destination</li>
+  <li><b>startDestination</b> — หน้าแรกของ graph</li>
+  <li><b>Back stack</b> — กองประวัติหน้าที่เคยเปิด (สำหรับ back)</li>
+  <li><b>popUpTo / inclusive</b> — ควบคุมการล้าง back stack</li>
+  <li><b>launchSingleTop</b> — ไม่สร้าง destination ซ้ำถ้าอยู่บนสุดแล้ว</li>
+  <li><b>Safe Args</b> — plugin generate โค้ดส่ง argument แบบ type-safe</li>
+  <li><b>Deep link</b> — เปิดหน้าเฉพาะจาก URL/notification/แอปอื่น</li>
+  <li><b>Nested graph</b> — graph ย่อยซ้อนใน graph ใหญ่</li>
+  <li><b>NavType-safe route (Compose)</b> — ใช้ data class เป็น route แทน string</li>
+</ul>
+</section>
+
+<hr>
+<p class="lead">เอกสารที่เกี่ยวข้อง: ภาพรวม Android — <code>docs/android-for-programmers.md</code> (B7) •
+Lifecycle — <code>docs/android-lifecycle.html</code> • สถาปัตยกรรม — <code>docs/android-architecture.html</code> •
+State/ข้อมูล — <code>docs/android-state-data.html</code></p>
+</main>
+</div>
+</body>
+</html>

@@ -596,6 +596,10 @@ onCreate → onStart → onResume → (ใช้งาน) → onPause → onSto
 - **single-activity architecture** — ใช้ Activity เดียวเป็นโฮสต์ แล้วสลับ Fragment/
   Compose destination ข้างใน เป็นแนวทางที่นิยม
 
+> **เจาะลึกเรื่อง Navigation ทั้งหมด** (graph/host/controller, back stack, Safe Args,
+> deep link, nested graph + bottom nav, XML vs Compose, ภาคปฏิบัติ): ดูฉบับ HTML
+> `docs/android-navigation.html`
+
 ## B8. Permissions & ความปลอดภัย
 - ขอ **runtime permission** ตอนใช้งานจริง (กล้อง/ตำแหน่ง ฯลฯ) — ผู้ใช้ปฏิเสธได้ ต้องเผื่อ
 - ขอ **เท่าที่จำเป็น** + อธิบายเหตุผล; ตำแหน่งเลือก "ขณะใช้แอป"/approximate เมื่อพอ
