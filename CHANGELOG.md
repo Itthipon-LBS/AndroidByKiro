@@ -1121,6 +1121,20 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   toUiMessage), DI, และ testing แต่ละชั้น (UseCase pure + Repository mock) พร้อม diagram
   สรุป flow ทั้งหมด + เพิ่มลิงก์สารบัญ
 
+## 121. สร้างเอกสาร HTML เรื่องการจัดการ State และข้อมูล
+
+**Added**
+- สร้าง `docs/android-state-data.html` เอกสาร standalone HTML ครบ 16 หัวข้อ ทั้งภาคทฤษฎีและ
+  ภาคปฏิบัติ: State คืออะไร, ประเภท state (UI element/screen/app), state holders (ViewModel/
+  SavedStateHandle/remember), StateFlow vs LiveData, state vs one-shot event (Channel),
+  ระดับการรอด (config change/process death/ถาวร), DataStore vs Room, ข้อมูลเครือข่าย, SSOT+UDF,
+  decision guide (เก็บที่ไหน), ข้อดี/ข้อเสียแต่ละตัว, **ภาคปฏิบัติสร้างหน้า "ค้นหาเมนู" จริง**
+  (SavedStateHandle+StateFlow+debounce+Channel+DataStore ครบทุกประเภท), ข้อผิดพลาดที่พบบ่อย,
+  การทดสอบ (Turbine/coroutines-test), แนวโน้ม และ glossary
+
+**Changed**
+- ใน `docs/android-for-programmers.md` (B6) เพิ่มลิงก์ไปฉบับ HTML
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

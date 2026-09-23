@@ -586,6 +586,10 @@ onCreate → onStart → onResume → (ใช้งาน) → onPause → onSto
 - **ข้อมูลจากเครือข่าย:** **Retrofit** หรือ **Ktor** (+ OkHttp) คู่กับ coroutines
 - **Dependency Injection:** **Hilt/Dagger** (ทางการ) หรือ **Koin** — ลดการผูกกันแน่น
 
+> **เจาะลึกเรื่องการจัดการ State และข้อมูลทั้งหมด** (ประเภท state, StateFlow/LiveData,
+> event vs state, ระดับการรอด, DataStore/Room, SSOT/UDF, ภาคปฏิบัติ): ดูฉบับ HTML
+> `docs/android-state-data.html`
+
 ## B7. Navigation
 - **Navigation Component** (Jetpack) — จัดการการย้ายหน้าและ back stack, มี Safe Args
   ส่งข้อมูลแบบ type-safe
