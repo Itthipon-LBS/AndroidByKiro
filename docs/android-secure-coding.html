@@ -198,6 +198,62 @@ webView.webViewClient = <span class="kw">object</span> : WebViewClient() {
 JS interface, mixed content บล็อก) • แต่ช่องโหว่ส่วนใหญ่เกิดจากที่นักพัฒนา <b>เปิดเพิ่มเอง</b>
 (javaScriptEnabled/addJavascriptInterface) • หลัก <b>explicit ดีกว่า implicit</b> — ตั้งค่า
 ความปลอดภัยชัดเจนเอง อย่าพึ่งดีฟอลต์ที่เปลี่ยนตามเวอร์ชัน</div>
+
+<h4>4.2 สิ่งที่ควรตั้ง "ทุกครั้ง" ที่ใช้ WebView</h4>
+<p>ไม่มี setting ไหนที่ "ต้องตั้งแบบตายตัว" — ขึ้นกับว่าโหลดอะไร แต่แบ่งเป็น 3 กลุ่มตาม
+ความจำเป็นได้ชัดเจน:</p>
+
+<h4>กลุ่ม 1 — ควรตั้งทุกครั้ง (กันดีฟอลต์ต่างเวอร์ชัน + explicit)</h4>
+<pre class="good"><code>webView.settings.apply {
+    allowFileAccess = <span class="kw">false</span>                    <span class="com">// ดีฟอลต์ต่างตามเวอร์ชัน → ตั้งเองให้ชัด</span>
+    allowContentAccess = <span class="kw">false</span>                 <span class="com">// ดีฟอลต์ true → ปิดถ้าไม่ใช้ content://</span>
+    allowFileAccessFromFileURLs = <span class="kw">false</span>
+    allowUniversalAccessFromFileURLs = <span class="kw">false</span>   <span class="com">// กัน file:// อ่านข้าม origin</span>
+}</code></pre>
+<p><b>เหตุผล:</b> explicit ดีกว่า implicit — ไม่ปล่อยให้พฤติกรรมขึ้นกับดีฟอลต์ที่เปลี่ยนตาม
+เวอร์ชัน (โดยเฉพาะ <code>allowFileAccess</code>) • ปิดการเข้าถึงไฟล์/content ที่ WebView
+ส่วนใหญ่ไม่ได้ใช้อยู่แล้ว</p>
+
+<h4>กลุ่ม 2 — ต้องมีเมื่อโหลด content ภายนอก (สำคัญสุดด้านความปลอดภัย)</h4>
+<pre class="good"><code><span class="com">// จำกัดให้โหลดได้เฉพาะ domain ของเรา — กันถูกพาไปหน้าอันตราย</span>
+webView.webViewClient = <span class="kw">object</span> : WebViewClient() {
+    <span class="kw">override fun</span> <span class="fn">shouldOverrideUrlLoading</span>(v: WebView, r: WebResourceRequest): Boolean {
+        <span class="kw">val</span> host = r.url.host ?: <span class="kw">return true</span>
+        <span class="kw">return</span> !host.endsWith(<span class="str">"example.com"</span>)   <span class="com">// นอก domain = บล็อก (return true = ไม่โหลด)</span>
+    }
+}</code></pre>
+<p><b>เหตุผล:</b> เป็นด่านกันการ redirect ไปหน้าอันตราย/ฟิชชิง — สำคัญกว่าการตั้ง flag เฉย ๆ
+เพราะควบคุม "โหลดอะไรได้บ้าง"</p>
+
+<h4>กลุ่ม 3 — ตั้งเฉพาะเมื่อจำเป็น (และต้องระวังเป็นพิเศษ)</h4>
+<table>
+  <tr><th>setting</th><th>เปิดเมื่อ</th><th>ข้อควรระวัง</th></tr>
+  <tr><td><code>javaScriptEnabled = true</code></td><td>หน้าเว็บต้องใช้ JS</td><td>เปิดเฉพาะกับ content ที่ควบคุมได้ + คู่กับกลุ่ม 2</td></tr>
+  <tr><td><code>domStorageEnabled = true</code></td><td>เว็บใช้ localStorage</td><td>ข้อมูลถูกเก็บในเครื่อง</td></tr>
+  <tr><td><code>addJavascriptInterface()</code></td><td>ต้องให้ JS เรียก native</td><td><b>อันตรายสุด</b> — เฉพาะ content ที่เราคุม 100% + <code>@JavascriptInterface</code></td></tr>
+</table>
+
+<h4>เทมเพลต WebView ที่ปลอดภัย (ใช้เป็นจุดตั้งต้น)</h4>
+<pre class="good"><code><span class="kw">fun</span> <span class="fn">setupSecureWebView</span>(webView: WebView, allowedHost: String) {
+    webView.settings.apply {
+        <span class="com">// กลุ่ม 1: ปิดการเข้าถึงไฟล์/content เสมอ</span>
+        allowFileAccess = <span class="kw">false</span>
+        allowContentAccess = <span class="kw">false</span>
+        allowFileAccessFromFileURLs = <span class="kw">false</span>
+        allowUniversalAccessFromFileURLs = <span class="kw">false</span>
+        <span class="com">// เปิด JS เฉพาะถ้าจำเป็น (กลุ่ม 3) — ตัวอย่างนี้เปิดเพราะสมมติว่าต้องใช้</span>
+        javaScriptEnabled = <span class="kw">true</span>
+    }
+    <span class="com">// กลุ่ม 2: จำกัด domain</span>
+    webView.webViewClient = <span class="kw">object</span> : WebViewClient() {
+        <span class="kw">override fun</span> <span class="fn">shouldOverrideUrlLoading</span>(v: WebView, r: WebResourceRequest) =
+            r.url.host?.endsWith(allowedHost) != <span class="kw">true</span>
+    }
+    <span class="com">// ไม่เรียก addJavascriptInterface เว้นแต่จำเป็นจริง</span>
+}</code></pre>
+<div class="note"><b>สรุปสั้น:</b> ทุกครั้งให้ตั้ง <b>กลุ่ม 1</b> (ปิด file/content access) + ถ้า
+โหลด URL ให้ทำ <b>กลุ่ม 2</b> (จำกัด domain) • <b>กลุ่ม 3</b> เปิดเท่าที่จำเป็นและระวัง
+addJavascriptInterface เป็นพิเศษ</div>
 </section>
 
 <section id="intent">

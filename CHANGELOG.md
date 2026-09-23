@@ -1206,6 +1206,15 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ฯลฯ) พร้อมกล่องเตือนเรื่อง allowFileAccess ที่ดีฟอลต์ต่างกัน API ≤29 vs 30+ และข้อสรุปว่า
   ช่องโหว่ส่วนใหญ่มาจากการเปิดค่าเพิ่มเอง ควรตั้งค่าความปลอดภัยชัดเจน
 
+## 128. เพิ่มหัวข้อสิ่งที่ควรตั้งทุกครั้งของ WebView (Secure Coding doc)
+
+**Added**
+- ใน `docs/android-secure-coding.html` (หัวข้อ 4 WebView) เพิ่มหัวข้อ 4.2 "สิ่งที่ควรตั้ง
+  ทุกครั้ง" แบ่ง 3 กลุ่มพร้อมเหตุผล: กลุ่ม 1 ควรตั้งทุกครั้ง (allowFileAccess/allowContentAccess/
+  fileURLs = false เพื่อ explicit + กันดีฟอลต์ต่างเวอร์ชัน), กลุ่ม 2 ต้องมีเมื่อโหลด content
+  ภายนอก (จำกัด domain ผ่าน shouldOverrideUrlLoading), กลุ่ม 3 เปิดเฉพาะเมื่อจำเป็น (JS/
+  domStorage/addJavascriptInterface + ข้อควรระวัง) พร้อมเทมเพลต setupSecureWebView() ที่นำไปใช้ได้
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
