@@ -1230,6 +1230,16 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 **Changed**
 - ใน `docs/android-secure-coding.html` (หัวข้อ 9) เพิ่มลิงก์ไปเอกสารการเก็บ secret
 
+## 130. เพิ่มส่วน "ตอบเร็ว + วิธีเก็บจริง" ในเอกสาร Secrets Management
+
+**Added**
+- ใน `docs/android-secrets-management.html` เพิ่ม 2 หัวข้อไว้ต้นเอกสาร (หลังกฎเหล็ก) เพื่อให้
+  เห็นภาพชัดว่าควรเก็บที่ไหน: "⚡ ตอบเร็ว (ฟันธง)" — ตารางแมป "ของที่มี → เก็บที่ไหน → วิธี"
+  พร้อมวิธีคิด 10 วินาที (2 คำถาม); และ "🔧 วิธีเก็บจริง (โค้ดก๊อปได้)" 5 วิธี: A) token →
+  EncryptedSharedPreferences (SecureStorage class เต็ม), B) ค่าฝังได้ → local.properties→
+  BuildConfig, C) restrict key ใน Cloud Console (package+SHA-1), D) secret สำคัญ → backend
+  proxy (diagram + Retrofit), E) Keystore + เพิ่มลิงก์สารบัญ
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
