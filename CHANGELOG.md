@@ -1050,6 +1050,20 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ของแอปผ่าน sync-adapter URI (กรณีไม่มีปฏิทินเลย), และ `ensureCalendarId()` รวมทุกอย่าง
   (ใช้ที่เก็บไว้ → เลือกอัตโนมัติ → สร้างใหม่) พร้อมข้อแนะนำ auto-default + เปลี่ยนได้ในตั้งค่า
 
+## 115. สร้างเอกสาร HTML เรื่อง Lifecycle ฉบับสมบูรณ์
+
+**Added**
+- สร้าง `docs/android-lifecycle.html` เอกสาร standalone HTML (sidebar sticky, ธีม #00d1b2,
+  โค้ด syntax-highlight, diagram box) เรื่อง Lifecycle ครบ 16 หัวข้อ: Lifecycle คืออะไร,
+  Activity/Fragment lifecycle (พร้อม diagram + ตาราง callback), View lifecycle ของ Fragment
+  (viewLifecycleOwner/ViewBinding/repeatOnLifecycle), ViewModel lifecycle, Process death,
+  lifecycle-aware components, Service/Compose/Application lifecycle, การจัดการ state 3 ระดับ,
+  decision guide, ข้อดี/ข้อเสีย, ความแตกต่างตามเวอร์ชัน Android 3→16, ข้อผิดพลาดที่พบบ่อย,
+  การทดสอบ (ActivityScenario/LeakCanary), แนวโน้ม และ glossary
+
+**Changed**
+- ใน `docs/android-for-programmers.md` (B5) เพิ่มลิงก์ไปฉบับ HTML
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

@@ -571,6 +571,7 @@ onCreate → onStart → onResume → (ใช้งาน) → onPause → onSto
 
 > **เจาะลึกเรื่อง Lifecycle ทั้งหมด** (Activity/Fragment/View/ViewModel/Process/Compose,
 > การเก็บ state, ความแตกต่างตามเวอร์ชัน, แนวโน้ม): ดู `docs/android-lifecycle.md`
+> (หรือฉบับ HTML อ่านง่าย `docs/android-lifecycle.html`)
 
 ## B6. การจัดการ State และข้อมูล
 - **UI state:** เปิดจาก ViewModel เป็น **StateFlow** (หรือ LiveData) แบบ read-only
