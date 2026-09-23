@@ -1110,6 +1110,17 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   สถานการณ์ใช้งานจริง (logic ใช้ซ้ำ 2 ที่, การเขียน test, แอปเล็กที่ไม่ใช้ซ้ำ) พร้อมจุด
   ตัดสินใจง่าย ๆ (logic ใช้ซ้ำ/ซับซ้อน/เทสต์หนัก → Clean, ไม่ → Google Guide)
 
+## 120. เพิ่มภาคปฏิบัติ Clean Architecture step-by-step ในเอกสาร
+
+**Added**
+- ใน `docs/android-clean-architecture.html` เพิ่มหัวข้อ 9.1 "ภาคปฏิบัติ: สร้างฟีเจอร์จริง
+  step-by-step" เดินสร้างฟีเจอร์ "หน้าแสดงเมนูอาหาร (API + cache DB)" ตั้งแต่ศูนย์ 9 ขั้น:
+  วางโครงโฟลเดอร์, Entity, Repository interface, UseCase (กรอง/เรียง), Data sources (DTO/
+  Retrofit/Room entity/DAO), Mapper 3 ชั้น (+เหตุผลว่าทำไมต้องแยกโมเดล), RepositoryImpl
+  (SSOT/cache pattern), Presentation (UiState/ViewModel + error handling ข้ามชั้นด้วย
+  toUiMessage), DI, และ testing แต่ละชั้น (UseCase pure + Repository mock) พร้อม diagram
+  สรุป flow ทั้งหมด + เพิ่มลิงก์สารบัญ
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

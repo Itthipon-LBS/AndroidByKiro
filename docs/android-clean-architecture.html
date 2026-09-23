@@ -61,6 +61,7 @@
   <a href="#frameworks">7. Frameworks & Drivers</a>
   <a href="#mapping">8. แมปลงโครง Android</a>
   <a href="#example">9. ตัวอย่างโค้ดเต็ม</a>
+  <a href="#practical">9.1 ภาคปฏิบัติ (step-by-step)</a>
   <a href="#structure">10. โครงสร้างแพ็กเกจ</a>
   <a href="#proscons">11. ข้อดี/ข้อเสีย</a>
   <a href="#compare">12. เทียบกับ Google Guide</a>
@@ -279,6 +280,219 @@ Dependency Rule แบบอัตโนมัติ</div>
 }</code></pre>
 <div class="note">สังเกต: <code>PlaceOrderUseCase</code> และ <code>Cart</code> ไม่มี Android เลย →
 ย้ายไปใช้บน iOS (ผ่าน KMP) หรือเทสต์ด้วย JUnit ล้วนได้ทันที</div>
+</section>
+
+<section id="practical">
+<h2>9.1 ภาคปฏิบัติ: สร้างฟีเจอร์จริง step-by-step</h2>
+<p>ส่วนนี้เดินสร้างฟีเจอร์ <b>"หน้าแสดงเมนูอาหาร (ดึงจาก API + cache ลง DB)"</b> ตั้งแต่ศูนย์
+ทีละไฟล์ พร้อมบอกว่าแต่ละไฟล์อยู่ชั้นไหนและทำไม — ก๊อปไปตั้งต้นโปรเจกต์จริงได้</p>
+
+<h3>ขั้น 0 — วางโครงโฟลเดอร์ก่อน</h3>
+<div class="diagram">com.example.foodorder
+├─ domain/                         (ชั้นใน — pure Kotlin, ไม่มี Android)
+│   ├─ model/MenuItem.kt           Entity
+│   ├─ repository/MenuRepository.kt  interface
+│   └─ usecase/GetMenuUseCase.kt   UseCase
+├─ data/                           (ชั้นนอก — รู้จัก Retrofit/Room)
+│   ├─ remote/MenuApi.kt           Retrofit API
+│   ├─ remote/dto/MenuItemDto.kt   DTO (โมเดลจาก network)
+│   ├─ local/MenuDao.kt            Room DAO
+│   ├─ local/entity/MenuEntity.kt  Room entity
+│   ├─ mapper/MenuMappers.kt       DTO/Room ↔ domain Entity
+│   └─ repository/MenuRepositoryImpl.kt
+└─ presentation/                   (ชั้นนอก — UI)
+    ├─ MenuViewModel.kt
+    ├─ MenuUiState.kt
+    └─ MenuFragment.kt
+└─ di/DataModule.kt                (Hilt)</div>
+<div class="note"><b>ลำดับการเขียนที่แนะนำ:</b> เขียนจาก <b>ชั้นในออกนอก</b> (domain → data →
+presentation) เพราะชั้นในไม่พึ่งใคร เขียนเสร็จก่อนแล้วชั้นนอกค่อยมาต่อ</div>
+
+<h3>ขั้น 1 — Entity (domain/model)</h3>
+<pre><code><span class="com">// domain/model/MenuItem.kt — โมเดลธุรกิจ pure Kotlin</span>
+<span class="kw">data class</span> MenuItem(
+    <span class="kw">val</span> id: String,
+    <span class="kw">val</span> name: String,
+    <span class="kw">val</span> price: BigDecimal,
+    <span class="kw">val</span> available: Boolean
+) {
+    <span class="com">// กฎธุรกิจ: แสดงราคาพร้อมหน่วย</span>
+    <span class="kw">fun</span> <span class="fn">displayPrice</span>(): String = <span class="str">"฿%.2f"</span>.format(price)
+}</code></pre>
+
+<h3>ขั้น 2 — Repository interface (domain/repository)</h3>
+<pre><code><span class="com">// domain/repository/MenuRepository.kt</span>
+<span class="com">// นิยาม "สัญญา" ว่าต้องดึงเมนูได้ — ยังไม่สนว่าเบื้องหลังเป็น network/db</span>
+<span class="kw">interface</span> MenuRepository {
+    <span class="com">// คืน Flow เพื่อให้ UI อัปเดตอัตโนมัติเมื่อข้อมูลเปลี่ยน</span>
+    <span class="kw">fun</span> <span class="fn">getMenu</span>(): Flow&lt;List&lt;MenuItem&gt;&gt;
+    <span class="kw">suspend fun</span> <span class="fn">refresh</span>()   <span class="com">// ดึงใหม่จาก network</span>
+}</code></pre>
+
+<h3>ขั้น 3 — UseCase (domain/usecase)</h3>
+<pre><code><span class="com">// domain/usecase/GetMenuUseCase.kt</span>
+<span class="com">// business rule: แสดงเฉพาะเมนูที่ยังมีของ (available) เรียงตามชื่อ</span>
+<span class="kw">class</span> GetMenuUseCase(<span class="kw">private val</span> repo: MenuRepository) {
+    <span class="kw">operator fun</span> <span class="fn">invoke</span>(): Flow&lt;List&lt;MenuItem&gt;&gt; =
+        repo.getMenu().map { list -&gt;
+            list.filter { it.available }.sortedBy { it.name }
+        }
+}</code></pre>
+<div class="note">ถึงตรงนี้ <b>ชั้น domain เสร็จสมบูรณ์</b> — ไม่มี Android/Retrofit/Room เลย
+เทสต์ได้ทันที (ดูขั้น 8)</div>
+
+<h3>ขั้น 4 — Data sources (data/remote + data/local)</h3>
+<pre><code><span class="com">// data/remote/dto/MenuItemDto.kt — โมเดล "ดิบ" จาก JSON (ตรงกับ API)</span>
+<span class="kw">data class</span> MenuItemDto(
+    <span class="kw">val</span> id: String,
+    <span class="kw">val</span> name: String,
+    <span class="kw">val</span> price: Double,        <span class="com">// API ส่งมาเป็น double</span>
+    <span class="kw">val</span> in_stock: Boolean     <span class="com">// ชื่อ field แบบ API (snake_case)</span>
+)
+
+<span class="com">// data/remote/MenuApi.kt — Retrofit</span>
+<span class="kw">interface</span> MenuApi {
+    @GET(<span class="str">"menu"</span>) <span class="kw">suspend fun</span> <span class="fn">fetchMenu</span>(): List&lt;MenuItemDto&gt;
+}
+
+<span class="com">// data/local/entity/MenuEntity.kt — โมเดลสำหรับ Room</span>
+@Entity(tableName = <span class="str">"menu"</span>)
+<span class="kw">data class</span> MenuEntity(
+    @PrimaryKey <span class="kw">val</span> id: String,
+    <span class="kw">val</span> name: String,
+    <span class="kw">val</span> price: Double,
+    <span class="kw">val</span> available: Boolean
+)
+
+<span class="com">// data/local/MenuDao.kt — Room DAO</span>
+@Dao
+<span class="kw">interface</span> MenuDao {
+    @Query(<span class="str">"SELECT * FROM menu"</span>) <span class="kw">fun</span> <span class="fn">observeAll</span>(): Flow&lt;List&lt;MenuEntity&gt;&gt;
+    @Upsert <span class="kw">suspend fun</span> <span class="fn">upsertAll</span>(items: List&lt;MenuEntity&gt;)
+}</code></pre>
+
+<h3>ขั้น 5 — Mapper 3 ชั้น (data/mapper) — ทำไมต้องมี</h3>
+<p>มี 3 โมเดลคนละชั้น: <b>DTO</b> (network), <b>MenuEntity</b> (Room), <b>MenuItem</b> (domain)
+— ต้องแปลงไปมา เพื่อ <b>กันไม่ให้รายละเอียดของ network/db รั่วเข้าชั้น domain</b></p>
+<pre><code><span class="com">// data/mapper/MenuMappers.kt</span>
+<span class="com">// DTO → domain Entity (แปลง double→BigDecimal, snake_case→ชื่อ domain)</span>
+<span class="kw">fun</span> MenuItemDto.<span class="fn">toDomain</span>() = MenuItem(
+    id = id, name = name,
+    price = price.toBigDecimal(),
+    available = in_stock
+)
+<span class="com">// domain → Room entity (ตอนจะ cache)</span>
+<span class="kw">fun</span> MenuItem.<span class="fn">toEntity</span>() = MenuEntity(id, name, price.toDouble(), available)
+<span class="com">// Room entity → domain (ตอนอ่านจาก DB)</span>
+<span class="kw">fun</span> MenuEntity.<span class="fn">toDomain</span>() = MenuItem(id, name, price.toBigDecimal(), available)</code></pre>
+<div class="warn"><b>ทำไมไม่ใช้โมเดลเดียวทุกชั้น?</b> เพราะถ้า domain ใช้ DTO ตรง ๆ → พอ API
+เปลี่ยน field ต้องแก้ทั้งแอป • การแยกโมเดล + mapper ทำให้ API/DB เปลี่ยนได้โดยแก้แค่ชั้น data</div>
+
+<h3>ขั้น 6 — Repository implementation (data/repository)</h3>
+<pre><code><span class="com">// data/repository/MenuRepositoryImpl.kt — SSOT: DB เป็นแหล่งความจริง</span>
+<span class="kw">class</span> MenuRepositoryImpl(
+    <span class="kw">private val</span> api: MenuApi,
+    <span class="kw">private val</span> dao: MenuDao
+) : MenuRepository {
+
+    <span class="com">// UI อ่านจาก DB เสมอ (single source of truth) → map เป็น domain model</span>
+    <span class="kw">override fun</span> <span class="fn">getMenu</span>(): Flow&lt;List&lt;MenuItem&gt;&gt; =
+        dao.observeAll().map { entities -&gt; entities.map { it.toDomain() } }
+
+    <span class="com">// refresh: ดึง network → แปลง → เขียนลง DB (แล้ว Flow ข้างบนจะ emit เอง)</span>
+    <span class="kw">override suspend fun</span> <span class="fn">refresh</span>() {
+        <span class="kw">val</span> fromNetwork = api.fetchMenu().map { it.toDomain() }
+        dao.upsertAll(fromNetwork.map { it.toEntity() })
+    }
+}</code></pre>
+<div class="note"><b>รูปแบบ cache ที่นิยม:</b> UI อ่านจาก DB (offline ได้) • refresh ดึง network
+มาเขียนทับ DB • Flow ทำให้ UI อัปเดตอัตโนมัติเมื่อ DB เปลี่ยน</div>
+
+<h3>ขั้น 7 — Presentation: UI State + ViewModel + error handling ข้ามชั้น</h3>
+<pre><code><span class="com">// presentation/MenuUiState.kt</span>
+<span class="kw">data class</span> MenuUiState(
+    <span class="kw">val</span> items: List&lt;MenuItem&gt; = emptyList(),
+    <span class="kw">val</span> isLoading: Boolean = <span class="kw">false</span>,
+    <span class="kw">val</span> error: String? = <span class="kw">null</span>
+)
+
+<span class="com">// presentation/MenuViewModel.kt</span>
+@HiltViewModel
+<span class="kw">class</span> MenuViewModel @Inject <span class="kw">constructor</span>(
+    <span class="kw">private val</span> getMenu: GetMenuUseCase,
+    <span class="kw">private val</span> repo: MenuRepository
+) : ViewModel() {
+
+    <span class="kw">val</span> uiState: StateFlow&lt;MenuUiState&gt; = getMenu()
+        .map { MenuUiState(items = it) }
+        .catch { emit(MenuUiState(error = it.toUiMessage())) }   <span class="com">// error → state</span>
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(<span class="num">5000</span>), MenuUiState(isLoading = <span class="kw">true</span>))
+
+    <span class="kw">fun</span> <span class="fn">refresh</span>() = viewModelScope.launch {
+        <span class="kw">try</span> { repo.refresh() }
+        <span class="kw">catch</span> (e: Exception) { <span class="com">/* แสดง snackbar ผ่าน event channel */</span> }
+    }
+}
+
+<span class="com">// แปลง exception (ชั้น data) → ข้อความที่ผู้ใช้เข้าใจ (ชั้น UI)</span>
+<span class="kw">fun</span> Throwable.<span class="fn">toUiMessage</span>(): String = <span class="kw">when</span> (<span class="kw">this</span>) {
+    <span class="kw">is</span> IOException -&gt; <span class="str">"เชื่อมต่อเครือข่ายไม่ได้"</span>
+    <span class="kw">else</span> -&gt; <span class="str">"เกิดข้อผิดพลาด กรุณาลองใหม่"</span>
+}</code></pre>
+<div class="note"><b>error handling ข้ามชั้น (จุดที่มือใหม่งง):</b> exception เกิดที่ชั้น data
+(network) → ไหลขึ้นมาถูก <code>catch</code> ที่ ViewModel → แปลงเป็น <b>ข้อความใน UI state</b>
+→ UI แสดง • ชั้น domain/data ไม่รู้จักข้อความภาษาไทย/UI เลย</div>
+
+<h3>ขั้น 8 — DI (di) ผูก interface กับ impl</h3>
+<pre><code><span class="com">// di/DataModule.kt</span>
+@Module @InstallIn(SingletonComponent::class)
+<span class="kw">object</span> DataModule {
+    @Provides @Singleton
+    <span class="kw">fun</span> <span class="fn">menuRepository</span>(api: MenuApi, dao: MenuDao): MenuRepository =
+        MenuRepositoryImpl(api, dao)          <span class="com">// ผูก interface → impl</span>
+
+    @Provides
+    <span class="kw">fun</span> <span class="fn">getMenuUseCase</span>(repo: MenuRepository) = GetMenuUseCase(repo)
+}</code></pre>
+
+<h3>ขั้น 9 — testing แต่ละชั้น</h3>
+<pre><code><span class="com">// เทสต์ UseCase — pure Kotlin ไม่ต้องมี Android (เร็วมาก)</span>
+<span class="kw">class</span> GetMenuUseCaseTest {
+    @Test <span class="kw">fun</span> `<span class="fn">กรองเฉพาะที่ available และเรียงชื่อ</span>`() = runTest {
+        <span class="kw">val</span> fake = FakeMenuRepository(listOf(
+            MenuItem(<span class="str">"2"</span>, <span class="str">"ผัดไทย"</span>, BigDecimal(<span class="num">60</span>), available = <span class="kw">true</span>),
+            MenuItem(<span class="str">"1"</span>, <span class="str">"ข้าวผัด"</span>, BigDecimal(<span class="num">50</span>), available = <span class="kw">false</span>),  <span class="com">// ถูกกรองออก</span>
+            MenuItem(<span class="str">"3"</span>, <span class="str">"กะเพรา"</span>, BigDecimal(<span class="num">55</span>), available = <span class="kw">true</span>)
+        ))
+        <span class="kw">val</span> result = GetMenuUseCase(fake)().first()
+        assertEquals(listOf(<span class="str">"กะเพรา"</span>, <span class="str">"ผัดไทย"</span>), result.map { it.name })
+    }
+}
+
+<span class="com">// เทสต์ Repository — mock api/dao</span>
+<span class="kw">class</span> MenuRepositoryImplTest {
+    @Test <span class="kw">fun</span> `<span class="fn">refresh ดึง network แล้วเขียนลง dao</span>`() = runTest {
+        <span class="kw">val</span> api = mockk&lt;MenuApi&gt;{ coEvery { fetchMenu() } returns listOf(dto) }
+        <span class="kw">val</span> dao = mockk&lt;MenuDao&gt;(relaxed = <span class="kw">true</span>)
+        MenuRepositoryImpl(api, dao).refresh()
+        coVerify { dao.upsertAll(any()) }   <span class="com">// ยืนยันว่าเขียนลง DB</span>
+    }
+}</code></pre>
+<div class="note">สังเกตว่าเทสต์ <b>UseCase</b> ไม่ต้องแตะ Android/Retrofit/Room เลย — นี่คือ
+ผลตอบแทนหลักของ Clean Architecture</div>
+
+<h3>สรุป flow ทั้งหมด (ที่เพิ่งสร้าง)</h3>
+<div class="diagram">UI (MenuFragment)
+   │ observe uiState
+MenuViewModel ── getMenu() ──► GetMenuUseCase ── กรอง/เรียง ──► MenuRepository
+                                                                     │ (interface)
+                                                          MenuRepositoryImpl
+                                                            │            │
+                                                        MenuDao(Room)  MenuApi(Retrofit)
+                                                            ▲ SSOT        │
+                                                            └── refresh() เขียนทับ
+
+error: network ล้ม → Exception → catch ที่ ViewModel → toUiMessage() → error ใน state → UI แสดง</div>
 </section>
 
 <section id="structure">
