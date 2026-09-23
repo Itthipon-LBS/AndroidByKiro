@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clean Architecture ใน Android (ฉบับสมบูรณ์)</title>
+<style>
+  :root {
+    --accent: #00d1b2; --accent-dark: #00a88f;
+    --bg: #0f1419; --surface: #1a2029; --surface2: #232b36;
+    --text: #e6edf3; --muted: #9aa7b4; --border: #2d3742;
+    --code-bg: #11161c; --warn: #ffb454; --danger: #ff6b6b; --ok: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: -apple-system, "Segoe UI", "Sarabun", Tahoma, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.7; }
+  .layout { display: flex; }
+  nav.toc { position: sticky; top: 0; width: 320px; height: 100vh; overflow-y: auto;
+    background: var(--surface); border-right: 1px solid var(--border); padding: 24px 18px; flex-shrink: 0; }
+  nav.toc h2 { color: var(--accent); font-size: 14px; margin: 18px 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+  nav.toc h2:first-child { margin-top: 0; }
+  nav.toc a { display: block; color: var(--muted); text-decoration: none; font-size: 13.5px; padding: 5px 10px; border-radius: 6px; }
+  nav.toc a:hover { background: var(--surface2); color: var(--text); }
+  main { flex: 1; max-width: 900px; margin: 0 auto; padding: 40px 48px 120px; }
+  h1 { color: var(--accent); font-size: 30px; border-bottom: 2px solid var(--border); padding-bottom: 16px; }
+  h2 { color: var(--accent); font-size: 24px; margin-top: 48px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { color: var(--accent-dark); font-size: 19px; margin-top: 32px; }
+  h4 { color: var(--text); font-size: 16px; margin-top: 22px; }
+  p, li { color: var(--text); }
+  code { background: var(--code-bg); color: var(--accent); padding: 2px 6px; border-radius: 4px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 13.5px; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; }
+  pre code { background: none; color: #d6dee6; padding: 0; }
+  .kw { color: #ff7edb; } .str { color: #8ce99a; } .com { color: #6b7683; font-style: italic; } .num { color: #ffd580; } .fn { color: #66d9ef; }
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14.5px; }
+  th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--surface2); color: var(--accent); }
+  tr:nth-child(even) td { background: var(--surface); }
+  .note, .warn, .danger, .ok { border-radius: 10px; padding: 14px 18px; margin: 18px 0; border-left: 4px solid; }
+  .note { background: rgba(0,209,178,.08); border-color: var(--accent); }
+  .warn { background: rgba(255,180,84,.08); border-color: var(--warn); }
+  .danger { background: rgba(255,107,107,.08); border-color: var(--danger); }
+  .ok { background: rgba(74,222,128,.08); border-color: var(--ok); }
+  .pros li { color: var(--ok); } .pros li span { color: var(--text); }
+  .cons li { color: var(--danger); } .cons li span { color: var(--text); }
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+  .lead { color: var(--muted); font-size: 16px; }
+  .diagram { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 13px; white-space: pre; overflow-x: auto; color: #d6dee6; }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc">
+  <h2>สารบัญ</h2>
+  <a href="#intro">1. Clean Architecture คืออะไร</a>
+  <a href="#dependency">2. Dependency Rule (หัวใจ)</a>
+  <a href="#layers">3. 4 ชั้น (วงกลมซ้อน)</a>
+  <a href="#entities">4. Entities</a>
+  <a href="#usecases">5. Use Cases</a>
+  <a href="#adapters">6. Interface Adapters</a>
+  <a href="#frameworks">7. Frameworks & Drivers</a>
+  <a href="#mapping">8. แมปลงโครง Android</a>
+  <a href="#example">9. ตัวอย่างโค้ดเต็ม</a>
+  <a href="#practical">9.1 ภาคปฏิบัติ (step-by-step)</a>
+  <a href="#structure">10. โครงสร้างแพ็กเกจ</a>
+  <a href="#proscons">11. ข้อดี/ข้อเสีย</a>
+  <a href="#compare">12. เทียบกับ Google Guide</a>
+  <a href="#choose">13. การเลือกใช้</a>
+  <a href="#pitfalls">14. ข้อผิดพลาดที่พบบ่อย</a>
+  <a href="#trends">15. แนวโน้มในอนาคต</a>
+  <a href="#glossary">16. ศัพท์เทคนิค</a>
+</nav>
+<main>
+
+<h1>Clean Architecture ใน Android (ฉบับสมบูรณ์)</h1>
+<p class="lead">อธิบาย Clean Architecture (ของ Robert C. Martin) และการนำมาใช้บน Android แบบ
+ครบถ้วน — Dependency Rule, 4 ชั้น, การแมปลงโครง Android, โค้ดตัวอย่าง, ข้อดี/ข้อเสีย,
+การเปรียบเทียบกับ "สถาปัตยกรรมที่ Google แนะนำ", การเลือกใช้ และแนวโน้ม อ่านจบแล้วนำไปวาง
+โครงโปรเจกต์จริงได้</p>
+
+<div class="note"><b>สรุปสั้นสุด:</b> Clean Architecture คือการแบ่งโค้ดเป็นวงกลมซ้อนกัน โดย
+<b>business logic (Entities/Use Cases) อยู่วงในสุด และไม่รู้จัก framework/UI/DB เลย</b> •
+กฎเดียวที่สำคัญสุดคือ <b>Dependency Rule: dependency ชี้เข้าด้านในเสมอ</b> • ผลคือ logic
+ทดสอบง่าย และเปลี่ยน UI/DB/network ได้โดยไม่กระทบแกนธุรกิจ</div>
+
+<section id="intro">
+<h2>1. Clean Architecture คืออะไร</h2>
+<p><b>Clean Architecture</b> เป็นแนวคิดของ Robert C. Martin ("Uncle Bob") ที่เสนอวิธีจัดโครง
+โค้ดให้ <b>business logic เป็นอิสระจาก framework, UI, database และปัจจัยภายนอก</b></p>
+<p>เป้าหมายหลัก:</p>
+<ul>
+  <li><b>Independent of frameworks</b> — logic ไม่ผูกกับ Android/Retrofit/Room</li>
+  <li><b>Testable</b> — เทสต์ business logic ได้โดยไม่ต้องมี UI/DB/network</li>
+  <li><b>Independent of UI</b> — เปลี่ยน UI (View → Compose) โดยไม่แตะ logic</li>
+  <li><b>Independent of database</b> — เปลี่ยน Room → SQLDelight โดยไม่แตะ logic</li>
+</ul>
+<div class="note">Clean Architecture เป็น <b>หลักการทั่วไป</b> ใช้ได้ทุกแพลตฟอร์ม (backend/web/
+mobile) — เอกสารนี้เน้นการนำมาปรับใช้บน <b>Android</b></div>
+</section>
+
+<section id="dependency">
+<h2>2. Dependency Rule (หัวใจของทั้งหมด)</h2>
+<p>กฎเดียวที่สำคัญที่สุด: <b>"dependency (การพึ่งพา) ต้องชี้เข้าด้านในเสมอ"</b></p>
+<div class="diagram">        ┌────────────────────────────────────┐
+        │  Frameworks & Drivers (นอกสุด)       │  UI, Room, Retrofit
+        │   ┌──────────────────────────────┐   │
+        │   │  Interface Adapters          │   │  ViewModel, Repository impl
+        │   │   ┌──────────────────────┐   │   │
+        │   │   │  Use Cases           │   │   │  business rules ของแอป
+        │   │   │   ┌──────────────┐   │   │   │
+        │   │   │   │  Entities    │   │   │   │  business models หลัก
+        │   │   │   └──────────────┘   │   │   │
+        │   │   └──────────────────────┘   │   │
+        │   └──────────────────────────────┘   │
+        └────────────────────────────────────┘
+              dependency ชี้ ────► เข้าด้านใน</div>
+<ul>
+  <li><b>ชั้นในไม่รู้จักชั้นนอก</b> — Entities/Use Cases ไม่ import อะไรจาก Android/UI/DB</li>
+  <li><b>ชั้นนอกรู้จักชั้นใน</b> — UI/Repository เรียกใช้ Use Cases/Entities ได้</li>
+  <li>เมื่อชั้นในต้องคุยชั้นนอก → ใช้ <b>interface (abstraction) ที่นิยามไว้ในชั้นใน</b>
+      แล้วชั้นนอกมา implement (Dependency Inversion)</li>
+</ul>
+<div class="warn"><b>ผิดกฎที่พบบ่อย:</b> Use Case หรือ Entity import <code>android.*</code> หรือ
+<code>Retrofit</code>/<code>Cursor</code> — ถ้าเจอแบบนี้แปลว่า dependency ชี้ออกนอก ผิดหลัก
+Clean Architecture</div>
+</section>
+
+<section id="layers">
+<h2>3. สี่ชั้น (วงกลมซ้อนกัน)</h2>
+<table>
+  <tr><th>ชั้น (วง)</th><th>หน้าที่</th><th>รู้จักอะไร</th></tr>
+  <tr><td><b>Entities</b> (ในสุด)</td><td>business models + กฎธุรกิจหลักที่ไม่เปลี่ยนตามแอป</td><td>ไม่รู้จักใครเลย (pure Kotlin)</td></tr>
+  <tr><td><b>Use Cases</b></td><td>business rules เฉพาะแอป (application logic)</td><td>รู้จัก Entities</td></tr>
+  <tr><td><b>Interface Adapters</b></td><td>แปลงข้อมูลระหว่างชั้นใน↔นอก (ViewModel, Repository, Mapper)</td><td>รู้จัก Use Cases + Entities</td></tr>
+  <tr><td><b>Frameworks &amp; Drivers</b> (นอกสุด)</td><td>ของจริง: UI, DB, network, Android SDK</td><td>รู้จักทุกชั้นใน</td></tr>
+</table>
+</section>
+
+<section id="entities">
+<h2>4. Entities (แกนธุรกิจ)</h2>
+<p>โมเดล + กฎธุรกิจหลักที่ <b>เป็นจริงเสมอไม่ว่าแอปจะเป็นแบบไหน</b> — เป็น <b>pure Kotlin</b>
+ไม่มี dependency กับ Android/framework ใด ๆ</p>
+<pre><code><span class="com">// pure Kotlin — ไม่มี import android.* หรือ library ภายนอก</span>
+<span class="kw">data class</span> Cart(<span class="kw">val</span> items: List&lt;CartItem&gt;) {
+    <span class="kw">val</span> total: BigDecimal
+        <span class="kw">get</span>() = items.sumOf { it.price * it.quantity.toBigDecimal() }
+
+    <span class="kw">fun</span> <span class="fn">isEmpty</span>(): Boolean = items.isEmpty()
+
+    <span class="com">// กฎธุรกิจหลัก: สั่งได้เมื่อยอดขั้นต่ำ 100 บาท</span>
+    <span class="kw">fun</span> <span class="fn">canCheckout</span>(): Boolean = total &gt;= BigDecimal(<span class="num">100</span>)
+}</code></pre>
+<div class="note">Entities เปลี่ยนแปลงน้อยที่สุด — เป็นแก่นที่ทุกชั้นนอกพึ่งพา</div>
+</section>
+
+<section id="usecases">
+<h2>5. Use Cases (application logic)</h2>
+<p>1 Use Case = 1 การกระทำทางธุรกิจของแอป (ชื่อเป็นกริยา) — ประสาน Entities + เรียกข้อมูล
+ผ่าน <b>interface (repository) ที่นิยามไว้ในชั้นใน</b></p>
+<pre><code><span class="com">// interface นิยามในชั้น domain (ชั้นใน) — ชั้นนอกมา implement</span>
+<span class="kw">interface</span> OrderRepository {
+    <span class="kw">suspend fun</span> <span class="fn">submit</span>(cart: Cart): Result&lt;OrderId&gt;
+}
+
+<span class="com">// Use Case พึ่ง interface ไม่ใช่ตัวจริง → ไม่รู้ว่าเบื้องหลังเป็น Retrofit/Room</span>
+<span class="kw">class</span> PlaceOrderUseCase(<span class="kw">private val</span> repo: OrderRepository) {
+    <span class="kw">suspend operator fun</span> <span class="fn">invoke</span>(cart: Cart): Result&lt;OrderId&gt; {
+        <span class="kw">if</span> (!cart.canCheckout())                     <span class="com">// ใช้กฎจาก Entity</span>
+            <span class="kw">return</span> Result.failure(MinimumNotMetException())
+        <span class="kw">return</span> repo.submit(cart)
+    }
+}</code></pre>
+<div class="note">Use Case ก็เป็น pure Kotlin (ไม่มี Android) → เทสต์ด้วย JUnit ธรรมดาได้ทันที</div>
+</section>
+
+<section id="adapters">
+<h2>6. Interface Adapters (ตัวแปลง)</h2>
+<p>แปลงข้อมูล/รูปแบบระหว่างชั้นใน (Entities/Use Cases) กับชั้นนอก (UI/DB/network) — ได้แก่
+<b>ViewModel, Repository implementation, Mapper</b></p>
+<pre><code><span class="com">// ViewModel = adapter ระหว่าง UI กับ Use Case</span>
+<span class="kw">class</span> OrderViewModel(<span class="kw">private val</span> placeOrder: PlaceOrderUseCase) : ViewModel() {
+    <span class="kw">private val</span> _state = MutableStateFlow(OrderUiState())
+    <span class="kw">val</span> state = _state.asStateFlow()
+
+    <span class="kw">fun</span> <span class="fn">onCheckout</span>(cart: Cart) = viewModelScope.launch {
+        placeOrder(cart)
+            .onSuccess { _state.update { s -&gt; s.copy(done = <span class="kw">true</span>) } }
+            .onFailure { e -&gt; _state.update { s -&gt; s.copy(error = e.message) } }
+    }
+}
+
+<span class="com">// Mapper = แปลง DTO (จาก network) → Entity (โมเดลธุรกิจ)</span>
+<span class="kw">fun</span> OrderDto.<span class="fn">toEntity</span>(): Order = Order(id = OrderId(id), total = total.toBigDecimal())</code></pre>
+</section>
+
+<section id="frameworks">
+<h2>7. Frameworks & Drivers (ชั้นนอกสุด)</h2>
+<p>ของจริงที่พึ่ง framework: การ implement repository ด้วย Retrofit/Room, Activity/Compose,
+Hilt module — ชั้นนี้ "เปลี่ยนได้" โดยไม่กระทบชั้นใน</p>
+<pre><code><span class="com">// implement interface ที่นิยามในชั้น domain — อยู่ชั้นนอก รู้จัก Retrofit/Room</span>
+<span class="kw">class</span> OrderRepositoryImpl(
+    <span class="kw">private val</span> api: OrderApi,     <span class="com">// Retrofit</span>
+    <span class="kw">private val</span> dao: OrderDao      <span class="com">// Room</span>
+) : OrderRepository {
+    <span class="kw">override suspend fun</span> <span class="fn">submit</span>(cart: Cart): Result&lt;OrderId&gt; = <span class="kw">try</span> {
+        <span class="kw">val</span> dto = api.submit(cart.toRequest())     <span class="com">// framework detail</span>
+        Result.success(dto.toEntity().id)
+    } <span class="kw">catch</span> (e: Exception) { Result.failure(e) }
+}</code></pre>
+<div class="note">อยากเปลี่ยนจาก Retrofit เป็น Ktor? แก้แค่ชั้นนี้ — Use Case/Entity ไม่ต้องแตะ</div>
+</section>
+
+<section id="mapping">
+<h2>8. แมปลงโครง Android</h2>
+<p>Clean Architecture 4 ชั้น แมปเข้ากับเครื่องมือ Android ได้ดังนี้:</p>
+<table>
+  <tr><th>Clean Architecture</th><th>บน Android</th><th>ตัวอย่าง</th></tr>
+  <tr><td>Entities</td><td>domain models (pure Kotlin)</td><td><code>Cart</code>, <code>Order</code></td></tr>
+  <tr><td>Use Cases</td><td>UseCase / Interactor</td><td><code>PlaceOrderUseCase</code></td></tr>
+  <tr><td>Interface Adapters</td><td>ViewModel, Repository (interface), Mapper</td><td><code>OrderViewModel</code>, <code>OrderRepository</code></td></tr>
+  <tr><td>Frameworks &amp; Drivers</td><td>Retrofit/Room/Compose/Activity/Hilt</td><td><code>OrderRepositoryImpl</code>, <code>OrderApi</code></td></tr>
+</table>
+<p>มักจัดเป็น 3 module ตามชั้น:</p>
+<div class="diagram">:domain   ← Entities + Use Cases + repository interface   (pure Kotlin, ไม่มี Android)
+:data     ← Repository impl + DataSource (Retrofit/Room)   (พึ่ง :domain)
+:app / :presentation  ← ViewModel + UI                     (พึ่ง :domain, :data ผ่าน DI)</div>
+<div class="note"><b>เคล็ดลับ:</b> ทำ <code>:domain</code> เป็น <b>pure Kotlin module</b> (ไม่ใช่
+Android library) จะบังคับโดยตัว compiler เองว่าห้าม import Android เข้าไป — เป็นการ enforce
+Dependency Rule แบบอัตโนมัติ</div>
+</section>
+
+<section id="example">
+<h2>9. ตัวอย่างโค้ดเต็ม (ไล่ทุกชั้น flow "กดสั่งอาหาร")</h2>
+<pre><code><span class="com">// ══ :domain (ชั้นใน — pure Kotlin, ไม่มี Android) ══</span>
+
+<span class="com">// Entity + กฎธุรกิจ</span>
+<span class="kw">data class</span> Cart(<span class="kw">val</span> items: List&lt;CartItem&gt;) {
+    <span class="kw">val</span> total: BigDecimal <span class="kw">get</span>() = items.sumOf { it.price * it.qty.toBigDecimal() }
+    <span class="kw">fun</span> <span class="fn">canCheckout</span>() = total &gt;= BigDecimal(<span class="num">100</span>)
+}
+
+<span class="com">// interface (นิยามในชั้นใน — Dependency Inversion)</span>
+<span class="kw">interface</span> OrderRepository { <span class="kw">suspend fun</span> <span class="fn">submit</span>(cart: Cart): Result&lt;OrderId&gt; }
+
+<span class="com">// Use Case</span>
+<span class="kw">class</span> PlaceOrderUseCase(<span class="kw">private val</span> repo: OrderRepository) {
+    <span class="kw">suspend operator fun</span> <span class="fn">invoke</span>(cart: Cart): Result&lt;OrderId&gt; {
+        <span class="kw">if</span> (!cart.canCheckout()) <span class="kw">return</span> Result.failure(MinimumNotMetException())
+        <span class="kw">return</span> repo.submit(cart)
+    }
+}
+
+<span class="com">// ══ :data (ชั้นนอก — รู้จัก Retrofit/Room) ══</span>
+<span class="kw">class</span> OrderRepositoryImpl(<span class="kw">private val</span> api: OrderApi) : OrderRepository {
+    <span class="kw">override suspend fun</span> <span class="fn">submit</span>(cart: Cart): Result&lt;OrderId&gt; = <span class="kw">try</span> {
+        Result.success(api.submit(cart.toRequest()).toEntity().id)
+    } <span class="kw">catch</span> (e: Exception) { Result.failure(e) }
+}
+
+<span class="com">// ══ :app (ชั้นนอก — UI/ViewModel) ══</span>
+@HiltViewModel
+<span class="kw">class</span> OrderViewModel @Inject <span class="kw">constructor</span>(
+    <span class="kw">private val</span> placeOrder: PlaceOrderUseCase
+) : ViewModel() {
+    <span class="kw">private val</span> _state = MutableStateFlow(OrderUiState())
+    <span class="kw">val</span> state = _state.asStateFlow()
+
+    <span class="kw">fun</span> <span class="fn">checkout</span>(cart: Cart) = viewModelScope.launch {
+        placeOrder(cart)
+            .onSuccess { _state.update { it.copy(done = <span class="kw">true</span>) } }
+            .onFailure { e -&gt; _state.update { it.copy(error = e.message) } }
+    }
+}
+
+<span class="com">// DI (ชั้นนอกสุด) — ผูก interface กับ impl</span>
+@Module @InstallIn(SingletonComponent::class)
+<span class="kw">object</span> AppModule {
+    @Provides <span class="kw">fun</span> <span class="fn">repo</span>(api: OrderApi): OrderRepository = OrderRepositoryImpl(api)
+    @Provides <span class="kw">fun</span> <span class="fn">useCase</span>(r: OrderRepository) = PlaceOrderUseCase(r)
+}</code></pre>
+<div class="note">สังเกต: <code>PlaceOrderUseCase</code> และ <code>Cart</code> ไม่มี Android เลย →
+ย้ายไปใช้บน iOS (ผ่าน KMP) หรือเทสต์ด้วย JUnit ล้วนได้ทันที</div>
+</section>
+
+<section id="practical">
+<h2>9.1 ภาคปฏิบัติ: สร้างฟีเจอร์จริง step-by-step</h2>
+<p>ส่วนนี้เดินสร้างฟีเจอร์ <b>"หน้าแสดงเมนูอาหาร (ดึงจาก API + cache ลง DB)"</b> ตั้งแต่ศูนย์
+ทีละไฟล์ พร้อมบอกว่าแต่ละไฟล์อยู่ชั้นไหนและทำไม — ก๊อปไปตั้งต้นโปรเจกต์จริงได้</p>
+
+<h3>ขั้น 0 — วางโครงโฟลเดอร์ก่อน</h3>
+<div class="diagram">com.example.foodorder
+├─ domain/                         (ชั้นใน — pure Kotlin, ไม่มี Android)
+│   ├─ model/MenuItem.kt           Entity
+│   ├─ repository/MenuRepository.kt  interface
+│   └─ usecase/GetMenuUseCase.kt   UseCase
+├─ data/                           (ชั้นนอก — รู้จัก Retrofit/Room)
+│   ├─ remote/MenuApi.kt           Retrofit API
+│   ├─ remote/dto/MenuItemDto.kt   DTO (โมเดลจาก network)
+│   ├─ local/MenuDao.kt            Room DAO
+│   ├─ local/entity/MenuEntity.kt  Room entity
+│   ├─ mapper/MenuMappers.kt       DTO/Room ↔ domain Entity
+│   └─ repository/MenuRepositoryImpl.kt
+└─ presentation/                   (ชั้นนอก — UI)
+    ├─ MenuViewModel.kt
+    ├─ MenuUiState.kt
+    └─ MenuFragment.kt
+└─ di/DataModule.kt                (Hilt)</div>
+<div class="note"><b>ลำดับการเขียนที่แนะนำ:</b> เขียนจาก <b>ชั้นในออกนอก</b> (domain → data →
+presentation) เพราะชั้นในไม่พึ่งใคร เขียนเสร็จก่อนแล้วชั้นนอกค่อยมาต่อ</div>
+
+<h3>ขั้น 1 — Entity (domain/model)</h3>
+<pre><code><span class="com">// domain/model/MenuItem.kt — โมเดลธุรกิจ pure Kotlin</span>
+<span class="kw">data class</span> MenuItem(
+    <span class="kw">val</span> id: String,
+    <span class="kw">val</span> name: String,
+    <span class="kw">val</span> price: BigDecimal,
+    <span class="kw">val</span> available: Boolean
+) {
+    <span class="com">// กฎธุรกิจ: แสดงราคาพร้อมหน่วย</span>
+    <span class="kw">fun</span> <span class="fn">displayPrice</span>(): String = <span class="str">"฿%.2f"</span>.format(price)
+}</code></pre>
+
+<h3>ขั้น 2 — Repository interface (domain/repository)</h3>
+<pre><code><span class="com">// domain/repository/MenuRepository.kt</span>
+<span class="com">// นิยาม "สัญญา" ว่าต้องดึงเมนูได้ — ยังไม่สนว่าเบื้องหลังเป็น network/db</span>
+<span class="kw">interface</span> MenuRepository {
+    <span class="com">// คืน Flow เพื่อให้ UI อัปเดตอัตโนมัติเมื่อข้อมูลเปลี่ยน</span>
+    <span class="kw">fun</span> <span class="fn">getMenu</span>(): Flow&lt;List&lt;MenuItem&gt;&gt;
+    <span class="kw">suspend fun</span> <span class="fn">refresh</span>()   <span class="com">// ดึงใหม่จาก network</span>
+}</code></pre>
+
+<h3>ขั้น 3 — UseCase (domain/usecase)</h3>
+<pre><code><span class="com">// domain/usecase/GetMenuUseCase.kt</span>
+<span class="com">// business rule: แสดงเฉพาะเมนูที่ยังมีของ (available) เรียงตามชื่อ</span>
+<span class="kw">class</span> GetMenuUseCase(<span class="kw">private val</span> repo: MenuRepository) {
+    <span class="kw">operator fun</span> <span class="fn">invoke</span>(): Flow&lt;List&lt;MenuItem&gt;&gt; =
+        repo.getMenu().map { list -&gt;
+            list.filter { it.available }.sortedBy { it.name }
+        }
+}</code></pre>
+<div class="note">ถึงตรงนี้ <b>ชั้น domain เสร็จสมบูรณ์</b> — ไม่มี Android/Retrofit/Room เลย
+เทสต์ได้ทันที (ดูขั้น 8)</div>
+
+<h3>ขั้น 4 — Data sources (data/remote + data/local)</h3>
+<pre><code><span class="com">// data/remote/dto/MenuItemDto.kt — โมเดล "ดิบ" จาก JSON (ตรงกับ API)</span>
+<span class="kw">data class</span> MenuItemDto(
+    <span class="kw">val</span> id: String,
+    <span class="kw">val</span> name: String,
+    <span class="kw">val</span> price: Double,        <span class="com">// API ส่งมาเป็น double</span>
+    <span class="kw">val</span> in_stock: Boolean     <span class="com">// ชื่อ field แบบ API (snake_case)</span>
+)
+
+<span class="com">// data/remote/MenuApi.kt — Retrofit</span>
+<span class="kw">interface</span> MenuApi {
+    @GET(<span class="str">"menu"</span>) <span class="kw">suspend fun</span> <span class="fn">fetchMenu</span>(): List&lt;MenuItemDto&gt;
+}
+
+<span class="com">// data/local/entity/MenuEntity.kt — โมเดลสำหรับ Room</span>
+@Entity(tableName = <span class="str">"menu"</span>)
+<span class="kw">data class</span> MenuEntity(
+    @PrimaryKey <span class="kw">val</span> id: String,
+    <span class="kw">val</span> name: String,
+    <span class="kw">val</span> price: Double,
+    <span class="kw">val</span> available: Boolean
+)
+
+<span class="com">// data/local/MenuDao.kt — Room DAO</span>
+@Dao
+<span class="kw">interface</span> MenuDao {
+    @Query(<span class="str">"SELECT * FROM menu"</span>) <span class="kw">fun</span> <span class="fn">observeAll</span>(): Flow&lt;List&lt;MenuEntity&gt;&gt;
+    @Upsert <span class="kw">suspend fun</span> <span class="fn">upsertAll</span>(items: List&lt;MenuEntity&gt;)
+}</code></pre>
+
+<h3>ขั้น 5 — Mapper 3 ชั้น (data/mapper) — ทำไมต้องมี</h3>
+<p>มี 3 โมเดลคนละชั้น: <b>DTO</b> (network), <b>MenuEntity</b> (Room), <b>MenuItem</b> (domain)
+— ต้องแปลงไปมา เพื่อ <b>กันไม่ให้รายละเอียดของ network/db รั่วเข้าชั้น domain</b></p>
+<pre><code><span class="com">// data/mapper/MenuMappers.kt</span>
+<span class="com">// DTO → domain Entity (แปลง double→BigDecimal, snake_case→ชื่อ domain)</span>
+<span class="kw">fun</span> MenuItemDto.<span class="fn">toDomain</span>() = MenuItem(
+    id = id, name = name,
+    price = price.toBigDecimal(),
+    available = in_stock
+)
+<span class="com">// domain → Room entity (ตอนจะ cache)</span>
+<span class="kw">fun</span> MenuItem.<span class="fn">toEntity</span>() = MenuEntity(id, name, price.toDouble(), available)
+<span class="com">// Room entity → domain (ตอนอ่านจาก DB)</span>
+<span class="kw">fun</span> MenuEntity.<span class="fn">toDomain</span>() = MenuItem(id, name, price.toBigDecimal(), available)</code></pre>
+<div class="warn"><b>ทำไมไม่ใช้โมเดลเดียวทุกชั้น?</b> เพราะถ้า domain ใช้ DTO ตรง ๆ → พอ API
+เปลี่ยน field ต้องแก้ทั้งแอป • การแยกโมเดล + mapper ทำให้ API/DB เปลี่ยนได้โดยแก้แค่ชั้น data</div>
+
+<h3>ขั้น 6 — Repository implementation (data/repository)</h3>
+<pre><code><span class="com">// data/repository/MenuRepositoryImpl.kt — SSOT: DB เป็นแหล่งความจริง</span>
+<span class="kw">class</span> MenuRepositoryImpl(
+    <span class="kw">private val</span> api: MenuApi,
+    <span class="kw">private val</span> dao: MenuDao
+) : MenuRepository {
+
+    <span class="com">// UI อ่านจาก DB เสมอ (single source of truth) → map เป็น domain model</span>
+    <span class="kw">override fun</span> <span class="fn">getMenu</span>(): Flow&lt;List&lt;MenuItem&gt;&gt; =
+        dao.observeAll().map { entities -&gt; entities.map { it.toDomain() } }
+
+    <span class="com">// refresh: ดึง network → แปลง → เขียนลง DB (แล้ว Flow ข้างบนจะ emit เอง)</span>
+    <span class="kw">override suspend fun</span> <span class="fn">refresh</span>() {
+        <span class="kw">val</span> fromNetwork = api.fetchMenu().map { it.toDomain() }
+        dao.upsertAll(fromNetwork.map { it.toEntity() })
+    }
+}</code></pre>
+<div class="note"><b>รูปแบบ cache ที่นิยม:</b> UI อ่านจาก DB (offline ได้) • refresh ดึง network
+มาเขียนทับ DB • Flow ทำให้ UI อัปเดตอัตโนมัติเมื่อ DB เปลี่ยน</div>
+
+<h3>ขั้น 7 — Presentation: UI State + ViewModel + error handling ข้ามชั้น</h3>
+<pre><code><span class="com">// presentation/MenuUiState.kt</span>
+<span class="kw">data class</span> MenuUiState(
+    <span class="kw">val</span> items: List&lt;MenuItem&gt; = emptyList(),
+    <span class="kw">val</span> isLoading: Boolean = <span class="kw">false</span>,
+    <span class="kw">val</span> error: String? = <span class="kw">null</span>
+)
+
+<span class="com">// presentation/MenuViewModel.kt</span>
+@HiltViewModel
+<span class="kw">class</span> MenuViewModel @Inject <span class="kw">constructor</span>(
+    <span class="kw">private val</span> getMenu: GetMenuUseCase,
+    <span class="kw">private val</span> repo: MenuRepository
+) : ViewModel() {
+
+    <span class="kw">val</span> uiState: StateFlow&lt;MenuUiState&gt; = getMenu()
+        .map { MenuUiState(items = it) }
+        .catch { emit(MenuUiState(error = it.toUiMessage())) }   <span class="com">// error → state</span>
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(<span class="num">5000</span>), MenuUiState(isLoading = <span class="kw">true</span>))
+
+    <span class="kw">fun</span> <span class="fn">refresh</span>() = viewModelScope.launch {
+        <span class="kw">try</span> { repo.refresh() }
+        <span class="kw">catch</span> (e: Exception) { <span class="com">/* แสดง snackbar ผ่าน event channel */</span> }
+    }
+}
+
+<span class="com">// แปลง exception (ชั้น data) → ข้อความที่ผู้ใช้เข้าใจ (ชั้น UI)</span>
+<span class="kw">fun</span> Throwable.<span class="fn">toUiMessage</span>(): String = <span class="kw">when</span> (<span class="kw">this</span>) {
+    <span class="kw">is</span> IOException -&gt; <span class="str">"เชื่อมต่อเครือข่ายไม่ได้"</span>
+    <span class="kw">else</span> -&gt; <span class="str">"เกิดข้อผิดพลาด กรุณาลองใหม่"</span>
+}</code></pre>
+<div class="note"><b>error handling ข้ามชั้น (จุดที่มือใหม่งง):</b> exception เกิดที่ชั้น data
+(network) → ไหลขึ้นมาถูก <code>catch</code> ที่ ViewModel → แปลงเป็น <b>ข้อความใน UI state</b>
+→ UI แสดง • ชั้น domain/data ไม่รู้จักข้อความภาษาไทย/UI เลย</div>
+
+<h3>ขั้น 8 — DI (di) ผูก interface กับ impl</h3>
+<pre><code><span class="com">// di/DataModule.kt</span>
+@Module @InstallIn(SingletonComponent::class)
+<span class="kw">object</span> DataModule {
+    @Provides @Singleton
+    <span class="kw">fun</span> <span class="fn">menuRepository</span>(api: MenuApi, dao: MenuDao): MenuRepository =
+        MenuRepositoryImpl(api, dao)          <span class="com">// ผูก interface → impl</span>
+
+    @Provides
+    <span class="kw">fun</span> <span class="fn">getMenuUseCase</span>(repo: MenuRepository) = GetMenuUseCase(repo)
+}</code></pre>
+
+<h3>ขั้น 9 — testing แต่ละชั้น</h3>
+<pre><code><span class="com">// เทสต์ UseCase — pure Kotlin ไม่ต้องมี Android (เร็วมาก)</span>
+<span class="kw">class</span> GetMenuUseCaseTest {
+    @Test <span class="kw">fun</span> `<span class="fn">กรองเฉพาะที่ available และเรียงชื่อ</span>`() = runTest {
+        <span class="kw">val</span> fake = FakeMenuRepository(listOf(
+            MenuItem(<span class="str">"2"</span>, <span class="str">"ผัดไทย"</span>, BigDecimal(<span class="num">60</span>), available = <span class="kw">true</span>),
+            MenuItem(<span class="str">"1"</span>, <span class="str">"ข้าวผัด"</span>, BigDecimal(<span class="num">50</span>), available = <span class="kw">false</span>),  <span class="com">// ถูกกรองออก</span>
+            MenuItem(<span class="str">"3"</span>, <span class="str">"กะเพรา"</span>, BigDecimal(<span class="num">55</span>), available = <span class="kw">true</span>)
+        ))
+        <span class="kw">val</span> result = GetMenuUseCase(fake)().first()
+        assertEquals(listOf(<span class="str">"กะเพรา"</span>, <span class="str">"ผัดไทย"</span>), result.map { it.name })
+    }
+}
+
+<span class="com">// เทสต์ Repository — mock api/dao</span>
+<span class="kw">class</span> MenuRepositoryImplTest {
+    @Test <span class="kw">fun</span> `<span class="fn">refresh ดึง network แล้วเขียนลง dao</span>`() = runTest {
+        <span class="kw">val</span> api = mockk&lt;MenuApi&gt;{ coEvery { fetchMenu() } returns listOf(dto) }
+        <span class="kw">val</span> dao = mockk&lt;MenuDao&gt;(relaxed = <span class="kw">true</span>)
+        MenuRepositoryImpl(api, dao).refresh()
+        coVerify { dao.upsertAll(any()) }   <span class="com">// ยืนยันว่าเขียนลง DB</span>
+    }
+}</code></pre>
+<div class="note">สังเกตว่าเทสต์ <b>UseCase</b> ไม่ต้องแตะ Android/Retrofit/Room เลย — นี่คือ
+ผลตอบแทนหลักของ Clean Architecture</div>
+
+<h3>สรุป flow ทั้งหมด (ที่เพิ่งสร้าง)</h3>
+<div class="diagram">UI (MenuFragment)
+   │ observe uiState
+MenuViewModel ── getMenu() ──► GetMenuUseCase ── กรอง/เรียง ──► MenuRepository
+                                                                     │ (interface)
+                                                          MenuRepositoryImpl
+                                                            │            │
+                                                        MenuDao(Room)  MenuApi(Retrofit)
+                                                            ▲ SSOT        │
+                                                            └── refresh() เขียนทับ
+
+error: network ล้ม → Exception → catch ที่ ViewModel → toUiMessage() → error ใน state → UI แสดง</div>
+</section>
+
+<section id="structure">
+<h2>10. โครงสร้างแพ็กเกจ / โมดูล</h2>
+<h4>แบบ multi-module (แนะนำสำหรับแอปใหญ่)</h4>
+<div class="diagram">:domain                  (pure Kotlin library)
+  ├─ model/               Entities
+  ├─ repository/          interfaces
+  └─ usecase/             Use Cases
+
+:data                    (Android library, พึ่ง :domain)
+  ├─ remote/              Retrofit API + DTO
+  ├─ local/               Room DAO + entity
+  ├─ mapper/              DTO/Room ↔ Entity
+  └─ repository/          RepositoryImpl
+
+:app                     (พึ่ง :domain, :data)
+  ├─ ui/                  Activity/Fragment/Compose
+  ├─ viewmodel/
+  └─ di/                  Hilt modules</div>
+<h4>แบบ single-module (แอปเล็ก-กลาง)</h4>
+<div class="diagram">com.example.app
+  ├─ domain/    (model, repository interface, usecase)
+  ├─ data/      (repositoryImpl, remote, local, mapper)
+  └─ ui/        (viewmodel, screens)</div>
+<div class="note">แยก <code>:domain</code> เป็น pure Kotlin module = compiler บังคับ Dependency
+Rule ให้เอง (import Android ไม่ได้) • แอปเล็กใช้แค่แพ็กเกจแยกก็พอ</div>
+</section>
+
+<section id="proscons">
+<h2>11. ข้อดี / ข้อเสีย</h2>
+<ul class="pros">
+  <li>✅ <span>business logic ทดสอบง่ายสุด — pure Kotlin เทสต์ด้วย JUnit ไม่ต้องมี Android</span></li>
+  <li>✅ <span>เปลี่ยน UI/DB/network ได้โดยไม่กระทบแกนธุรกิจ</span></li>
+  <li>✅ <span>แชร์ logic ข้ามแพลตฟอร์มได้ (KMP: :domain ใช้ทั้ง Android/iOS)</span></li>
+  <li>✅ <span>โครงชัด หลายทีมทำงานแยกชั้นได้</span></li>
+  <li>✅ <span>บังคับ separation ที่ดี ลด coupling</span></li>
+</ul>
+<ul class="cons">
+  <li>❌ <span>boilerplate เยอะมาก — interface + impl + mapper + usecase ต่อ 1 ฟีเจอร์</span></li>
+  <li>❌ <span>over-engineering สำหรับแอปเล็ก (ทุก action ต้องมี UseCase)</span></li>
+  <li>❌ <span>เรียนรู้ยาก มือใหม่งงเรื่อง Dependency Inversion/mapper หลายชั้น</span></li>
+  <li>❌ <span>เขียนโค้ดช้าลงตอนเริ่ม (แต่คุ้มระยะยาวถ้าแอปโต)</span></li>
+  <li>❌ <span>mapper ระหว่างชั้นเยอะ (DTO→Entity→UI model) อาจรู้สึกซ้ำซ้อน</span></li>
+</ul>
+</section>
+
+<section id="compare">
+<h2>12. เทียบกับ "สถาปัตยกรรมที่ Google แนะนำ" (Google Guide)</h2>
+<p>ทั้งสองมีเป้าหมายเดียวกัน (แยกชั้น ทดสอบง่าย ขยายได้) แต่ต่างกันที่ระดับความเข้มงวดและ
+ขอบเขต</p>
+
+<h3>เข้าใจง่ายที่สุด: อุปมา "การจัดบ้าน"</h3>
+<table>
+  <tr><th></th><th>Google Guide</th><th>Clean Architecture</th></tr>
+  <tr><td>เปรียบเป็น</td><td>จัดบ้านเป็น <b>3 โซน</b> (นั่งเล่น/ครัว/เก็บของ)</td><td>จัดบ้านเป็น <b>4 ชั้นซ้อน</b> มีกฎเข้มว่าของแต่ละชั้นห้ามปนกัน</td></tr>
+  <tr><td>ความรู้สึก</td><td>พอใช้ เข้าใจง่าย จัดเร็ว</td><td>เป็นระเบียบมาก แต่ต้องขยันจัด</td></tr>
+</table>
+
+<h3>แก่นความต่างจริง ๆ มีแค่ 3 อย่าง</h3>
+<table>
+  <tr><th>ประเด็น</th><th>Google Guide</th><th>Clean Architecture</th></tr>
+  <tr><td><b>กี่ชั้น</b></td><td>3 (UI / Domain / Data)</td><td>4 (Entities / UseCases / Adapters / Frameworks)</td></tr>
+  <tr><td><b>Use Case บังคับไหม</b></td><td>ไม่ (ใส่เมื่ออยากใส่)</td><td>ใช่ (ต้องมี)</td></tr>
+  <tr><td><b>เข้มแค่ไหน</b></td><td>ยืดหยุ่น ปรับได้</td><td>เคร่ง มีกฎตายตัว</td></tr>
+</table>
+<div class="ok"><b>นอกนั้นเหมือนกันหมด</b> — ทั้งคู่: แยก UI/logic/data, UI ไม่มี business
+logic, ทดสอบง่าย, ข้อมูลไหลทางเดียว (UDF), พึ่ง interface</div>
+
+<h3>จริง ๆ มันคือ "อันเดียวกันคนละความเข้ม"</h3>
+<div class="diagram">เบา ──────────────────────────────────────────► เข้ม
+
+Google Guide          Google Guide             Clean
+(ไม่มี Domain)   →    + Domain layer      →    Architecture
+                       + Use Case                (4 ชั้น + กฎเข้ม)</div>
+<div class="note"><b>เข้าใจง่าย ๆ:</b> Google Guide ถ้าคุณ <b>ใส่ Domain layer + Use Case +
+แยก module domain</b> → มันก็กลายเป็น Clean Architecture • พูดสั้น ๆ:
+<b>Clean = Google Guide ที่จัดเต็ม</b></div>
+
+<h3>จับคู่ชั้นให้เห็นภาพ</h3>
+<div class="diagram">Clean Architecture        Google Guide
+─────────────────────────────────────────
+Entities            ≈    domain model
+Use Cases           ≈    Domain layer
+Interface Adapters  ≈    ViewModel + Repository
+Frameworks          ≈    UI + Retrofit/Room</div>
+
+<h3>เห็นภาพชัดสุด: โค้ดฟีเจอร์เดียวกัน 2 แบบ</h3>
+<p><b>โจทย์:</b> กดปุ่ม "สั่งอาหาร" โดยต้องมี <b>ยอดขั้นต่ำ 100 บาท</b> — มาดูว่าเขียน 2 แบบ
+ต่างกันตรงไหน</p>
+
+<h4>แบบ Google Guide (เบา) — ViewModel คุย Repository ตรง — 2 ไฟล์</h4>
+<pre><code><span class="com">// 1) Repository (data layer)</span>
+<span class="kw">interface</span> OrderRepository {
+    <span class="kw">suspend fun</span> <span class="fn">submit</span>(items: List&lt;CartItem&gt;): Result&lt;OrderId&gt;
+}
+
+<span class="com">// 2) ViewModel — ใส่ logic "ยอดขั้นต่ำ" ไว้ตรงนี้เลย</span>
+<span class="kw">class</span> OrderViewModel(<span class="kw">private val</span> repo: OrderRepository) : ViewModel() {
+    <span class="kw">fun</span> <span class="fn">placeOrder</span>(items: List&lt;CartItem&gt;) = viewModelScope.launch {
+        <span class="kw">val</span> total = items.sumOf { it.price * it.qty.toBigDecimal() }
+        <span class="kw">if</span> (total &lt; BigDecimal(<span class="num">100</span>)) {              <span class="com">// ← logic อยู่ใน ViewModel</span>
+            _state.update { it.copy(error = <span class="str">"ยอดขั้นต่ำ 100 บาท"</span>) }
+            <span class="kw">return@launch</span>
+        }
+        repo.submit(items).onSuccess { <span class="com">/* ... */</span> }.onFailure { <span class="com">/* ... */</span> }
+    }
+}</code></pre>
+
+<h4>แบบ Clean Architecture — แยก logic เป็น Entity + UseCase — 4 ไฟล์</h4>
+<pre><code><span class="com">// 1) Entity — กฎ "ยอดขั้นต่ำ" อยู่ในตัวโมเดล (pure Kotlin)</span>
+<span class="kw">data class</span> Cart(<span class="kw">val</span> items: List&lt;CartItem&gt;) {
+    <span class="kw">val</span> total <span class="kw">get</span>() = items.sumOf { it.price * it.qty.toBigDecimal() }
+    <span class="kw">fun</span> <span class="fn">canCheckout</span>() = total &gt;= BigDecimal(<span class="num">100</span>)      <span class="com">// ← logic อยู่ที่นี่</span>
+}
+
+<span class="com">// 2) Repository interface (domain)</span>
+<span class="kw">interface</span> OrderRepository { <span class="kw">suspend fun</span> <span class="fn">submit</span>(cart: Cart): Result&lt;OrderId&gt; }
+
+<span class="com">// 3) UseCase — 1 การกระทำทางธุรกิจ</span>
+<span class="kw">class</span> PlaceOrderUseCase(<span class="kw">private val</span> repo: OrderRepository) {
+    <span class="kw">suspend operator fun</span> <span class="fn">invoke</span>(cart: Cart): Result&lt;OrderId&gt; {
+        <span class="kw">if</span> (!cart.canCheckout()) <span class="kw">return</span> Result.failure(MinimumNotMetException())
+        <span class="kw">return</span> repo.submit(cart)
+    }
+}
+
+<span class="com">// 4) ViewModel — บางมาก แค่เรียก UseCase (ไม่มี logic)</span>
+<span class="kw">class</span> OrderViewModel(<span class="kw">private val</span> placeOrder: PlaceOrderUseCase) : ViewModel() {
+    <span class="kw">fun</span> <span class="fn">onPlaceOrder</span>(cart: Cart) = viewModelScope.launch {
+        placeOrder(cart).onSuccess { <span class="com">/* ... */</span> }.onFailure { <span class="com">/* ... */</span> }
+    }
+}</code></pre>
+
+<table>
+  <tr><th></th><th>Google Guide</th><th>Clean Architecture</th></tr>
+  <tr><td>logic "ยอดขั้นต่ำ" อยู่ที่ไหน</td><td>ใน <b>ViewModel</b></td><td>ใน <b>Entity + UseCase</b></td></tr>
+  <tr><td>จำนวนไฟล์</td><td>2</td><td>4</td></tr>
+  <tr><td>ViewModel</td><td>มี logic ปนอยู่</td><td>บางมาก แค่ต่อสาย</td></tr>
+</table>
+
+<h3>ต่างกันตอน "ใช้งานจริง" ยังไง — 3 สถานการณ์</h3>
+<h4>สถานการณ์ 1 — logic เดียวกันถูกใช้ 2 ที่ (หน้า Cart + Checkout ด่วน)</h4>
+<ul>
+  <li><b>Google Guide:</b> ต้อง copy <code>if (total &lt; 100)</code> ไปอีก ViewModel →
+      เสี่ยงลืมแก้ที่เดียว logic ไม่ตรงกัน</li>
+  <li><b>Clean:</b> เรียก <code>PlaceOrderUseCase</code> เดิมซ้ำได้ทันที → logic อยู่ที่เดียว</li>
+</ul>
+<h4>สถานการณ์ 2 — เขียน test กฎ "ยอดขั้นต่ำ"</h4>
+<ul>
+  <li><b>Google Guide:</b> ต้อง test ผ่าน ViewModel (mock Repository + จัดการ coroutine)</li>
+  <li><b>Clean:</b> test <code>cart.canCheckout()</code> เป็น pure function → เร็ว ง่าย ไม่แตะ Android</li>
+</ul>
+<h4>สถานการณ์ 3 — แอปเล็ก logic แค่นี้ ไม่ได้ใช้ซ้ำ</h4>
+<ul>
+  <li><b>Google Guide:</b> จบใน 2 ไฟล์ อ่านง่าย</li>
+  <li><b>Clean:</b> เขียน 4 ไฟล์เพื่อ logic บรรทัดเดียว → <b>over-engineering</b></li>
+</ul>
+<div class="ok"><b>จุดตัดสินง่าย ๆ:</b> ถาม "logic ธุรกิจนี้จะถูก <b>ใช้ซ้ำ / ซับซ้อน / ต้องเทสต์
+หนัก</b> ไหม?" — <b>ใช่ → Clean คุ้ม</b> • <b>ไม่ → Google Guide พอ</b></div>
+
+<h3>เลือกยังไง (กฎง่าย ๆ)</h3>
+<ul>
+  <li>แอป <b>เล็ก/กลาง</b> → <b>Google Guide</b> (เบา พอแล้ว ไม่ต้องมี Use Case ทุกอัน)</li>
+  <li>แอป <b>ใหญ่/ซับซ้อน/แชร์ข้าม iOS (KMP)</b> → <b>Clean Architecture</b> (คุ้มกับความเข้ม)</li>
+  <li>ไม่แน่ใจ → เริ่ม Google Guide ก่อน แล้วค่อยเพิ่มความเข้มเมื่อโตขึ้น</li>
+</ul>
+
+<h3>ตารางเทียบละเอียด (ครบทุกประเด็น)</h3>
+<table>
+  <tr><th>ประเด็น</th><th>Clean Architecture</th><th>Google Guide (Recommended)</th></tr>
+  <tr><td>ที่มา</td><td>Robert C. Martin (ทั่วไป)</td><td>Google (เฉพาะ Android)</td></tr>
+  <tr><td>ขอบเขต</td><td>ทุกแพลตฟอร์ม</td><td>Android โดยตรง</td></tr>
+  <tr><td>จำนวนชั้น</td><td>4 วง (Entities/UseCases/Adapters/Frameworks)</td><td>2-3 (UI/Domain/Data)</td></tr>
+  <tr><td>Use Case</td><td>บังคับ (แกนหลัก)</td><td>optional (ใส่เมื่อจำเป็น)</td></tr>
+  <tr><td>Dependency rule</td><td>เข้มงวด (ชี้เข้าในเสมอ)</td><td>มี (ชั้นล่างไม่รู้จักชั้นบน) แต่ยืดหยุ่นกว่า</td></tr>
+  <tr><td>ระดับ</td><td>หลักการ/ปรัชญา</td><td>แนวปฏิบัติพร้อมใช้</td></tr>
+  <tr><td>เครื่องมือเจาะจง</td><td>ไม่ระบุ</td><td>ViewModel/StateFlow/Repository/Hilt</td></tr>
+  <tr><td>boilerplate</td><td>เยอะ</td><td>ปานกลาง</td></tr>
+  <tr><td>เหมาะกับ</td><td>แอปใหญ่/ซับซ้อน/ข้ามแพลตฟอร์ม</td><td>แอปทั่วไปทุกขนาด</td></tr>
+</table>
+<h4>ความสัมพันธ์: Google Guide = "Clean Architecture เวอร์ชันเบา" สำหรับ Android</h4>
+<div class="diagram">Clean Architecture          →   Google Guide (Android)
+──────────────────────────────────────────────────────
+Entities                    →   domain models
+Use Cases                   →   Domain layer (optional)
+Interface Adapters          →   ViewModel + Repository (interface)
+Frameworks & Drivers        →   Retrofit/Room/Compose (Data + UI)</div>
+<div class="note"><b>สรุปความสัมพันธ์:</b> Google Guide ได้อิทธิพลจาก Clean Architecture แต่
+<b>ยืดหยุ่นกว่า</b> (Domain/UseCase ข้ามได้) • ถ้าคุณใส่ Domain layer + Use Case + พึ่ง
+interface ครบใน Google Guide = เข้าใกล้ Clean Architecture • ทั้งคู่ใช้ร่วมกันได้ ไม่ขัดกัน</div>
+</section>
+
+<section id="choose">
+<h2>13. การเลือกใช้</h2>
+<table>
+  <tr><th>สถานการณ์</th><th>แนะนำ</th></tr>
+  <tr><td>แอปเล็ก / POC / ตัวอย่าง</td><td><b>Google Guide แบบเบา</b> (MVVM + Repository, ข้าม Clean)</td></tr>
+  <tr><td>แอปกลางทั่วไป</td><td>Google Guide + Domain layer เฉพาะ logic ซับซ้อน</td></tr>
+  <tr><td>แอปใหญ่/ซับซ้อน/หลายทีม</td><td><b>Clean Architecture</b> (multi-module, UseCase ครบ)</td></tr>
+  <tr><td>แชร์ logic Android + iOS (KMP)</td><td><b>Clean Architecture</b> (:domain เป็น pure Kotlin แชร์ได้)</td></tr>
+  <tr><td>logic ธุรกิจซับซ้อน/เปลี่ยนบ่อย</td><td>Clean Architecture (แยก logic ออกจาก framework)</td></tr>
+</table>
+<div class="note"><b>หลักคิด:</b> อย่าเริ่มด้วย Clean Architecture เต็มรูปแบบในแอปเล็ก (over-
+engineering) • เริ่มจาก Google Guide แล้ว <b>ค่อย ๆ เพิ่มความเข้มของ Clean</b> (แยก domain
+module, ใส่ UseCase) เมื่อแอปโต/logic ซับซ้อนขึ้นจริง</div>
+</section>
+
+<section id="pitfalls">
+<h2>14. ข้อผิดพลาดที่พบบ่อย</h2>
+<table>
+  <tr><th>ข้อผิดพลาด</th><th>ผล / วิธีแก้</th></tr>
+  <tr><td>Entity/UseCase import <code>android.*</code></td><td>ผิด Dependency Rule → ย้าย Android ไปชั้นนอก / ทำ :domain เป็น pure Kotlin</td></tr>
+  <tr><td>ใส่ Clean เต็มรูปแบบในแอปเล็ก</td><td>over-engineering → ใช้ Google Guide แบบเบาก่อน</td></tr>
+  <tr><td>UseCase ที่แค่เรียก repo ต่อ 1 บรรทัด</td><td>ไม่จำเป็น → ให้ ViewModel เรียก repo ตรงได้ (ใส่ UseCase เมื่อมี logic จริง)</td></tr>
+  <tr><td>Repository คืน DTO ดิบ (ไม่ map เป็น Entity)</td><td>รั่ว framework detail เข้าชั้นใน → map เป็น Entity ก่อน</td></tr>
+  <tr><td>ViewModel อยู่ในชั้น domain</td><td>ViewModel เป็น Android (adapter) → อยู่ชั้นนอก</td></tr>
+  <tr><td>mapper กระจายทั่ว ไม่มีที่อยู่ชัด</td><td>รวม mapper ไว้ชั้น data → กันปนกับ logic</td></tr>
+</table>
+</section>
+
+<section id="trends">
+<h2>15. แนวโน้มในอนาคต</h2>
+<ul>
+  <li><b>KMP ดัน Clean Architecture ให้สำคัญขึ้น</b> — การแชร์ :domain (pure Kotlin) ข้าม
+      Android/iOS ทำให้การแยก business logic ออกจาก framework คุ้มค่าชัดเจน</li>
+  <li><b>Google Guide + Clean แบบผสม เป็นค่ากลางที่นิยม</b> — ทีมส่วนใหญ่ไม่ทำ Clean เป๊ะ
+      แต่หยิบ UseCase + domain module + dependency rule มาใช้</li>
+  <li><b>Compose + UDF เข้ากันดีกับ Clean</b> — state-driven UI + Use Case ที่คืน state</li>
+  <li><b>เครื่องมือ modularization ดีขึ้น</b> — ทำให้แยก :domain/:data ต้นทุนต่ำลง</li>
+  <li><b>สรุปทิศทาง:</b> ไม่ใช่ "Clean vs Google Guide" แต่เป็น <b>สเปกตรัม</b> — เลือกความ
+      เข้มตามขนาด/ความซับซ้อน/ความต้องการแชร์ข้ามแพลตฟอร์ม</li>
+</ul>
+</section>
+
+<section id="glossary">
+<h2>16. ศัพท์ทางเทคนิค (Glossary)</h2>
+<ul>
+  <li><b>Clean Architecture</b> — แนวคิดจัดโครงให้ business logic เป็นอิสระจาก framework (Uncle Bob)</li>
+  <li><b>Dependency Rule</b> — กฎว่า dependency ต้องชี้เข้าด้านในเสมอ</li>
+  <li><b>Dependency Inversion</b> — ชั้นในนิยาม interface, ชั้นนอกมา implement (พลิกทิศพึ่งพา)</li>
+  <li><b>Entities</b> — business models + กฎธุรกิจหลัก (วงในสุด, pure)</li>
+  <li><b>Use Case / Interactor</b> — application logic 1 การกระทำ</li>
+  <li><b>Interface Adapters</b> — ตัวแปลงข้อมูลระหว่างชั้น (ViewModel/Repository/Mapper)</li>
+  <li><b>Frameworks &amp; Drivers</b> — ของจริงชั้นนอกสุด (UI/DB/network/Android)</li>
+  <li><b>Mapper</b> — ตัวแปลงระหว่างโมเดลแต่ละชั้น (DTO ↔ Entity ↔ UI model)</li>
+  <li><b>DTO (Data Transfer Object)</b> — โมเดลข้อมูลดิบจาก network/db</li>
+  <li><b>pure Kotlin module</b> — โมดูลที่ไม่พึ่ง Android SDK (บังคับ dependency rule ได้)</li>
+  <li><b>Google Guide (Recommended architecture)</b> — แนวทางสถาปัตยกรรมทางการของ Android</li>
+</ul>
+</section>
+
+<hr>
+<p class="lead">เอกสารที่เกี่ยวข้อง: สถาปัตยกรรมที่แนะนำ (Google Guide) —
+<code>docs/android-architecture.html</code> • ภาพรวม Android — <code>docs/android-for-programmers.md</code> •
+Lifecycle — <code>docs/android-lifecycle.html</code></p>
+</main>
+</div>
+</body>
+</html>

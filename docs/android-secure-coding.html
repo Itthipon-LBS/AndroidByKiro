@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Secure Coding ใน Android (ฉบับสมบูรณ์)</title>
+<style>
+  :root {
+    --accent: #00d1b2; --accent-dark: #00a88f;
+    --bg: #0f1419; --surface: #1a2029; --surface2: #232b36;
+    --text: #e6edf3; --muted: #9aa7b4; --border: #2d3742;
+    --code-bg: #11161c; --warn: #ffb454; --danger: #ff6b6b; --ok: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: -apple-system, "Segoe UI", "Sarabun", Tahoma, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.7; }
+  .layout { display: flex; }
+  nav.toc { position: sticky; top: 0; width: 330px; height: 100vh; overflow-y: auto;
+    background: var(--surface); border-right: 1px solid var(--border); padding: 24px 18px; flex-shrink: 0; }
+  nav.toc h2 { color: var(--accent); font-size: 14px; margin: 18px 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+  nav.toc h2:first-child { margin-top: 0; }
+  nav.toc a { display: block; color: var(--muted); text-decoration: none; font-size: 13.5px; padding: 5px 10px; border-radius: 6px; }
+  nav.toc a:hover { background: var(--surface2); color: var(--text); }
+  main { flex: 1; max-width: 900px; margin: 0 auto; padding: 40px 48px 120px; }
+  h1 { color: var(--accent); font-size: 30px; border-bottom: 2px solid var(--border); padding-bottom: 16px; }
+  h2 { color: var(--accent); font-size: 24px; margin-top: 48px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { color: var(--accent-dark); font-size: 19px; margin-top: 32px; }
+  h4 { color: var(--text); font-size: 16px; margin-top: 22px; }
+  p, li { color: var(--text); }
+  code { background: var(--code-bg); color: var(--accent); padding: 2px 6px; border-radius: 4px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 13.5px; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; }
+  pre code { background: none; color: #d6dee6; padding: 0; }
+  .kw { color: #ff7edb; } .str { color: #8ce99a; } .com { color: #6b7683; font-style: italic; } .num { color: #ffd580; } .fn { color: #66d9ef; } .xml { color: #7fd0ff; }
+  .bad { border-left: 3px solid var(--danger); } .good { border-left: 3px solid var(--ok); }
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14.5px; }
+  th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--surface2); color: var(--accent); }
+  tr:nth-child(even) td { background: var(--surface); }
+  .note, .warn, .danger, .ok { border-radius: 10px; padding: 14px 18px; margin: 18px 0; border-left: 4px solid; }
+  .note { background: rgba(0,209,178,.08); border-color: var(--accent); }
+  .warn { background: rgba(255,180,84,.08); border-color: var(--warn); }
+  .danger { background: rgba(255,107,107,.08); border-color: var(--danger); }
+  .ok { background: rgba(74,222,128,.08); border-color: var(--ok); }
+  .tag-bad { color: var(--danger); font-weight: bold; }
+  .tag-good { color: var(--ok); font-weight: bold; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+  .lead { color: var(--muted); font-size: 16px; }
+  .diagram { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 13px; white-space: pre; overflow-x: auto; color: #d6dee6; }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc">
+  <h2>พื้นฐาน</h2>
+  <a href="#intro">1. Secure coding คืออะไร</a>
+  <a href="#threat">2. โมเดลภัยคุกคาม</a>
+  <h2>ช่องโหว่หลัก</h2>
+  <a href="#input">3. Input validation & injection</a>
+  <a href="#webview">4. WebView security</a>
+  <a href="#intent">5. Intent security</a>
+  <a href="#deeplink">6. Deep link & App Links</a>
+  <a href="#ipc">7. IPC / Broadcast / Provider</a>
+  <a href="#pendingintent">8. PendingIntent</a>
+  <a href="#secret">9. Secret & API key</a>
+  <a href="#storage">10. เก็บข้อมูล & backup</a>
+  <a href="#logging">11. Logging & debuggable</a>
+  <a href="#tamper">12. Anti-tamper / root</a>
+  <a href="#deps">13. Dependency / supply chain</a>
+  <a href="#misc">14. อื่น ๆ (clipboard/screenshot)</a>
+  <h2>สรุป & อื่น ๆ</h2>
+  <a href="#checklist">15. Security checklist</a>
+  <a href="#trends">16. แนวโน้มในอนาคต</a>
+  <a href="#glossary">17. ศัพท์เทคนิค</a>
+</nav>
+<main>
+
+<h1>Secure Coding ใน Android (ฉบับสมบูรณ์)</h1>
+<p class="lead">เจาะลึกความปลอดภัย "เชิงการเขียนโค้ด" บน Android — ช่องโหว่ที่เกิดจากการเขียน
+โค้ดผิด และวิธีเขียนให้ปลอดภัย ครอบคลุม injection, WebView, Intent/deep link, IPC,
+secret management, logging, anti-tamper, dependency — พร้อมโค้ด <span class="tag-bad">ผิด</span>
+vs <span class="tag-good">ถูก</span> ทุกหัวข้อ, checklist, และแนวโน้ม</p>
+
+<div class="note"><b>เอกสารนี้เน้นมุม "แฮกเกอร์โจมตียังไง / เขียนโค้ดกันยังไง"</b> — ต่างจาก
+<code>android-permissions-security.html</code> ที่เน้นระบบสิทธิ์และการป้องกันพื้นฐาน อ่านคู่กัน
+จะครบเรื่องความปลอดภัย</div>
+
+<div class="warn"><b>หมายเหตุด้านจริยธรรม:</b> เนื้อหาอธิบายช่องโหว่เพื่อ "ป้องกัน" (defensive)
+เท่านั้น — ไม่ใช่คู่มือโจมตี</div>
+
+<section id="intro">
+<h2>1. Secure coding คืออะไร</h2>
+<p><b>Secure coding</b> คือการเขียนโค้ดที่ "ไม่เปิดช่องให้ถูกโจมตี" — ต่างจากการตั้งค่าความ
+ปลอดภัย (permission/HTTPS) ตรงที่ช่องโหว่เหล่านี้เกิดจาก <b>วิธีเขียนโค้ด</b> เอง เช่น รับ
+input โดยไม่ตรวจ, เปิด WebView ผิด, ส่ง Intent แบบไม่ระวัง</p>
+<div class="note">หลักคิด 3 ข้อ: <b>(1) อย่าเชื่อ input ใด ๆ</b> (จากผู้ใช้/แอปอื่น/network) •
+<b>(2) least privilege</b> (ให้สิทธิ์/เปิดฟีเจอร์เท่าที่จำเป็น) • <b>(3) defense in depth</b>
+(ป้องกันหลายชั้น ไม่พึ่งชั้นเดียว)</div>
+</section>
+
+<section id="threat">
+<h2>2. โมเดลภัยคุกคาม (attack surface บน Android)</h2>
+<p>รู้ว่า "ทางเข้า" ของการโจมตีมาจากไหน จะเขียนโค้ดกันได้ถูกจุด:</p>
+<table>
+  <tr><th>ทางเข้า (attack surface)</th><th>ภัยที่เกิด</th><th>ตัวอย่างภัยจริง</th></tr>
+  <tr><td>Input จากผู้ใช้ (ช่องกรอก)</td><td>injection, XSS (ใน WebView)</td><td>ช่องค้นหาต่อ SQL เอง → ผู้ใช้พิมพ์ <code>'; DROP TABLE user; --</code> ทำให้ตารางผู้ใช้หาย</td></tr>
+  <tr><td>Intent/deep link จากแอปอื่น</td><td>intent redirection, task hijacking, ข้อมูลปลอม</td><td>แอปร้ายส่ง intent ให้แอปเรา forward ต่อไปยังหน้า "ตั้งค่าบัญชี" ที่ปกติเข้าจากภายนอกไม่ได้ → เปลี่ยนอีเมล/รหัสเหยื่อ</td></tr>
+  <tr><td>ContentProvider/Service ที่ export</td><td>แอปอื่นเข้าถึงข้อมูล/สั่งงาน</td><td>Provider เก็บโน้ตตั้ง exported=true ไม่ใส่ permission → แอปอื่น query ดึงโน้ตทั้งหมดของผู้ใช้ออกไป</td></tr>
+  <tr><td>WebView โหลด URL/JS ภายนอก</td><td>รันโค้ดอันตราย, ขโมยข้อมูล</td><td>WebView เปิด JS + addJavascriptInterface โหลดหน้าโฆษณาภายนอก → JS ในโฆษณาเรียก bridge อ่าน token/ไฟล์ในเครื่อง</td></tr>
+  <tr><td>ไฟล์/ข้อมูลที่เก็บในเครื่อง</td><td>อ่านได้ถ้าเครื่อง root / backup รั่ว</td><td>เก็บ token เป็น plain text ใน SharedPreferences → เครื่อง root หรือ Auto Backup ขึ้น cloud แล้วถูกดึงไปสวมสิทธิ์</td></tr>
+  <tr><td>Network</td><td>man-in-the-middle, ดักข้อมูล</td><td>ใช้ HTTP บน WiFi สาธารณะ → ผู้โจมตีดักอ่าน/แก้ข้อมูลระหว่างทาง (เช่นแก้ยอดเงิน/ราคา)</td></tr>
+  <tr><td>Dependency (library)</td><td>ช่องโหว่/โค้ดอันตรายจากภายนอก</td><td>ใช้ library เวอร์ชันเก่าที่มีช่องโหว่ (เช่น log4j-style) หรือ typosquatting ชื่อคล้าย → โค้ดอันตรายฝังมากับแอป</td></tr>
+  <tr><td>APK ที่ถูกถอด/ดัดแปลง</td><td>อ่าน secret, ปลอมแอป, bypass logic</td><td>hardcode API secret ในโค้ด → ผู้โจมตี decompile APK อ่าน secret ไปเรียก API แทน; หรือ patch เช็ค "จ่ายเงินแล้ว" ให้ผ่านฟรี</td></tr>
+  <tr><td>Clipboard / หน้าจอ</td><td>ข้อมูลลับรั่วผ่าน clipboard/screenshot</td><td>copy OTP/เลขบัตรลง clipboard → แอปอื่นอ่าน clipboard ได้; หรือหน้าจอ OTP ถูก screen-record ด้วยมัลแวร์</td></tr>
+</table>
+<div class="note">ทุกภัยข้างบนมีวิธีป้องกันในหัวข้อถัด ๆ ไป (แต่ละหัวข้อมีโค้ด ❌ ผิด vs ✅ ถูก)</div>
+</section>
+
+<section id="input">
+<h2>3. Input validation & Injection</h2>
+<h4>3.1 SQL Injection</h4>
+<p>Room ใช้ parameterized query ให้อยู่แล้ว แต่ <b>raw query ที่ต่อ string เอง</b> ยังเสี่ยง:</p>
+<pre class="bad"><code><span class="com">// ❌ ผิด — ต่อ string ตรง ๆ → SQL injection</span>
+@RawQuery
+<span class="kw">fun</span> <span class="fn">search</span>(query: SupportSQLiteQuery): List&lt;User&gt;
+<span class="com">// เรียก: search(SimpleSQLiteQuery("SELECT * FROM user WHERE name = '$input'"))</span>
+<span class="com">// ถ้า input = "'; DROP TABLE user; --" → หายนะ</span></code></pre>
+<pre class="good"><code><span class="com">// ✅ ถูก — ใช้ parameter binding (Room escape ให้)</span>
+@Query(<span class="str">"SELECT * FROM user WHERE name = :name"</span>)
+<span class="kw">fun</span> <span class="fn">search</span>(name: String): List&lt;User&gt;
+
+<span class="com">// ถ้าจำเป็นต้อง raw → ใส่ค่าเป็น bind args ไม่ใช่ต่อ string</span>
+SimpleSQLiteQuery(<span class="str">"SELECT * FROM user WHERE name = ?"</span>, arrayOf(input))</code></pre>
+
+<h4>3.2 Path Traversal</h4>
+<pre class="bad"><code><span class="com">// ❌ ผิด — เอาชื่อไฟล์จาก input มาต่อ path ตรง ๆ</span>
+<span class="kw">val</span> file = File(baseDir, userInput)   <span class="com">// input = "../../databases/app.db" → หลุดออกนอก dir</span></code></pre>
+<pre class="good"><code><span class="com">// ✅ ถูก — ตรวจว่า path ที่ resolve แล้วยังอยู่ใน baseDir</span>
+<span class="kw">val</span> file = File(baseDir, userInput).canonicalFile
+<span class="kw">if</span> (!file.path.startsWith(baseDir.canonicalPath)) throw SecurityException(<span class="str">"path ไม่ถูกต้อง"</span>)</code></pre>
+
+<h4>3.3 หลักการ validate input ทั่วไป</h4>
+<ul>
+  <li><b>allowlist ดีกว่า denylist</b> — ระบุ "อะไรที่อนุญาต" ดีกว่าไล่บล็อกทีละอย่าง</li>
+  <li>ตรวจ <b>ชนิด/ความยาว/รูปแบบ</b> (regex) ของ input ทุกทางเข้า</li>
+  <li>อย่าเชื่อข้อมูลจาก client — ตรวจซ้ำที่ server ด้วย (ถ้ามี backend)</li>
+  <li>encode/escape ก่อนนำไปแสดง (โดยเฉพาะใน WebView)</li>
+</ul>
+</section>
+
+<section id="webview">
+<h2>4. WebView Security</h2>
+<p>WebView เป็นจุดเสี่ยงสูงสุดจุดหนึ่ง — ถ้าโหลดเนื้อหาที่ควบคุมไม่ได้ + เปิด JS/interface
+ผิด อาจถูกรันโค้ดอันตราย/ขโมยข้อมูล</p>
+<pre class="bad"><code><span class="com">// ❌ ผิด — เปิดทุกอย่างแล้วโหลด URL ที่ไม่ควบคุม</span>
+webView.settings.javaScriptEnabled = <span class="kw">true</span>
+webView.settings.allowFileAccess = <span class="kw">true</span>
+webView.addJavascriptInterface(MyJsBridge(), <span class="str">"Android"</span>)   <span class="com">// เว็บเรียก native ได้!</span>
+webView.loadUrl(untrustedUrl)</code></pre>
+<pre class="good"><code><span class="com">// ✅ ถูก — เปิดเท่าที่จำเป็น + คุม URL</span>
+webView.settings.apply {
+    javaScriptEnabled = <span class="kw">false</span>            <span class="com">// เปิดเฉพาะเมื่อจำเป็นจริง</span>
+    allowFileAccess = <span class="kw">false</span>              <span class="com">// กันอ่านไฟล์ในเครื่อง</span>
+    allowContentAccess = <span class="kw">false</span>
+    javaScriptCanOpenWindowsAutomatically = <span class="kw">false</span>
+}
+<span class="com">// จำกัดให้โหลดได้เฉพาะ domain ของเรา</span>
+webView.webViewClient = <span class="kw">object</span> : WebViewClient() {
+    <span class="kw">override fun</span> <span class="fn">shouldOverrideUrlLoading</span>(v: WebView, r: WebResourceRequest): Boolean {
+        <span class="kw">val</span> host = r.url.host ?: <span class="kw">return true</span>
+        <span class="kw">return</span> !host.endsWith(<span class="str">"example.com"</span>)   <span class="com">// นอก domain = บล็อก</span>
+    }
+}</code></pre>
+<div class="danger"><b>addJavascriptInterface อันตรายมาก</b> — ถ้าจำเป็นต้องใช้ ให้เปิดเฉพาะกับ
+เนื้อหาที่เราควบคุม 100%, ใช้ <code>@JavascriptInterface</code> เฉพาะเมธอดที่ตั้งใจ, และอย่าให้
+เข้าถึงข้อมูลอ่อนไหว • หลีกเลี่ยงการโหลด untrusted URL ใน WebView ที่เปิด JS</div>
+
+<h4>4.1 ค่าดีฟอลต์ของ WebSettings (ถ้าไม่ตั้งอะไรเลย)</h4>
+<p>ค่าดีฟอลต์ค่อนข้างปลอดภัยในหลายเรื่อง แต่มีบางอันที่เปิดช่องได้ + บางอัน
+<b>ต่างกันตามเวอร์ชัน</b>:</p>
+<table>
+  <tr><th>setting</th><th>ค่าดีฟอลต์</th><th>ปลอดภัย?</th></tr>
+  <tr><td><code>javaScriptEnabled</code></td><td><b>false</b></td><td>✅ (ต้องเปิดเอง)</td></tr>
+  <tr><td><code>addJavascriptInterface</code></td><td>ไม่มี (ต้องเรียกเอง)</td><td>✅</td></tr>
+  <tr><td><code>allowFileAccess</code></td><td><b>true</b> (API ≤29) / <b>false</b> (API 30+)</td><td>⚠️ ต่างตามเวอร์ชัน</td></tr>
+  <tr><td><code>allowContentAccess</code></td><td>true</td><td>⚠️ เข้าถึง content:// ได้</td></tr>
+  <tr><td><code>allowFileAccessFromFileURLs</code></td><td>false</td><td>✅</td></tr>
+  <tr><td><code>allowUniversalAccessFromFileURLs</code></td><td>false</td><td>✅</td></tr>
+  <tr><td><code>domStorageEnabled</code></td><td>false</td><td>✅</td></tr>
+  <tr><td><code>databaseEnabled</code></td><td>false</td><td>✅</td></tr>
+  <tr><td><code>mixedContentMode</code></td><td>NEVER_ALLOW (API 21+)</td><td>✅ บล็อก HTTP ในหน้า HTTPS</td></tr>
+  <tr><td><code>geolocationEnabled</code></td><td>true</td><td>⚠️ (แต่ยังต้องมี permission จริง)</td></tr>
+</table>
+<div class="warn"><b>จุดที่พลาดบ่อย — <code>allowFileAccess</code> ต่างตามเวอร์ชัน:</b> API 29
+(Android 10) ลงไปดีฟอลต์เป็น <b>true</b> (WebView อ่านไฟล์ <code>file://</code> ในเครื่องได้)
+แต่ API 30+ เป็น false → ควรตั้ง <code>false</code> เองให้ชัดเพื่อพฤติกรรมเหมือนกันทุกเวอร์ชัน</div>
+<div class="note"><b>สรุป:</b> ไม่ตั้งอะไรเลย = ปลอดภัยพอสำหรับแสดง HTML ธรรมดา (JS ปิด, ไม่มี
+JS interface, mixed content บล็อก) • แต่ช่องโหว่ส่วนใหญ่เกิดจากที่นักพัฒนา <b>เปิดเพิ่มเอง</b>
+(javaScriptEnabled/addJavascriptInterface) • หลัก <b>explicit ดีกว่า implicit</b> — ตั้งค่า
+ความปลอดภัยชัดเจนเอง อย่าพึ่งดีฟอลต์ที่เปลี่ยนตามเวอร์ชัน</div>
+
+<h4>4.2 สิ่งที่ควรตั้ง "ทุกครั้ง" ที่ใช้ WebView</h4>
+<p>ไม่มี setting ไหนที่ "ต้องตั้งแบบตายตัว" — ขึ้นกับว่าโหลดอะไร แต่แบ่งเป็น 3 กลุ่มตาม
+ความจำเป็นได้ชัดเจน:</p>
+
+<h4>กลุ่ม 1 — ควรตั้งทุกครั้ง (กันดีฟอลต์ต่างเวอร์ชัน + explicit)</h4>
+<pre class="good"><code>webView.settings.apply {
+    allowFileAccess = <span class="kw">false</span>                    <span class="com">// ดีฟอลต์ต่างตามเวอร์ชัน → ตั้งเองให้ชัด</span>
+    allowContentAccess = <span class="kw">false</span>                 <span class="com">// ดีฟอลต์ true → ปิดถ้าไม่ใช้ content://</span>
+    allowFileAccessFromFileURLs = <span class="kw">false</span>
+    allowUniversalAccessFromFileURLs = <span class="kw">false</span>   <span class="com">// กัน file:// อ่านข้าม origin</span>
+}</code></pre>
+<p><b>เหตุผล:</b> explicit ดีกว่า implicit — ไม่ปล่อยให้พฤติกรรมขึ้นกับดีฟอลต์ที่เปลี่ยนตาม
+เวอร์ชัน (โดยเฉพาะ <code>allowFileAccess</code>) • ปิดการเข้าถึงไฟล์/content ที่ WebView
+ส่วนใหญ่ไม่ได้ใช้อยู่แล้ว</p>
+
+<h4>กลุ่ม 2 — ต้องมีเมื่อโหลด content ภายนอก (สำคัญสุดด้านความปลอดภัย)</h4>
+<pre class="good"><code><span class="com">// จำกัดให้โหลดได้เฉพาะ domain ของเรา — กันถูกพาไปหน้าอันตราย</span>
+webView.webViewClient = <span class="kw">object</span> : WebViewClient() {
+    <span class="kw">override fun</span> <span class="fn">shouldOverrideUrlLoading</span>(v: WebView, r: WebResourceRequest): Boolean {
+        <span class="kw">val</span> host = r.url.host ?: <span class="kw">return true</span>
+        <span class="kw">return</span> !host.endsWith(<span class="str">"example.com"</span>)   <span class="com">// นอก domain = บล็อก (return true = ไม่โหลด)</span>
+    }
+}</code></pre>
+<p><b>เหตุผล:</b> เป็นด่านกันการ redirect ไปหน้าอันตราย/ฟิชชิง — สำคัญกว่าการตั้ง flag เฉย ๆ
+เพราะควบคุม "โหลดอะไรได้บ้าง"</p>
+
+<h4>กลุ่ม 3 — ตั้งเฉพาะเมื่อจำเป็น (และต้องระวังเป็นพิเศษ)</h4>
+<table>
+  <tr><th>setting</th><th>เปิดเมื่อ</th><th>ข้อควรระวัง</th></tr>
+  <tr><td><code>javaScriptEnabled = true</code></td><td>หน้าเว็บต้องใช้ JS</td><td>เปิดเฉพาะกับ content ที่ควบคุมได้ + คู่กับกลุ่ม 2</td></tr>
+  <tr><td><code>domStorageEnabled = true</code></td><td>เว็บใช้ localStorage</td><td>ข้อมูลถูกเก็บในเครื่อง</td></tr>
+  <tr><td><code>addJavascriptInterface()</code></td><td>ต้องให้ JS เรียก native</td><td><b>อันตรายสุด</b> — เฉพาะ content ที่เราคุม 100% + <code>@JavascriptInterface</code></td></tr>
+</table>
+
+<h4>เทมเพลต WebView ที่ปลอดภัย (ใช้เป็นจุดตั้งต้น)</h4>
+<pre class="good"><code><span class="kw">fun</span> <span class="fn">setupSecureWebView</span>(webView: WebView, allowedHost: String) {
+    webView.settings.apply {
+        <span class="com">// กลุ่ม 1: ปิดการเข้าถึงไฟล์/content เสมอ</span>
+        allowFileAccess = <span class="kw">false</span>
+        allowContentAccess = <span class="kw">false</span>
+        allowFileAccessFromFileURLs = <span class="kw">false</span>
+        allowUniversalAccessFromFileURLs = <span class="kw">false</span>
+        <span class="com">// เปิด JS เฉพาะถ้าจำเป็น (กลุ่ม 3) — ตัวอย่างนี้เปิดเพราะสมมติว่าต้องใช้</span>
+        javaScriptEnabled = <span class="kw">true</span>
+    }
+    <span class="com">// กลุ่ม 2: จำกัด domain</span>
+    webView.webViewClient = <span class="kw">object</span> : WebViewClient() {
+        <span class="kw">override fun</span> <span class="fn">shouldOverrideUrlLoading</span>(v: WebView, r: WebResourceRequest) =
+            r.url.host?.endsWith(allowedHost) != <span class="kw">true</span>
+    }
+    <span class="com">// ไม่เรียก addJavascriptInterface เว้นแต่จำเป็นจริง</span>
+}</code></pre>
+<div class="note"><b>สรุปสั้น:</b> ทุกครั้งให้ตั้ง <b>กลุ่ม 1</b> (ปิด file/content access) + ถ้า
+โหลด URL ให้ทำ <b>กลุ่ม 2</b> (จำกัด domain) • <b>กลุ่ม 3</b> เปิดเท่าที่จำเป็นและระวัง
+addJavascriptInterface เป็นพิเศษ</div>
+</section>
+
+<section id="intent">
+<h2>5. Intent Security</h2>
+<h4>5.1 Implicit intent รั่วข้อมูล → ใช้ explicit</h4>
+<pre class="bad"><code><span class="com">// ❌ ผิด — implicit intent ส่งข้อมูลอ่อนไหว แอปอื่นอาจดักรับ</span>
+<span class="kw">val</span> intent = Intent(<span class="str">"com.example.ACTION_PROCESS"</span>)
+intent.putExtra(<span class="str">"token"</span>, secretToken)
+sendBroadcast(intent)   <span class="com">// ทุกแอปที่ลง filter นี้รับได้</span></code></pre>
+<pre class="good"><code><span class="com">// ✅ ถูก — explicit intent ระบุปลายทางชัด</span>
+<span class="kw">val</span> intent = Intent(<span class="kw">this</span>, ProcessService::class.java)
+intent.putExtra(<span class="str">"token"</span>, secretToken)
+startService(intent)</code></pre>
+
+<h4>5.2 Intent Redirection (อันตรายที่มือใหม่พลาด)</h4>
+<pre class="bad"><code><span class="com">// ❌ ผิด — เอา Intent ที่รับมาจากภายนอก ไป startActivity ต่อ (redirection)</span>
+<span class="kw">val</span> forwarded = intent.getParcelableExtra&lt;Intent&gt;(<span class="str">"next"</span>)
+startActivity(forwarded)   <span class="com">// แอปร้ายส่ง intent ชี้ไป component ภายในที่ไม่ export → เข้าถึงได้</span></code></pre>
+<pre class="good"><code><span class="com">// ✅ ถูก — ตรวจ/จำกัดปลายทางก่อน หรือไม่ forward intent จากภายนอกเลย</span>
+<span class="kw">val</span> forwarded = intent.getParcelableExtra&lt;Intent&gt;(<span class="str">"next"</span>)
+<span class="kw">if</span> (forwarded?.component?.packageName == packageName &&
+    forwarded.component?.className <span class="kw">in</span> allowedTargets) {
+    startActivity(forwarded)
+}</code></pre>
+
+<h4>5.3 ตรวจข้อมูลที่รับจาก Intent เสมอ</h4>
+<pre class="good"><code><span class="com">// ✅ validate extra ทุกตัวก่อนใช้ (อาจเป็น null/ค่าปลอม)</span>
+<span class="kw">val</span> amount = intent.getIntExtra(<span class="str">"amount"</span>, -<span class="num">1</span>)
+<span class="kw">if</span> (amount &lt;= <span class="num">0</span>) { finish(); <span class="kw">return</span> }   <span class="com">// ค่าไม่ถูกต้อง = ปฏิเสธ</span></code></pre>
+</section>
+
+<section id="deeplink">
+<h2>6. Deep link & App Links security</h2>
+<ul>
+  <li><b>ตรวจ parameter ของ deep link เสมอ</b> — <code>myapp://order/{id}</code> ค่า id อาจ
+      เป็นอะไรก็ได้ → validate ก่อนใช้</li>
+  <li><b>App Links (verified)</b> — ผูก domain กับแอปด้วย <code>assetlinks.json</code> เพื่อกัน
+      แอปอื่นแอบอ้างเปิด link ของคุณ (link hijacking)</li>
+  <li><b>อย่าทำงานอ่อนไหวจาก deep link ตรง ๆ</b> — เช่นห้ามโอนเงิน/ลบข้อมูลจากการเปิด link
+      โดยไม่ยืนยันตัวตน</li>
+</ul>
+<pre class="bad"><code><span class="com">// ❌ ผิด — เชื่อ deep link แล้วทำงานอ่อนไหวเลย</span>
+<span class="kw">val</span> id = intent.data?.getQueryParameter(<span class="str">"orderId"</span>)
+deleteOrder(id!!)   <span class="com">// ใครส่ง link มาก็ลบได้</span></code></pre>
+<pre class="good"><code><span class="com">// ✅ ถูก — validate + ต้องผ่าน auth ก่อนทำงานอ่อนไหว</span>
+<span class="kw">val</span> id = intent.data?.getQueryParameter(<span class="str">"orderId"</span>)
+<span class="kw">if</span> (id.isNullOrBlank() || !id.matches(Regex(<span class="str">"^[0-9]+$"</span>))) <span class="kw">return</span>
+<span class="kw">if</span> (!session.isLoggedIn) { navigateToLogin(); <span class="kw">return</span> }
+showOrderConfirm(id)   <span class="com">// ให้ผู้ใช้ยืนยันก่อน ไม่ทำเลย</span></code></pre>
+</section>
+
+<section id="ipc">
+<h2>7. IPC / Broadcast / ContentProvider security</h2>
+<ul>
+  <li><b>exported=false</b> ถ้าไม่ต้องการให้แอปอื่นเรียก (component ทุกชนิด)</li>
+  <li>ถ้าต้อง export → กำหนด <b>permission</b> ป้องกัน + ตรวจผู้เรียก</li>
+  <li><b>Broadcast อ่อนไหว</b> → ใช้ explicit หรือกำหนด permission; ภายในแอปใช้ LocalBroadcast/Flow</li>
+  <li><b>ContentProvider</b> → ตั้ง <code>android:grantUriPermissions</code>/permission, ใช้
+      parameterized selection กัน injection</li>
+</ul>
+<pre class="good"><code><span class="xml">&lt;!-- ContentProvider ให้เฉพาะแอปที่มี permission --&gt;
+&lt;provider
+    android:name=".MyProvider"
+    android:authorities="com.example.provider"
+    android:exported="true"
+    android:readPermission="com.example.permission.READ_DATA" /&gt;</span></code></pre>
+<pre class="good"><code><span class="com">// ตรวจสิทธิ์ผู้เรียกใน bound service (IPC)</span>
+<span class="kw">override fun</span> <span class="fn">onTransact</span>(...) {
+    <span class="kw">if</span> (checkCallingPermission(<span class="str">"com.example.permission.USE"</span>)
+        != PackageManager.PERMISSION_GRANTED) throw SecurityException()
+}</code></pre>
+</section>
+
+<section id="pendingintent">
+<h2>8. PendingIntent security</h2>
+<p>PendingIntent คือ "การมอบสิทธิ์ให้แอปอื่นทำงานแทนเรา" — ถ้าตั้งค่าผิดแอปอื่นอาจแก้ไส้ในได้</p>
+<pre class="bad"><code><span class="com">// ❌ ผิด — mutable + implicit intent → แอปอื่นแก้ปลายทางได้</span>
+PendingIntent.getActivity(<span class="kw">this</span>, <span class="num">0</span>, Intent(<span class="str">"SOME_ACTION"</span>), PendingIntent.FLAG_MUTABLE)</code></pre>
+<pre class="good"><code><span class="com">// ✅ ถูก — IMMUTABLE + explicit intent (Android 12+ บังคับระบุ mutability)</span>
+PendingIntent.getActivity(
+    <span class="kw">this</span>, <span class="num">0</span>,
+    Intent(<span class="kw">this</span>, DetailActivity::class.java),
+    PendingIntent.FLAG_IMMUTABLE <span class="kw">or</span> PendingIntent.FLAG_UPDATE_CURRENT
+)</code></pre>
+<div class="note">ใช้ <b>FLAG_IMMUTABLE</b> เสมอ เว้นแต่จำเป็นต้อง mutable จริง ๆ (เช่นใช้กับ
+inline reply/bubble) แล้วต้องใช้ explicit intent เท่านั้น</div>
+</section>
+
+<section id="secret">
+<h2>9. Secret & API key management</h2>
+<div class="danger"><b>ความจริงที่ต้องยอมรับ:</b> อะไรที่ฝังใน APK <b>ถอดออกมาอ่านได้เสมอ</b>
+(decompile) — obfuscation แค่ทำให้ยากขึ้น ไม่ใช่ปลอดภัย • secret ที่สำคัญจริงต้องอยู่ฝั่ง server</div>
+<table>
+  <tr><th>ระดับความลับ</th><th>เก็บที่ไหน</th></tr>
+  <tr><td>secret สำคัญมาก (payment key, admin)</td><td><b>backend เท่านั้น</b> — แอปเรียกผ่าน API</td></tr>
+  <tr><td>token ของผู้ใช้ (หลัง login)</td><td>EncryptedSharedPreferences / Keystore</td></tr>
+  <tr><td>API key ที่จำกัดสิทธิ์ได้ (เช่น Maps)</td><td>ฝังได้ แต่ต้อง <b>restrict</b> ด้วย package+SHA-1 ใน console</td></tr>
+  <tr><td>config ไม่ลับ</td><td>BuildConfig / resource</td></tr>
+</table>
+<pre class="bad"><code><span class="com">// ❌ ผิด — hardcode secret ในโค้ด</span>
+<span class="kw">const val</span> API_SECRET = <span class="str">"sk_live_abc123..."</span>   <span class="com">// ถอด APK เจอทันที</span></code></pre>
+<pre class="good"><code><span class="com">// ✅ ถูก — secret อยู่ backend, แอปแลก token ชั่วคราวมาใช้</span>
+<span class="com">// หรือถ้าจำเป็นต้องมี key ในแอป → restrict + rotate ได้</span>
+<span class="com">// เก็บ token ผู้ใช้แบบเข้ารหัส:</span>
+securePrefs.edit().putString(<span class="str">"access_token"</span>, token).apply()</code></pre>
+<div class="warn"><b>อย่า commit secret ลง git</b> — ใช้ <code>local.properties</code>/env vars +
+<code>.gitignore</code>; ถ้าเผลอ commit ไปแล้ว ให้ถือว่า secret นั้นรั่วและ rotate ทันที</div>
+<div class="note"><b>เจาะลึกการเก็บ key/secret ทุกชนิด</b> (Google Maps/Firebase/Facebook/
+Stripe/token ผู้ใช้ — ควร/ไม่ควรเก็บที่ไหน, restrict, Keystore, backend proxy): ดู
+<code>docs/android-secrets-management.html</code></div>
+</section>
+
+<section id="storage">
+<h2>10. การเก็บข้อมูล & Backup</h2>
+<ul>
+  <li>ข้อมูลลับ → <b>EncryptedSharedPreferences / SQLCipher</b> (ไม่ใช่ plain text)</li>
+  <li>อย่าเก็บข้อมูลอ่อนไหวใน <b>external storage</b> (แอปอื่นอาจอ่านได้ในเวอร์ชันเก่า)</li>
+  <li><b>Auto Backup</b> อาจ backup ข้อมูลลับขึ้น cloud → กำหนด exclude rules</li>
+</ul>
+<pre class="good"><code><span class="xml">&lt;!-- Android 12+: res/xml/data_extraction_rules.xml --&gt;
+&lt;data-extraction-rules&gt;
+    &lt;cloud-backup&gt;
+        &lt;exclude domain="sharedpref" path="secure_prefs.xml" /&gt;  &lt;!-- ไม่ backup token --&gt;
+    &lt;/cloud-backup&gt;
+&lt;/data-extraction-rules&gt;
+
+&lt;!-- ผูกใน AndroidManifest --&gt;
+&lt;application android:dataExtractionRules="@xml/data_extraction_rules" ... /&gt;</span></code></pre>
+</section>
+
+<section id="logging">
+<h2>11. Logging & debuggable ใน production</h2>
+<pre class="bad"><code><span class="com">// ❌ ผิด — log ข้อมูลอ่อนไหว (อ่านได้ผ่าน Logcat / adb)</span>
+Log.d(<span class="str">"Auth"</span>, <span class="str">"token = $accessToken, password = $password"</span>)</code></pre>
+<pre class="good"><code><span class="com">// ✅ ถูก — ไม่ log ข้อมูลลับ + ปิด log ใน release</span>
+<span class="kw">if</span> (BuildConfig.DEBUG) Log.d(<span class="str">"Auth"</span>, <span class="str">"login success"</span>)   <span class="com">// ไม่มี token</span>
+<span class="com">// หรือใช้ Timber ที่ตัด log อัตโนมัติใน release</span></code></pre>
+<ul>
+  <li><b>android:debuggable</b> — ต้องเป็น <b>false</b> ใน release (build type release ตั้งให้อยู่แล้ว
+      อย่า override เป็น true)</li>
+  <li>ปิด/ลด logging ใน production (ใช้ Timber + plant tree เฉพาะ debug)</li>
+  <li>เปิด <b>minify/R8</b> ใน release (obfuscate + ลบโค้ดที่ไม่ใช้ + strip log ได้)</li>
+</ul>
+<pre class="good"><code><span class="com">// build.gradle.kts</span>
+buildTypes {
+    release {
+        isMinifyEnabled = <span class="kw">true</span>          <span class="com">// R8: obfuscate + shrink</span>
+        isDebuggable = <span class="kw">false</span>
+        proguardFiles(getDefaultProguardFile(<span class="str">"proguard-android-optimize.txt"</span>), <span class="str">"proguard-rules.pro"</span>)
+    }
+}</code></pre>
+</section>
+
+<section id="tamper">
+<h2>12. Anti-tampering / root detection</h2>
+<p>สำหรับแอปที่อ่อนไหว (การเงิน) ควรตรวจว่าแอป/เครื่องไม่ถูกดัดแปลง — แต่ <b>ไม่มีอะไรกันได้
+100%</b> เป็นการเพิ่มความยากเท่านั้น</p>
+<ul>
+  <li><b>Play Integrity API</b> — ตรวจว่าแอปเป็นตัวจริงจาก Play + เครื่องน่าเชื่อถือ (แทน
+      SafetyNet เดิม)</li>
+  <li><b>ตรวจ debug/emulator/root</b> — เป็น signal เสริม (bypass ได้ ไม่ควรพึ่งอย่างเดียว)</li>
+  <li><b>ตรวจ signature ของแอป</b> — กันการ repackage (ปลอมแอป)</li>
+</ul>
+<pre class="good"><code><span class="com">// แนวคิด Play Integrity (เรียกผ่าน backend เพื่อ verify)</span>
+<span class="kw">val</span> integrityManager = IntegrityManagerFactory.create(context)
+<span class="kw">val</span> token = integrityManager.requestIntegrityToken(
+    IntegrityTokenRequest.builder().setNonce(nonce).build()
+)
+<span class="com">// ส่ง token ไป verify ที่ backend (อย่า verify ในแอป — bypass ได้)</span></code></pre>
+<div class="note">การ verify ควรทำ <b>ฝั่ง server</b> เสมอ — ถ้า verify ในแอปอย่างเดียว ผู้โจมตี
+patch โค้ดข้ามได้</div>
+</section>
+
+<section id="deps">
+<h2>13. Dependency / Supply chain security</h2>
+<ul>
+  <li><b>ใช้ library ที่น่าเชื่อถือ + ดูแลต่อเนื่อง</b> — เช็คว่ามีคน maintain, ดาวน์โหลดเยอะ</li>
+  <li><b>ปักหมุดเวอร์ชัน (pin)</b> — ไม่ใช้ <code>+</code>/range เพื่อกันดึงเวอร์ชันอันตรายมาเงียบ ๆ</li>
+  <li><b>ระวัง typosquatting</b> — ชื่อ library คล้ายของจริง (เช่นสะกดผิด 1 ตัว)</li>
+  <li><b>สแกนช่องโหว่</b> — ใช้ dependency scanning (เช่น OWASP Dependency-Check, GitHub Dependabot)</li>
+  <li><b>ตรวจ permission ที่ library ขอ</b> — library ไม่ควรขอสิทธิ์เกินหน้าที่</li>
+</ul>
+<pre class="good"><code><span class="com">// ✅ ปักเวอร์ชันชัดเจน (ไม่ใช้ + หรือ latest)</span>
+implementation(<span class="str">"com.squareup.retrofit2:retrofit:2.11.0"</span>)   <span class="com">// ไม่ใช่ 2.+ </span></code></pre>
+</section>
+
+<section id="misc">
+<h2>14. อื่น ๆ (clipboard / screenshot / keyboard)</h2>
+<ul>
+  <li><b>Clipboard</b> — อย่า copy ข้อมูลลับลง clipboard (แอปอื่นอ่านได้); Android 13+ auto-clear
+      แต่ก็ควรเลี่ยง</li>
+  <li><b>Screenshot/screen recording</b> — หน้าจอที่มีข้อมูลลับ (OTP, บัตร) ใช้ <b>FLAG_SECURE</b></li>
+  <li><b>Keyboard cache</b> — ช่องรหัสผ่านตั้ง <code>inputType</code> เป็น password (กันจำ/แนะนำคำ)</li>
+</ul>
+<pre class="good"><code><span class="com">// ป้องกัน screenshot/บันทึกหน้าจอในหน้าที่มีข้อมูลลับ</span>
+window.setFlags(WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE)</code></pre>
+</section>
+
+<section id="checklist">
+<h2>15. Security checklist (ก่อนปล่อย production)</h2>
+<table>
+  <tr><th>หมวด</th><th>เช็ค</th></tr>
+  <tr><td>Input</td><td>validate ทุกทางเข้า, parameterized query, path traversal</td></tr>
+  <tr><td>WebView</td><td>ปิด JS/file access ถ้าไม่ใช้, จำกัด URL, ระวัง JS interface</td></tr>
+  <tr><td>Intent</td><td>explicit intent, ไม่ forward intent ภายนอก, validate extra</td></tr>
+  <tr><td>Deep link</td><td>validate param, App Links verified, ไม่ทำงานอ่อนไหวตรง ๆ</td></tr>
+  <tr><td>Component</td><td>exported=false เท่าที่ทำได้, permission ถ้า export</td></tr>
+  <tr><td>PendingIntent</td><td>FLAG_IMMUTABLE + explicit</td></tr>
+  <tr><td>Secret</td><td>ไม่ hardcode, ไม่ commit git, สำคัญ→backend</td></tr>
+  <tr><td>Storage</td><td>เข้ารหัสข้อมูลลับ, backup exclude</td></tr>
+  <tr><td>Logging</td><td>ไม่ log secret, debuggable=false, minify เปิด</td></tr>
+  <tr><td>Network</td><td>HTTPS only, network security config, (cert pinning)</td></tr>
+  <tr><td>Dependency</td><td>pin เวอร์ชัน, สแกนช่องโหว่</td></tr>
+  <tr><td>อ่อนไหว</td><td>FLAG_SECURE, Biometric, Play Integrity (verify ที่ server)</td></tr>
+</table>
+</section>
+
+<section id="trends">
+<h2>16. แนวโน้มในอนาคต</h2>
+<ul>
+  <li><b>Play Integrity แทน SafetyNet</b> — เป็นมาตรฐานตรวจความน่าเชื่อถือ</li>
+  <li><b>Passkeys / passwordless</b> — ลดความเสี่ยงจากรหัสผ่าน (Credential Manager)</li>
+  <li><b>R8/obfuscation + resource shrinking</b> ฉลาดขึ้น</li>
+  <li><b>Supply chain security เข้มขึ้น</b> — SBOM, dependency scanning เป็น mainstream</li>
+  <li><b>platform บังคับ secure defaults มากขึ้น</b> — cleartext ปิด, exported บังคับระบุ,
+      PendingIntent บังคับ mutability, scoped storage</li>
+  <li><b>สรุป:</b> ทิศทางคือ "ปลอดภัยโดยดีฟอลต์ (secure by default)" + verify ฝั่ง server +
+      privacy-first — เขียนโค้ดตามหลักในเอกสารนี้จะสอดคล้องกับทิศทางนี้</li>
+</ul>
+</section>
+
+<section id="glossary">
+<h2>17. ศัพท์ทางเทคนิค (Glossary)</h2>
+<ul>
+  <li><b>Secure coding</b> — การเขียนโค้ดที่ไม่เปิดช่องให้ถูกโจมตี</li>
+  <li><b>Attack surface</b> — จุดที่ผู้โจมตีเข้าถึง/โจมตีได้</li>
+  <li><b>Injection</b> — แทรกคำสั่งอันตรายผ่าน input (SQL/command)</li>
+  <li><b>Path traversal</b> — หลุดออกนอกโฟลเดอร์ที่ควรด้วย <code>../</code></li>
+  <li><b>Intent redirection</b> — ถูกหลอกให้ forward intent ไป component ภายใน</li>
+  <li><b>Task hijacking</b> — แอปร้ายแทรกตัวใน task ของแอปเรา</li>
+  <li><b>App Links</b> — deep link ที่ verify domain (assetlinks.json)</li>
+  <li><b>PendingIntent / FLAG_IMMUTABLE</b> — การมอบสิทธิ์ทำงานแทน / ห้ามแก้ไส้ใน</li>
+  <li><b>EncryptedSharedPreferences</b> — เก็บ key-value แบบเข้ารหัส</li>
+  <li><b>R8 / ProGuard</b> — obfuscate + shrink โค้ด (ไม่ใช่การเข้ารหัส)</li>
+  <li><b>Play Integrity API</b> — ตรวจความน่าเชื่อถือของแอป/เครื่อง</li>
+  <li><b>Certificate pinning</b> — ผูก cert ของ server กัน MITM</li>
+  <li><b>FLAG_SECURE</b> — กัน screenshot/บันทึกหน้าจอ</li>
+  <li><b>Supply chain security</b> — ความปลอดภัยของ dependency/library ที่ใช้</li>
+  <li><b>Defense in depth</b> — ป้องกันหลายชั้น ไม่พึ่งชั้นเดียว</li>
+  <li><b>Least privilege</b> — ให้สิทธิ์น้อยสุดเท่าที่จำเป็น</li>
+</ul>
+</section>
+
+<hr>
+<p class="lead">เอกสารที่เกี่ยวข้อง: Permissions &amp; ความปลอดภัยพื้นฐาน —
+<code>docs/android-permissions-security.html</code> • ภาพรวม Android —
+<code>docs/android-for-programmers.md</code> (B8) • ประวัติเวอร์ชัน + ช่องโหว่ —
+<code>docs/android-versions.md</code></p>
+</main>
+</div>
+</body>
+</html>

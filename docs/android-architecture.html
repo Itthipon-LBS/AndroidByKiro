@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สถาปัตยกรรมที่แนะนำ (Android App Architecture)</title>
+<style>
+  :root {
+    --accent: #00d1b2; --accent-dark: #00a88f;
+    --bg: #0f1419; --surface: #1a2029; --surface2: #232b36;
+    --text: #e6edf3; --muted: #9aa7b4; --border: #2d3742;
+    --code-bg: #11161c; --warn: #ffb454; --danger: #ff6b6b; --ok: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: -apple-system, "Segoe UI", "Sarabun", Tahoma, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.7; }
+  .layout { display: flex; }
+  nav.toc { position: sticky; top: 0; width: 310px; height: 100vh; overflow-y: auto;
+    background: var(--surface); border-right: 1px solid var(--border); padding: 24px 18px; flex-shrink: 0; }
+  nav.toc h2 { color: var(--accent); font-size: 14px; margin: 18px 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+  nav.toc h2:first-child { margin-top: 0; }
+  nav.toc a { display: block; color: var(--muted); text-decoration: none; font-size: 13.5px; padding: 5px 10px; border-radius: 6px; }
+  nav.toc a:hover { background: var(--surface2); color: var(--text); }
+  main { flex: 1; max-width: 900px; margin: 0 auto; padding: 40px 48px 120px; }
+  h1 { color: var(--accent); font-size: 30px; border-bottom: 2px solid var(--border); padding-bottom: 16px; }
+  h2 { color: var(--accent); font-size: 24px; margin-top: 48px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { color: var(--accent-dark); font-size: 19px; margin-top: 32px; }
+  h4 { color: var(--text); font-size: 16px; margin-top: 22px; }
+  p, li { color: var(--text); }
+  code { background: var(--code-bg); color: var(--accent); padding: 2px 6px; border-radius: 4px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 13.5px; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; }
+  pre code { background: none; color: #d6dee6; padding: 0; }
+  .kw { color: #ff7edb; } .str { color: #8ce99a; } .com { color: #6b7683; font-style: italic; } .num { color: #ffd580; } .fn { color: #66d9ef; }
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14.5px; }
+  th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--surface2); color: var(--accent); }
+  tr:nth-child(even) td { background: var(--surface); }
+  .note, .warn, .danger, .ok { border-radius: 10px; padding: 14px 18px; margin: 18px 0; border-left: 4px solid; }
+  .note { background: rgba(0,209,178,.08); border-color: var(--accent); }
+  .warn { background: rgba(255,180,84,.08); border-color: var(--warn); }
+  .danger { background: rgba(255,107,107,.08); border-color: var(--danger); }
+  .ok { background: rgba(74,222,128,.08); border-color: var(--ok); }
+  .pros li { color: var(--ok); } .pros li span { color: var(--text); }
+  .cons li { color: var(--danger); } .cons li span { color: var(--text); }
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+  .lead { color: var(--muted); font-size: 16px; }
+  .diagram { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 13px; white-space: pre; overflow-x: auto; color: #d6dee6; }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc">
+  <h2>สารบัญ</h2>
+  <a href="#intro">1. ทำไมต้องมีสถาปัตยกรรม</a>
+  <a href="#principles">2. หลักการพื้นฐาน</a>
+  <a href="#layers">3. การแบ่งชั้น (Layers)</a>
+  <a href="#ui">4. UI Layer</a>
+  <a href="#domain">5. Domain Layer</a>
+  <a href="#data">6. Data Layer</a>
+  <a href="#udf">7. UDF (ทิศทางข้อมูล)</a>
+  <a href="#patterns">8. MVVM / MVI / MVP / MVC</a>
+  <a href="#di">9. Dependency Injection</a>
+  <a href="#modular">10. Modularization</a>
+  <a href="#example">11. ตัวอย่างโค้ดเต็ม</a>
+  <a href="#proscons">12. ข้อดี/ข้อเสีย</a>
+  <a href="#choose">13. การเลือกใช้</a>
+  <a href="#pitfalls">14. ข้อผิดพลาดที่พบบ่อย</a>
+  <a href="#trends">15. แนวโน้มในอนาคต</a>
+  <a href="#glossary">16. ศัพท์เทคนิค</a>
+</nav>
+<main>
+
+<h1>สถาปัตยกรรมที่แนะนำ (Android App Architecture)</h1>
+<p class="lead">สรุปแนวทางการวางสถาปัตยกรรมแอป Android ตามที่ Google แนะนำ (Guide to app
+architecture) แบบครบถ้วน — การแบ่งชั้น, UI/Domain/Data layer, Unidirectional Data Flow,
+รูปแบบ MVVM/MVI/MVP/MVC, DI, การแยกโมดูล, ข้อดี/ข้อเสีย, การเลือกใช้, ข้อผิดพลาดที่พบบ่อย
+และแนวโน้ม อ่านจบแล้วนำไปวางโครงโปรเจกต์จริงได้</p>
+
+<div class="note"><b>สรุปสั้นสุด:</b> แบ่งแอปเป็น <b>UI layer → (Domain layer) → Data layer</b>
+โดย <b>data ไหลทางเดียว (UDF)</b>: event ขึ้นบน, state ลงล่าง • ใช้ <b>MVVM/MVI</b> ในชั้น UI •
+<b>Repository เป็นแหล่งความจริงเดียว</b> • เป้าหมายคือ <b>แยกความรับผิดชอบ, ทดสอบง่าย, ขยายได้</b></div>
+
+<section id="intro">
+<h2>1. ทำไมต้องมีสถาปัตยกรรม</h2>
+<p>แอปเล็ก ๆ เขียนรวมกันใน Activity เดียวก็ทำงานได้ แต่พอโตขึ้นจะเจอปัญหา: แก้จุดเดียว
+กระทบทั้งไฟล์, เทสต์ไม่ได้เพราะ logic ผูกกับ UI, หลายคนทำงานชนกัน, บั๊ก lifecycle</p>
+<p>สถาปัตยกรรมที่ดีช่วยให้:</p>
+<ul>
+  <li><b>แยกความรับผิดชอบ</b> — UI ทำแค่แสดงผล, logic อยู่ที่อื่น</li>
+  <li><b>ทดสอบง่าย</b> — logic ที่ไม่ผูก UI เทสต์ด้วย unit test ได้</li>
+  <li><b>ขยาย/แก้ง่าย</b> — เพิ่มฟีเจอร์โดยไม่พังของเดิม</li>
+  <li><b>ทนต่อ lifecycle</b> — state รอดหมุนจอ/process death</li>
+</ul>
+<div class="note">เอกสารนี้อิงแนวทาง <b>"Guide to app architecture"</b> ของ Google ซึ่งเป็น
+มาตรฐานที่ทีมส่วนใหญ่ใช้</div>
+</section>
+
+<section id="principles">
+<h2>2. หลักการพื้นฐาน</h2>
+<ul>
+  <li><b>Separation of concerns</b> — แต่ละส่วนทำหน้าที่เดียว อย่ายัด logic ลง Activity/Fragment</li>
+  <li><b>Drive UI from data models</b> — UI สะท้อนจาก state/ข้อมูล ไม่ใช่เก็บ state ไว้ใน view</li>
+  <li><b>Single source of truth (SSOT)</b> — ข้อมูลแต่ละชนิดมี "แหล่งความจริงเดียว" ที่แก้ได้
+      (มักเป็น Repository/DB) คนอื่นแค่อ่าน</li>
+  <li><b>Unidirectional Data Flow (UDF)</b> — state ไหลลง, event ไหลขึ้น (หัวข้อ 7)</li>
+  <li><b>ทุกชั้นควรอยู่ได้ด้วยตัวเอง (loosely coupled)</b> — พึ่ง abstraction (interface) ไม่ใช่ตัวจริง</li>
+</ul>
+</section>
+
+<section id="layers">
+<h2>3. การแบ่งชั้น (Layers)</h2>
+<p>สถาปัตยกรรมมาตรฐานแบ่งเป็น 2 ชั้นบังคับ + 1 ชั้นตัวเลือก:</p>
+<div class="diagram">┌─────────────────────────────────────┐
+│           UI Layer                   │  ← แสดงผล + รับ interaction
+│   (UI elements + State holders/VM)   │
+└───────────────┬─────────────────────┘
+                │  (state ↓ / event ↑)
+┌───────────────▼─────────────────────┐
+│         Domain Layer  (optional)     │  ← business logic ที่ใช้ซ้ำ (Use Cases)
+└───────────────┬─────────────────────┘
+                │
+┌───────────────▼─────────────────────┐
+│           Data Layer                 │  ← แหล่งข้อมูล (Repository + DataSource)
+│   (Repositories + Data Sources)      │
+└──────────────────────────────────────┘</div>
+<table>
+  <tr><th>ชั้น</th><th>หน้าที่</th><th>องค์ประกอบหลัก</th></tr>
+  <tr><td><b>UI</b></td><td>แสดง state บนจอ + ส่ง event ของผู้ใช้</td><td>Activity/Fragment/Composable, ViewModel</td></tr>
+  <tr><td><b>Domain</b> (optional)</td><td>รวม business logic ที่ซับซ้อน/ใช้ซ้ำหลายที่</td><td>Use Case / Interactor</td></tr>
+  <tr><td><b>Data</b></td><td>จัดการข้อมูล (network/db) + เป็น SSOT</td><td>Repository, DataSource (Retrofit/Room)</td></tr>
+</table>
+<div class="warn"><b>กฎการพึ่งพา (dependency rule):</b> ชั้นบนรู้จักชั้นล่างได้ แต่ชั้นล่าง
+<b>ห้ามรู้จักชั้นบน</b> — Data layer ต้องไม่รู้จัก UI/ViewModel</div>
+</section>
+
+<section id="ui">
+<h2>4. UI Layer</h2>
+<p>หน้าที่: แปลงข้อมูลจากชั้นล่างเป็น <b>UI state</b> แล้วแสดงผล + รับ interaction ส่งต่อ</p>
+<ul>
+  <li><b>UI elements</b> — Activity/Fragment/Compose ที่วาดหน้าจอ ไม่ควรมี business logic</li>
+  <li><b>State holder (ViewModel)</b> — ถือ UI state, จัดการ logic ของหน้าจอ, เรียก Repository/UseCase</li>
+  <li><b>UI State</b> — ควรเป็น <b>immutable data class</b> ก้อนเดียวที่อธิบายหน้าจอทั้งหน้า</li>
+</ul>
+<pre><code><span class="com">// UI state = ก้อนข้อมูล immutable ที่อธิบายทั้งหน้าจอ</span>
+<span class="kw">data class</span> OrderUiState(
+    <span class="kw">val</span> items: List&lt;CartItem&gt; = emptyList(),
+    <span class="kw">val</span> total: BigDecimal = BigDecimal.ZERO,
+    <span class="kw">val</span> isLoading: Boolean = <span class="kw">false</span>,
+    <span class="kw">val</span> error: String? = <span class="kw">null</span>
+)
+
+<span class="kw">class</span> OrderViewModel(<span class="kw">private val</span> repo: OrderRepository) : ViewModel() {
+    <span class="kw">private val</span> _uiState = MutableStateFlow(OrderUiState())
+    <span class="kw">val</span> uiState: StateFlow&lt;OrderUiState&gt; = _uiState.asStateFlow()   <span class="com">// read-only ออกไป</span>
+
+    <span class="kw">fun</span> <span class="fn">loadCart</span>() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = <span class="kw">true</span>) }
+            <span class="kw">try</span> {
+                <span class="kw">val</span> items = repo.getCart()
+                _uiState.update { it.copy(items = items, total = items.sumTotal(), isLoading = <span class="kw">false</span>) }
+            } <span class="kw">catch</span> (e: Exception) {
+                _uiState.update { it.copy(error = e.message, isLoading = <span class="kw">false</span>) }
+            }
+        }
+    }
+}</code></pre>
+<div class="note">UI แค่ <b>observe uiState</b> แล้ววาด — ไม่เก็บ state เอง (SSOT ของหน้าจออยู่ที่ ViewModel)</div>
+</section>
+
+<section id="domain">
+<h2>5. Domain Layer (ตัวเลือก)</h2>
+<p>ชั้นกลางที่รวม <b>business logic ที่ซับซ้อนหรือใช้ซ้ำหลาย ViewModel</b> ห่อเป็น
+<b>Use Case</b> (บางทีเรียก Interactor) — ใช้เมื่อจำเป็น ไม่ต้องมีทุกโปรเจกต์</p>
+<pre><code><span class="com">// Use Case = 1 การกระทำทางธุรกิจ 1 คลาส (ชื่อเป็นกริยา)</span>
+<span class="kw">class</span> PlaceOrderUseCase(
+    <span class="kw">private val</span> orderRepo: OrderRepository,
+    <span class="kw">private val</span> paymentRepo: PaymentRepository
+) {
+    <span class="com">// operator invoke → เรียกได้เหมือนฟังก์ชัน: placeOrder(cart)</span>
+    <span class="kw">suspend operator fun</span> <span class="fn">invoke</span>(cart: Cart): Result&lt;OrderId&gt; {
+        <span class="kw">if</span> (cart.isEmpty()) <span class="kw">return</span> Result.failure(EmptyCartException())
+        <span class="kw">val</span> payment = paymentRepo.charge(cart.total)
+        <span class="kw">return</span> orderRepo.submit(cart, payment)
+    }
+}</code></pre>
+<div class="note"><b>เมื่อไรควรมี Domain layer:</b> logic เดียวกันถูกใช้ในหลาย ViewModel, หรือ
+ViewModel เริ่มใหญ่/ซับซ้อนเกินไป • โปรเจกต์เล็กข้ามได้ (ViewModel คุย Repository ตรง ๆ)</div>
+</section>
+
+<section id="data">
+<h2>6. Data Layer</h2>
+<p>หน้าที่: เป็น <b>แหล่งความจริง (SSOT)</b> ของข้อมูลแอป จัดการ network/db และซ่อนรายละเอียด
+ไว้หลัง <b>Repository</b></p>
+<ul>
+  <li><b>Repository</b> — จุดเข้าถึงข้อมูลชนิดหนึ่ง (เช่น OrderRepository) รวมข้อมูลจากหลาย source,
+      ตัดสินใจว่าจะเอาจาก cache หรือ network, expose เป็น model ที่ชั้นบนใช้</li>
+  <li><b>Data Source</b> — ตัวจริงที่คุย network (Retrofit/Ktor) หรือ local (Room/DataStore)</li>
+</ul>
+<pre><code><span class="com">// interface ให้ชั้นบนพึ่ง (ไม่พึ่งตัวจริง → เทสต์/สลับ implementation ได้)</span>
+<span class="kw">interface</span> OrderRepository {
+    <span class="kw">suspend fun</span> <span class="fn">getCart</span>(): List&lt;CartItem&gt;
+    <span class="kw">suspend fun</span> <span class="fn">submit</span>(cart: Cart, payment: Payment): Result&lt;OrderId&gt;
+}
+
+<span class="kw">class</span> OrderRepositoryImpl(
+    <span class="kw">private val</span> remote: OrderApi,       <span class="com">// Retrofit</span>
+    <span class="kw">private val</span> local: OrderDao         <span class="com">// Room</span>
+) : OrderRepository {
+    <span class="kw">override suspend fun</span> <span class="fn">getCart</span>(): List&lt;CartItem&gt; {
+        <span class="kw">return</span> local.getCart().ifEmpty {
+            remote.fetchCart().also { local.saveCart(it) }   <span class="com">// cache-then-network</span>
+        }
+    }
+    <span class="com">// ...</span>
+}</code></pre>
+<div class="warn"><b>SSOT:</b> ให้ Repository/DB เป็นเจ้าของข้อมูล — UI อ่านผ่าน Repository เท่านั้น
+อย่าให้หลายที่แก้ข้อมูลชนิดเดียวกันตรง ๆ</div>
+</section>
+
+<section id="udf">
+<h2>7. Unidirectional Data Flow (UDF)</h2>
+<p>ข้อมูลไหล <b>ทางเดียว</b>: <b>state ลงล่าง (ViewModel → UI)</b> และ
+<b>event ขึ้นบน (UI → ViewModel)</b> — ทำให้ตามรอย state ง่ายและกันบั๊ก state ไม่ตรงกัน</p>
+<div class="diagram">          state (StateFlow)
+   ViewModel ───────────────►  UI (แสดงผล)
+        ▲                          │
+        └──────────────────────────┘
+             event (คลิก/พิมพ์) เรียก fun บน ViewModel</div>
+<ul>
+  <li>UI <b>ไม่แก้ state เอง</b> — ส่ง event ให้ ViewModel, ViewModel แก้ state, UI สะท้อนตามใหม่</li>
+  <li>state เป็น <b>immutable</b> → สร้างก้อนใหม่ด้วย <code>copy()</code> ทุกครั้งที่เปลี่ยน</li>
+</ul>
+</section>
+
+<section id="patterns">
+<h2>8. รูปแบบชั้น UI: MVVM / MVI / MVP / MVC</h2>
+<table>
+  <tr><th>รูปแบบ</th><th>แนวคิด</th><th>สถานะปัจจุบัน</th></tr>
+  <tr><td><b>MVC</b> (Model-View-Controller)</td><td>ดั้งเดิม — Controller/Activity คุมทั้ง view+logic</td><td>เก่า, logic กระจุกใน Activity</td></tr>
+  <tr><td><b>MVP</b> (Model-View-Presenter)</td><td>Presenter ถือ logic, View เป็น interface</td><td>ดีขึ้น แต่ Presenter ผูกกับ View lifecycle</td></tr>
+  <tr><td><b>MVVM</b> (Model-View-ViewModel)</td><td>ViewModel ถือ state, View observe</td><td><b>แนะนำ/นิยมสุด</b> (Jetpack ViewModel)</td></tr>
+  <tr><td><b>MVI</b> (Model-View-Intent)</td><td>state ก้อนเดียว + event เป็น intent (UDF เข้ม)</td><td>นิยมขึ้นเรื่อย ๆ โดยเฉพาะกับ Compose</td></tr>
+</table>
+<h4>MVVM vs MVI (ที่ใช้จริงทุกวันนี้)</h4>
+<ul>
+  <li><b>MVVM</b> — ViewModel expose state หลายตัว/หนึ่งก้อนก็ได้ ยืดหยุ่น เข้าใจง่าย</li>
+  <li><b>MVI</b> — บังคับ state ก้อนเดียว (single immutable state) + event ผ่าน sealed class →
+      คาดเดาง่าย เหมาะจอที่ state ซับซ้อน แต่ boilerplate มากกว่า</li>
+</ul>
+<pre><code><span class="com">// MVI: event เป็น sealed class ก้อนเดียว</span>
+<span class="kw">sealed interface</span> OrderIntent {
+    <span class="kw">data object</span> LoadCart : OrderIntent
+    <span class="kw">data class</span> RemoveItem(<span class="kw">val</span> id: String) : OrderIntent
+    <span class="kw">data object</span> PlaceOrder : OrderIntent
+}
+<span class="kw">fun</span> <span class="fn">onIntent</span>(intent: OrderIntent) = <span class="kw">when</span> (intent) {
+    OrderIntent.LoadCart      -&gt; loadCart()
+    <span class="kw">is</span> OrderIntent.RemoveItem -&gt; removeItem(intent.id)
+    OrderIntent.PlaceOrder    -&gt; placeOrder()
+}</code></pre>
+<div class="note">ทั้ง MVVM และ MVI ใช้ ViewModel เหมือนกัน — MVI คือ MVVM ที่จัดระเบียบ state/event
+ให้เข้มขึ้น เลือกตามความซับซ้อนของหน้าจอ</div>
+</section>
+
+<section id="di">
+<h2>9. Dependency Injection (DI)</h2>
+<p>แทนที่จะให้คลาสสร้าง dependency เอง (ผูกกันแน่น เทสต์ยาก) ให้ <b>ฉีดเข้ามาจากภายนอก</b>
+→ สลับ implementation/ใส่ fake ตอนเทสต์ได้</p>
+<pre><code><span class="com">// Hilt (ทางการ) — ประกาศว่าจะฉีดอะไรให้ interface ไหน</span>
+@Module @InstallIn(SingletonComponent::class)
+<span class="kw">object</span> DataModule {
+    @Provides @Singleton
+    <span class="kw">fun</span> <span class="fn">provideOrderRepository</span>(api: OrderApi, dao: OrderDao): OrderRepository =
+        OrderRepositoryImpl(api, dao)
+}
+
+@HiltViewModel
+<span class="kw">class</span> OrderViewModel @Inject <span class="kw">constructor</span>(
+    <span class="kw">private val</span> repo: OrderRepository   <span class="com">// ถูกฉีดให้อัตโนมัติ</span>
+) : ViewModel()</code></pre>
+<ul>
+  <li><b>Hilt / Dagger</b> — DI ทางการ (compile-time, ปลอดภัย, นิยมสุด)</li>
+  <li><b>Koin</b> — DI แบบ Kotlin DSL (runtime, เรียนง่ายกว่า)</li>
+  <li>โปรเจกต์เล็ก: ฉีดผ่าน constructor เองแบบ manual DI ก็ได้</li>
+</ul>
+</section>
+
+<section id="modular">
+<h2>10. Modularization (แยกโมดูล)</h2>
+<p>เมื่อแอปโต แยกโค้ดเป็นหลาย Gradle module เพื่อ build เร็วขึ้น + แยกทีม + บังคับขอบเขต</p>
+<div class="diagram">:app                 ← ประกอบทุกอย่างเข้าด้วยกัน
+:feature:order       ← ฟีเจอร์สั่งอาหาร (UI + VM)
+:feature:cart
+:core:data           ← Repository, DataSource
+:core:domain         ← Use Cases
+:core:ui             ← component UI ที่ใช้ร่วม
+:core:common         ← util, model กลาง</div>
+<ul>
+  <li><b>by layer</b> — แยกตามชั้น (data/domain/ui)</li>
+  <li><b>by feature</b> — แยกตามฟีเจอร์ (order/cart/profile) — นิยมเมื่อทีมใหญ่</li>
+  <li>ผสมกัน (feature + core) เป็นแนวทางที่พบบ่อยสุดในแอปใหญ่</li>
+</ul>
+<div class="note">โปรเจกต์เล็ก-กลาง <b>module เดียว (:app) ก็พอ</b> — modularization มีต้นทุน setup
+ทำเมื่อ build ช้า/ทีมโตจริง ๆ</div>
+</section>
+
+<section id="example">
+<h2>11. ตัวอย่างโค้ดเต็ม (ต่อกันครบทุกชั้น)</h2>
+<p>ตัวอย่าง flow "โหลดตะกร้า → กดสั่ง" ไล่จาก UI → ViewModel → (UseCase) → Repository:</p>
+<pre><code><span class="com">// ── Data Layer ──</span>
+<span class="kw">interface</span> OrderRepository {
+    <span class="kw">suspend fun</span> <span class="fn">getCart</span>(): List&lt;CartItem&gt;
+    <span class="kw">suspend fun</span> <span class="fn">submit</span>(cart: Cart): Result&lt;OrderId&gt;
+}
+
+<span class="com">// ── Domain Layer (optional) ──</span>
+<span class="kw">class</span> PlaceOrderUseCase(<span class="kw">private val</span> repo: OrderRepository) {
+    <span class="kw">suspend operator fun</span> <span class="fn">invoke</span>(cart: Cart): Result&lt;OrderId&gt; {
+        <span class="kw">if</span> (cart.isEmpty()) <span class="kw">return</span> Result.failure(EmptyCartException())
+        <span class="kw">return</span> repo.submit(cart)
+    }
+}
+
+<span class="com">// ── UI Layer: ViewModel ──</span>
+@HiltViewModel
+<span class="kw">class</span> OrderViewModel @Inject <span class="kw">constructor</span>(
+    <span class="kw">private val</span> repo: OrderRepository,
+    <span class="kw">private val</span> placeOrder: PlaceOrderUseCase
+) : ViewModel() {
+    <span class="kw">private val</span> _uiState = MutableStateFlow(OrderUiState())
+    <span class="kw">val</span> uiState = _uiState.asStateFlow()
+
+    <span class="kw">fun</span> <span class="fn">loadCart</span>() = viewModelScope.launch {
+        _uiState.update { it.copy(isLoading = <span class="kw">true</span>) }
+        <span class="kw">val</span> items = repo.getCart()
+        _uiState.update { it.copy(items = items, isLoading = <span class="kw">false</span>) }
+    }
+
+    <span class="kw">fun</span> <span class="fn">onPlaceOrder</span>() = viewModelScope.launch {
+        placeOrder(Cart(_uiState.value.items))
+            .onSuccess { _uiState.update { s -&gt; s.copy(placed = <span class="kw">true</span>) } }
+            .onFailure { e -&gt; _uiState.update { s -&gt; s.copy(error = e.message) } }
+    }
+}
+
+<span class="com">// ── UI Layer: Fragment (observe state, ส่ง event) ──</span>
+<span class="kw">class</span> OrderFragment : Fragment() {
+    <span class="kw">private val</span> vm: OrderViewModel <span class="kw">by</span> viewModels()
+
+    <span class="kw">override fun</span> <span class="fn">onViewCreated</span>(view: View, s: Bundle?) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.uiState.collect { render(it) }        <span class="com">// state ↓</span>
+            }
+        }
+        binding.placeBtn.setOnClickListener { vm.onPlaceOrder() }   <span class="com">// event ↑</span>
+    }
+}</code></pre>
+<div class="note">สังเกต: UI ไม่มี business logic เลย — แค่ observe state + ส่ง event •
+logic อยู่ที่ ViewModel/UseCase • ข้อมูลอยู่ที่ Repository</div>
+</section>
+
+<section id="proscons">
+<h2>12. ข้อดี / ข้อเสีย</h2>
+<ul class="pros">
+  <li>✅ <span>ทดสอบง่าย — ViewModel/UseCase/Repository เทสต์ด้วย unit test โดยไม่ต้องมี UI</span></li>
+  <li>✅ <span>แก้/ขยายง่าย — เพิ่มฟีเจอร์โดยไม่กระทบส่วนอื่น</span></li>
+  <li>✅ <span>ทนต่อ lifecycle — state อยู่ใน ViewModel รอดหมุนจอ</span></li>
+  <li>✅ <span>หลายคนทำงานพร้อมกันได้ — แยกชั้น/โมดูลชัด</span></li>
+  <li>✅ <span>สลับ implementation ได้ (เช่นเปลี่ยน network library) เพราะพึ่ง interface</span></li>
+</ul>
+<ul class="cons">
+  <li>❌ <span>boilerplate เยอะขึ้น — โปรเจกต์เล็กอาจรู้สึกเกินจำเป็น</span></li>
+  <li>❌ <span>เรียนรู้เยอะ (ViewModel, Flow, DI, Repository) สำหรับมือใหม่</span></li>
+  <li>❌ <span>over-engineering ได้ง่าย — ใส่ทุก layer/UseCase ทั้งที่ไม่จำเป็น</span></li>
+  <li>❌ <span>ไฟล์เยอะขึ้น (interface + impl + module)</span></li>
+</ul>
+<div class="note">คุ้มค่าเมื่อแอปมีแนวโน้มโต/มีทีม — โปรเจกต์เล็กมาก ๆ ปรับให้เบาลงได้ (ข้าม Domain,
+manual DI, module เดียว)</div>
+</section>
+
+<section id="choose">
+<h2>13. การเลือกใช้ (ปรับตามขนาดโปรเจกต์)</h2>
+<table>
+  <tr><th>ขนาด</th><th>UI pattern</th><th>Domain</th><th>DI</th><th>Module</th></tr>
+  <tr><td><b>เล็ก</b> (แอปตัวอย่าง/POC)</td><td>MVVM</td><td>ข้าม (VM คุย Repo ตรง)</td><td>manual/Koin</td><td>:app เดียว</td></tr>
+  <tr><td><b>กลาง</b> (แอปจริงทั่วไป)</td><td>MVVM</td><td>ใส่เฉพาะ logic ซับซ้อน</td><td>Hilt</td><td>:app + core</td></tr>
+  <tr><td><b>ใหญ่</b> (หลายทีม/หลายฟีเจอร์)</td><td>MVVM/MVI</td><td>ครบ (Use Cases)</td><td>Hilt</td><td>multi-module (feature+core)</td></tr>
+</table>
+<div class="note"><b>หลักคิด:</b> เริ่มจากเบา ๆ (MVVM + Repository) แล้วเพิ่ม layer/module <b>เมื่อ
+เจอปัญหาจริง</b> (logic ซ้ำ → เพิ่ม UseCase; build ช้า/ทีมโต → แยก module) อย่าใส่ทุกอย่างตั้งแต่แรก</div>
+</section>
+
+<section id="pitfalls">
+<h2>14. ข้อผิดพลาดที่พบบ่อย</h2>
+<table>
+  <tr><th>ข้อผิดพลาด</th><th>ผล / วิธีแก้</th></tr>
+  <tr><td>ยัด business logic ลง Activity/Fragment</td><td>เทสต์ยาก, ผูก lifecycle → ย้ายไป ViewModel/UseCase</td></tr>
+  <tr><td>เก็บ Context/View ใน ViewModel</td><td>memory leak → ส่งผ่าน parameter/ใช้ AndroidViewModel เท่าที่จำเป็น</td></tr>
+  <tr><td>UI แก้ state เอง (ไม่ผ่าน ViewModel)</td><td>state ไม่ตรงกัน → ยึด UDF (event ขึ้น, state ลง)</td></tr>
+  <tr><td>Data layer รู้จัก UI/ViewModel</td><td>ผิด dependency rule → ชั้นล่างห้ามรู้จักชั้นบน</td></tr>
+  <tr><td>ViewModel พึ่ง implementation ตรง ๆ</td><td>เทสต์/สลับยาก → พึ่ง interface + DI</td></tr>
+  <tr><td>expose MutableStateFlow ออกจาก ViewModel</td><td>ข้างนอกแก้ได้ → expose เป็น <code>StateFlow</code> (asStateFlow)</td></tr>
+  <tr><td>over-engineering (ทุก layer ในแอปเล็ก)</td><td>ช้า/งานเยอะเกิน → เริ่มเบา เพิ่มเมื่อจำเป็น</td></tr>
+</table>
+</section>
+
+<section id="trends">
+<h2>15. แนวโน้มในอนาคต</h2>
+<ul>
+  <li><b>Compose + MVI/UDF เป็นค่าเริ่มต้น</b> — Compose เข้ากับโมเดล state-driven/UDF โดยตรง
+      ทำให้ MVI ได้รับความนิยมขึ้น</li>
+  <li><b>Domain layer + Use Case เป็นมาตรฐานในแอปใหญ่</b> — โดยเฉพาะ multi-module</li>
+  <li><b>Kotlin Multiplatform (KMP)</b> — แชร์ Data/Domain layer ข้าม Android/iOS ได้ →
+      สถาปัตยกรรมแบบแยกชั้นยิ่งสำคัญ (UI แยก, logic ใช้ร่วม)</li>
+  <li><b>Hilt เป็น DI มาตรฐาน</b> — Google ผลักดันต่อเนื่อง</li>
+  <li><b>เครื่องมือช่วยมากขึ้น</b> — template/แนวทางทางการทำให้วางโครงเร็วขึ้น แต่หลักการ
+      (แยกชั้น, SSOT, UDF) ยังเหมือนเดิม</li>
+  <li><b>สรุป:</b> ทิศทางคือ "แยกชั้นให้ชัดเพื่อแชร์/ทดสอบ/ขยาย" — เทคโนโลยีเปลี่ยน (View→Compose,
+      MVVM→MVI) แต่หลักการพื้นฐานคงเดิม</li>
+</ul>
+</section>
+
+<section id="glossary">
+<h2>16. ศัพท์ทางเทคนิค (Glossary)</h2>
+<ul>
+  <li><b>Separation of concerns</b> — แยกความรับผิดชอบ แต่ละส่วนทำหน้าที่เดียว</li>
+  <li><b>SSOT (Single Source of Truth)</b> — แหล่งความจริงเดียวของข้อมูลแต่ละชนิด</li>
+  <li><b>UDF (Unidirectional Data Flow)</b> — ข้อมูลไหลทางเดียว: state ลง, event ขึ้น</li>
+  <li><b>UI State</b> — ก้อนข้อมูล immutable ที่อธิบายทั้งหน้าจอ</li>
+  <li><b>State holder</b> — ตัวถือ state (มักเป็น ViewModel)</li>
+  <li><b>Repository</b> — จุดเข้าถึงข้อมูลชนิดหนึ่ง ซ่อนรายละเอียด source</li>
+  <li><b>Data Source</b> — ตัวจริงที่คุย network/db (Retrofit/Room)</li>
+  <li><b>Use Case / Interactor</b> — 1 การกระทำทางธุรกิจใน Domain layer</li>
+  <li><b>MVVM / MVI / MVP / MVC</b> — รูปแบบจัดโครงชั้น UI</li>
+  <li><b>DI (Dependency Injection)</b> — ฉีด dependency จากภายนอก (Hilt/Dagger/Koin)</li>
+  <li><b>Dependency rule</b> — ชั้นล่างห้ามรู้จักชั้นบน</li>
+  <li><b>Modularization</b> — แยกโค้ดเป็นหลาย Gradle module</li>
+</ul>
+</section>
+
+<hr>
+<p class="lead">เอกสารที่เกี่ยวข้อง: ภาพรวม Android — <code>docs/android-for-programmers.md</code> (B4) •
+Clean Architecture (+ เทียบกับเอกสารนี้) — <code>docs/android-clean-architecture.html</code> •
+Lifecycle — <code>docs/android-lifecycle.html</code> • Service — <code>docs/android-services.md</code></p>
+</main>
+</div>
+</body>
+</html>

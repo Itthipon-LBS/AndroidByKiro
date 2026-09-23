@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Permissions & ความปลอดภัยใน Android (ฉบับสมบูรณ์)</title>
+<style>
+  :root {
+    --accent: #00d1b2; --accent-dark: #00a88f;
+    --bg: #0f1419; --surface: #1a2029; --surface2: #232b36;
+    --text: #e6edf3; --muted: #9aa7b4; --border: #2d3742;
+    --code-bg: #11161c; --warn: #ffb454; --danger: #ff6b6b; --ok: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: -apple-system, "Segoe UI", "Sarabun", Tahoma, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.7; }
+  .layout { display: flex; }
+  nav.toc { position: sticky; top: 0; width: 330px; height: 100vh; overflow-y: auto;
+    background: var(--surface); border-right: 1px solid var(--border); padding: 24px 18px; flex-shrink: 0; }
+  nav.toc h2 { color: var(--accent); font-size: 14px; margin: 18px 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+  nav.toc h2:first-child { margin-top: 0; }
+  nav.toc a { display: block; color: var(--muted); text-decoration: none; font-size: 13.5px; padding: 5px 10px; border-radius: 6px; }
+  nav.toc a:hover { background: var(--surface2); color: var(--text); }
+  main { flex: 1; max-width: 900px; margin: 0 auto; padding: 40px 48px 120px; }
+  h1 { color: var(--accent); font-size: 30px; border-bottom: 2px solid var(--border); padding-bottom: 16px; }
+  h2 { color: var(--accent); font-size: 24px; margin-top: 48px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { color: var(--accent-dark); font-size: 19px; margin-top: 32px; }
+  h4 { color: var(--text); font-size: 16px; margin-top: 22px; }
+  p, li { color: var(--text); }
+  code { background: var(--code-bg); color: var(--accent); padding: 2px 6px; border-radius: 4px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 13.5px; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; }
+  pre code { background: none; color: #d6dee6; padding: 0; }
+  .kw { color: #ff7edb; } .str { color: #8ce99a; } .com { color: #6b7683; font-style: italic; } .num { color: #ffd580; } .fn { color: #66d9ef; } .xml { color: #7fd0ff; }
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14.5px; }
+  th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--surface2); color: var(--accent); }
+  tr:nth-child(even) td { background: var(--surface); }
+  .note, .warn, .danger, .ok { border-radius: 10px; padding: 14px 18px; margin: 18px 0; border-left: 4px solid; }
+  .note { background: rgba(0,209,178,.08); border-color: var(--accent); }
+  .warn { background: rgba(255,180,84,.08); border-color: var(--warn); }
+  .danger { background: rgba(255,107,107,.08); border-color: var(--danger); }
+  .ok { background: rgba(74,222,128,.08); border-color: var(--ok); }
+  .pros li { color: var(--ok); } .pros li span { color: var(--text); }
+  .cons li { color: var(--danger); } .cons li span { color: var(--text); }
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+  .lead { color: var(--muted); font-size: 16px; }
+  .diagram { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 13px; white-space: pre; overflow-x: auto; color: #d6dee6; }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc">
+  <h2>Permissions</h2>
+  <a href="#intro">1. Permission คืออะไร</a>
+  <a href="#types">2. ประเภท permission</a>
+  <a href="#runtime">3. Runtime permission flow</a>
+  <a href="#special">4. Special permissions</a>
+  <a href="#location">5. ตำแหน่ง (กรณีพิเศษ)</a>
+  <h2>ความปลอดภัย</h2>
+  <a href="#storage">6. Scoped Storage</a>
+  <a href="#datasec">7. เก็บข้อมูลปลอดภัย</a>
+  <a href="#network">8. ความปลอดภัยเครือข่าย</a>
+  <a href="#components">9. ป้องกัน component</a>
+  <a href="#other">10. ความปลอดภัยอื่น ๆ</a>
+  <h2>เวอร์ชัน & เลือกใช้</h2>
+  <a href="#versions">11. เทียบตามเวอร์ชัน</a>
+  <a href="#proscons">12. ข้อดี/ข้อเสีย</a>
+  <a href="#choose">13. การเลือกใช้</a>
+  <h2>ปฏิบัติ & อื่น ๆ</h2>
+  <a href="#practical">14. ภาคปฏิบัติ step-by-step</a>
+  <a href="#pitfalls">15. ข้อผิดพลาดที่พบบ่อย</a>
+  <a href="#trends">16. แนวโน้มในอนาคต</a>
+  <a href="#glossary">17. ศัพท์เทคนิค</a>
+</nav>
+<main>
+
+<h1>Permissions &amp; ความปลอดภัยใน Android (ฉบับสมบูรณ์)</h1>
+<p class="lead">อธิบายระบบสิทธิ์ (permissions) และความปลอดภัยบน Android ครบทุกส่วน — ประเภท
+permission, runtime permission flow, special permissions, Scoped Storage, การเก็บข้อมูล/
+เครือข่ายที่ปลอดภัย, การป้องกัน component — พร้อมตารางเทียบตามเวอร์ชัน, ภาคปฏิบัติ, ข้อดี/
+ข้อเสีย, การเลือกใช้ และแนวโน้ม อ่านจบแล้วนำไปใช้ได้ทันที</p>
+
+<div class="note"><b>สรุปสั้นสุด:</b> ขอ permission <b>เท่าที่จำเป็น</b> + <b>ตอนใช้งานจริง</b>
+(ผู้ใช้ปฏิเสธได้ ต้องเผื่อ) • ใช้ <b>Activity Result API</b> ขอ runtime permission •
+เก็บข้อมูลลับใน <b>EncryptedSharedPreferences/Keystore</b> ไม่ใช่ plain text • ใช้ <b>HTTPS</b>
+เสมอ • ตั้ง component เป็น <b>exported=false</b> ถ้าไม่ต้องการให้แอปอื่นเรียก</div>
+
+<section id="intro">
+<h2>1. Permission คืออะไร</h2>
+<p><b>Permission (สิทธิ์)</b> คือกลไกที่ Android ใช้ควบคุมว่าแอปเข้าถึง "ข้อมูล/ฟีเจอร์ที่
+อ่อนไหว" ได้หรือไม่ — เช่น กล้อง, ตำแหน่ง, รายชื่อผู้ติดต่อ, ไมโครโฟน เพื่อปกป้องความเป็น
+ส่วนตัวและความปลอดภัยของผู้ใช้</p>
+<p>ทุก permission ต้อง <b>ประกาศใน AndroidManifest.xml</b> ก่อน:</p>
+<pre><code><span class="xml">&lt;uses-permission android:name="android.permission.CAMERA" /&gt;
+&lt;uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /&gt;</span></code></pre>
+<div class="note">หลักการทอง: <b>ขอเท่าที่จำเป็น (least privilege)</b> + <b>ขอตอนจะใช้จริง</b>
++ <b>อธิบายเหตุผลให้ผู้ใช้เข้าใจ</b></div>
+</section>
+
+<section id="types">
+<h2>2. ประเภทของ permission</h2>
+<table>
+  <tr><th>ประเภท</th><th>คือ</th><th>ต้องขอตอน runtime?</th><th>ตัวอย่าง</th></tr>
+  <tr><td><b>Normal</b></td><td>เสี่ยงต่ำ ระบบให้อัตโนมัติ</td><td>ไม่ (แค่ประกาศใน manifest)</td><td>INTERNET, VIBRATE, SET_ALARM</td></tr>
+  <tr><td><b>Dangerous</b></td><td>เข้าถึงข้อมูลอ่อนไหว</td><td>✅ ต้องขอตอนใช้</td><td>CAMERA, LOCATION, CONTACTS, MICROPHONE</td></tr>
+  <tr><td><b>Signature</b></td><td>ให้เฉพาะแอปที่เซ็นด้วย key เดียวกัน</td><td>อัตโนมัติ (ถ้า key ตรง)</td><td>permission ระหว่างแอปของผู้พัฒนาเดียวกัน</td></tr>
+  <tr><td><b>Special</b></td><td>สิทธิ์พิเศษ ต้องพาไปหน้า Settings</td><td>ผ่าน Settings (ไม่ใช่ dialog ปกติ)</td><td>SYSTEM_ALERT_WINDOW, MANAGE_EXTERNAL_STORAGE</td></tr>
+</table>
+<div class="warn"><b>Dangerous</b> คือกลุ่มที่ต้องเขียนโค้ดขอ runtime permission — เป็นหัวใจ
+ของหัวข้อ 3</div>
+</section>
+
+<section id="runtime">
+<h2>3. Runtime permission flow (หัวใจ)</h2>
+<p>ตั้งแต่ Android 6 (API 23) permission กลุ่ม dangerous ต้องขอ <b>ตอน runtime</b> (ผู้ใช้
+กดอนุญาต/ปฏิเสธ) ไม่ใช่ให้ตั้งแต่ติดตั้ง</p>
+<div class="diagram">1. เช็คว่ามีสิทธิ์แล้วยัง (checkSelfPermission)
+      ├─ มีแล้ว → ทำงานเลย
+      └─ ยังไม่มี ↓
+2. ควรอธิบายเหตุผลไหม (shouldShowRequestPermissionRationale)
+      ├─ ควร → แสดงคำอธิบายก่อน แล้วค่อยขอ
+      └─ ไม่ ↓
+3. ขอ permission (launcher.launch)
+      ├─ อนุญาต → ทำงาน
+      └─ ปฏิเสธ → แสดง fallback / อธิบาย / พาไป Settings</div>
+<h4>เขียนด้วย Activity Result API (วิธีปัจจุบัน)</h4>
+<pre><code><span class="com">// ลงทะเบียน launcher (ทำครั้งเดียว ตอนสร้าง Fragment/Activity)</span>
+<span class="kw">private val</span> cameraPermission = registerForActivityResult(
+    ActivityResultContracts.RequestPermission()
+) { granted: Boolean -&gt;
+    <span class="kw">if</span> (granted) openCamera()
+    <span class="kw">else</span> showRationaleOrSettings()
+}
+
+<span class="kw">fun</span> <span class="fn">onCameraClick</span>() {
+    <span class="kw">when</span> {
+        <span class="com">// 1) มีสิทธิ์แล้ว</span>
+        ContextCompat.checkSelfPermission(<span class="kw">this</span>, Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED -&gt; openCamera()
+
+        <span class="com">// 2) เคยปฏิเสธ → อธิบายเหตุผลก่อน</span>
+        shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -&gt;
+            showRationaleDialog { cameraPermission.launch(Manifest.permission.CAMERA) }
+
+        <span class="com">// 3) ขอครั้งแรก</span>
+        <span class="kw">else</span> -&gt; cameraPermission.launch(Manifest.permission.CAMERA)
+    }
+}</code></pre>
+<div class="warn"><b>ปฏิเสธถาวร (Android 11+):</b> ถ้าผู้ใช้ปฏิเสธ 2 ครั้ง ระบบถือว่า "ไม่ถาม
+อีก" — ต้องพาผู้ใช้ไปเปิดเองใน <b>Settings</b> (เปิด dialog ขอไม่ขึ้นแล้ว)</div>
+</section>
+
+<section id="special">
+<h2>4. Special permissions (ต้องไป Settings)</h2>
+<p>บาง permission ไม่ขอผ่าน dialog ปกติ แต่ต้องพาผู้ใช้ไปเปิดในหน้า Settings:</p>
+<table>
+  <tr><th>Permission</th><th>ใช้ทำ</th></tr>
+  <tr><td>SYSTEM_ALERT_WINDOW</td><td>วาด overlay บนแอปอื่น (floating bubble)</td></tr>
+  <tr><td>MANAGE_EXTERNAL_STORAGE</td><td>เข้าถึงไฟล์ทั้งเครื่อง (ต้องมีเหตุผลชัด, Play เข้ม)</td></tr>
+  <tr><td>REQUEST_INSTALL_PACKAGES</td><td>ติดตั้ง APK</td></tr>
+  <tr><td>SCHEDULE_EXACT_ALARM</td><td>ตั้งปลุกเวลาเป๊ะ (Android 12+)</td></tr>
+  <tr><td>POST_NOTIFICATIONS</td><td>ส่ง notification (Android 13+ — เป็น runtime dialog)</td></tr>
+</table>
+<pre><code><span class="com">// พาไปหน้า Settings ของ special permission</span>
+<span class="kw">val</span> intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+    Uri.parse(<span class="str">"package:$packageName"</span>))
+startActivity(intent)</code></pre>
+</section>
+
+<section id="location">
+<h2>5. Permission ตำแหน่ง (กรณีพิเศษที่ซับซ้อนสุด)</h2>
+<ul>
+  <li><b>ACCESS_COARSE_LOCATION</b> — ตำแหน่งคร่าว ๆ (approximate) • <b>ACCESS_FINE_LOCATION</b>
+      — ตำแหน่งแม่นยำ</li>
+  <li><b>Android 10+:</b> แยก "ขณะใช้แอป" (WHEN_IN_USE) กับ "ตลอดเวลา"
+      (ACCESS_BACKGROUND_LOCATION) — background ต้องขอแยกและมีเหตุผลชัด</li>
+  <li><b>Android 12+:</b> ผู้ใช้เลือกให้ <b>ตำแหน่งคร่าว ๆ</b> แทนแม่นยำได้ (ต้องขอทั้งคู่ +
+      เผื่อกรณีได้แค่ coarse)</li>
+</ul>
+<pre><code><span class="com">// ขอทั้ง fine + coarse พร้อมกัน แล้วเช็คว่าได้อันไหน</span>
+<span class="kw">private val</span> locationPerms = registerForActivityResult(
+    ActivityResultContracts.RequestMultiplePermissions()
+) { result -&gt;
+    <span class="kw">when</span> {
+        result[Manifest.permission.ACCESS_FINE_LOCATION] == <span class="kw">true</span> -&gt; useFine()
+        result[Manifest.permission.ACCESS_COARSE_LOCATION] == <span class="kw">true</span> -&gt; useApprox()
+        <span class="kw">else</span> -&gt; showDenied()
+    }
+}
+locationPerms.launch(arrayOf(
+    Manifest.permission.ACCESS_FINE_LOCATION,
+    Manifest.permission.ACCESS_COARSE_LOCATION
+))</code></pre>
+<div class="note"><b>เลือกใช้ให้เหมาะ:</b> ถ้าแค่ต้องการ "เมือง/ย่าน" ใช้ coarse พอ (privacy-
+friendly) • ขอ background location เฉพาะเมื่อจำเป็นจริง (Play ตรวจเข้ม)</div>
+</section>
+
+<section id="storage">
+<h2>6. Scoped Storage (การเข้าถึงไฟล์)</h2>
+<p>ตั้งแต่ <b>Android 10</b> แอปเข้าถึงไฟล์แบบ "จำกัดขอบเขต" — เข้าถึงได้แค่โฟลเดอร์ของตัวเอง
++ media ที่สร้างเอง โดยไม่ต้องขอ permission storage</p>
+<table>
+  <tr><th>ต้องการ</th><th>วิธี (Scoped Storage)</th></tr>
+  <tr><td>ไฟล์ของแอปเอง</td><td>app-specific dir (ไม่ต้องขอ permission)</td></tr>
+  <tr><td>เลือกไฟล์/รูปจากเครื่อง</td><td><b>Photo Picker</b> / Storage Access Framework (ไม่ต้องขอ permission)</td></tr>
+  <tr><td>อ่าน media ที่แอปอื่นสร้าง</td><td>READ_MEDIA_IMAGES/VIDEO/AUDIO (Android 13+)</td></tr>
+  <tr><td>เข้าถึงไฟล์ทั้งเครื่อง</td><td>MANAGE_EXTERNAL_STORAGE (special, ต้องมีเหตุผล)</td></tr>
+</table>
+<pre><code><span class="com">// Photo Picker (Android 13+) — เลือกรูปโดยไม่ต้องขอ permission เลย</span>
+<span class="kw">val</span> picker = registerForActivityResult(
+    ActivityResultContracts.PickVisualMedia()
+) { uri -&gt; <span class="kw">if</span> (uri != <span class="kw">null</span>) showImage(uri) }
+
+picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))</code></pre>
+<div class="note"><b>แนวทางปัจจุบัน:</b> ใช้ Photo Picker / Document Picker แทนการขอ storage
+permission — ปลอดภัยกว่าและไม่ต้องขอสิทธิ์</div>
+</section>
+
+<section id="datasec">
+<h2>7. เก็บข้อมูลอย่างปลอดภัย</h2>
+<ul>
+  <li><b>อย่าเก็บข้อมูลลับ (token/key/รหัสผ่าน) แบบ plain text</b> ใน SharedPreferences/ไฟล์</li>
+  <li><b>EncryptedSharedPreferences</b> — เก็บ key-value แบบเข้ารหัส (Jetpack Security)</li>
+  <li><b>Android Keystore</b> — เก็บ cryptographic key ในฮาร์ดแวร์ (ถอดออกไม่ได้)</li>
+  <li><b>ระวัง Auto Backup</b> — ข้อมูลอ่อนไหวอาจถูก backup ขึ้น cloud → ตั้ง exclude rules</li>
+</ul>
+<pre><code><span class="com">// EncryptedSharedPreferences — เก็บ token แบบเข้ารหัส</span>
+<span class="kw">val</span> masterKey = MasterKey.Builder(context)
+    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build()
+
+<span class="kw">val</span> securePrefs = EncryptedSharedPreferences.create(
+    context, <span class="str">"secure_prefs"</span>, masterKey,
+    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+)
+securePrefs.edit().putString(<span class="str">"token"</span>, token).apply()   <span class="com">// เข้ารหัสอัตโนมัติ</span></code></pre>
+<div class="warn">อย่า hardcode API key/secret ในโค้ด (ถอด APK อ่านได้) — เก็บฝั่ง server หรือ
+ใช้กลไกที่ปลอดภัย; secret ที่ต้องมีในแอปให้จำกัดสิทธิ์ให้น้อยสุด</div>
+</section>
+
+<section id="network">
+<h2>8. ความปลอดภัยด้านเครือข่าย</h2>
+<ul>
+  <li><b>ใช้ HTTPS เสมอ</b> — ตั้งแต่ Android 9 บล็อก HTTP (cleartext) โดยดีฟอลต์</li>
+  <li><b>Network Security Config</b> — กำหนดนโยบาย TLS/cleartext ต่อ domain</li>
+  <li><b>Certificate pinning</b> — ผูก certificate ของ server กันโดน man-in-the-middle</li>
+</ul>
+<pre><code><span class="xml">&lt;!-- res/xml/network_security_config.xml --&gt;
+&lt;network-security-config&gt;
+    &lt;base-config cleartextTrafficPermitted="false" /&gt;  &lt;!-- บล็อก HTTP --&gt;
+    &lt;domain-config&gt;
+        &lt;domain includeSubdomains="true"&gt;api.example.com&lt;/domain&gt;
+        &lt;pin-set&gt;
+            &lt;pin digest="SHA-256"&gt;base64hash...&lt;/pin&gt;  &lt;!-- cert pinning --&gt;
+        &lt;/pin-set&gt;
+    &lt;/domain-config&gt;
+&lt;/network-security-config&gt;</span></code></pre>
+</section>
+
+<section id="components">
+<h2>9. การป้องกัน component</h2>
+<ul>
+  <li><b>exported=false</b> — ถ้า Activity/Service/Receiver ไม่ต้องการให้แอปอื่นเรียก ตั้งเป็น
+      false (Android 12+ บังคับระบุ exported ชัดเจน)</li>
+  <li><b>ตรวจ Intent ที่รับเข้ามา</b> — validate ข้อมูลจากภายนอก (untrusted input)</li>
+  <li><b>ป้องกัน SQL injection</b> — ใช้ parameterized query (Room ทำให้อยู่แล้ว)</li>
+  <li><b>PendingIntent</b> — ระบุ FLAG_IMMUTABLE (Android 12+ บังคับ)</li>
+  <li><b>ContentProvider</b> — กำหนด permission ถ้า export</li>
+</ul>
+<pre><code><span class="xml">&lt;service
+    android:name=".MyService"
+    android:exported="false" /&gt;  &lt;!-- ไม่ให้แอปอื่นเรียก --&gt;</span></code></pre>
+</section>
+
+<section id="other">
+<h2>10. ความปลอดภัยอื่น ๆ ที่ควรรู้</h2>
+<ul>
+  <li><b>Biometric</b> — ยืนยันตัวตนด้วยลายนิ้วมือ/ใบหน้า (BiometricPrompt)</li>
+  <li><b>App signing / Play App Signing</b> — เซ็นแอปยืนยันตัวตนผู้พัฒนา</li>
+  <li><b>Code obfuscation (R8/ProGuard)</b> — ย่อ/สับสนโค้ดกันถอด (ไม่ใช่การเข้ารหัส)</li>
+  <li><b>SafetyNet / Play Integrity API</b> — ตรวจว่าแอป/เครื่องไม่ถูกดัดแปลง (root/emulator)</li>
+  <li><b>ไม่ log ข้อมูลอ่อนไหว</b> — token/รหัสผ่านห้ามอยู่ใน Logcat</li>
+  <li><b>Clipboard/Screenshot</b> — ป้องกันหน้าจอที่มีข้อมูลลับ (FLAG_SECURE)</li>
+</ul>
+<div class="note"><b>เจาะลึกความปลอดภัยเชิงการเขียนโค้ด</b> (injection, WebView, Intent/deep
+link, IPC, secret management, anti-tamper, dependency พร้อมโค้ด ผิด/ถูก): ดู
+<code>docs/android-secure-coding.html</code></div>
+</section>
+
+<section id="versions">
+<h2>11. ตารางเทียบความแตกต่างตามเวอร์ชัน Android</h2>
+<p>ระบบ permission/ความปลอดภัยเข้มขึ้นแทบทุกเวอร์ชัน — จุดเปลี่ยนสำคัญ:</p>
+<table>
+  <tr><th>เวอร์ชัน</th><th>API</th><th>สิ่งที่เปลี่ยนเรื่อง permission/security</th></tr>
+  <tr><td><b>Android 6</b></td><td>23</td><td><b>จุดเปลี่ยนใหญ่:</b> เริ่ม <b>runtime permission</b> (dangerous ขอตอนใช้ ไม่ใช่ตอนติดตั้ง)</td></tr>
+  <tr><td>Android 7</td><td>24</td><td>Network Security Config; จำกัดการแชร์ file:// (ใช้ FileProvider แทน)</td></tr>
+  <tr><td>Android 8</td><td>26</td><td>permission ให้ทีละ "กลุ่ม" ชัดขึ้น; จำกัด background</td></tr>
+  <tr><td>Android 9</td><td>28</td><td><b>บล็อก HTTP (cleartext) โดยดีฟอลต์</b>; background เข้าถึงกล้อง/ไมค์/เซ็นเซอร์ไม่ได้</td></tr>
+  <tr><td><b>Android 10</b></td><td>29</td><td><b>Scoped Storage</b>; ตำแหน่ง "ขณะใช้แอป" (WHEN_IN_USE); จำกัดเริ่ม activity จาก background</td></tr>
+  <tr><td>Android 11</td><td>30</td><td><b>one-time permission</b> ("อนุญาตครั้งนี้"); <b>auto-reset</b> permission แอปที่ไม่ได้ใช้นาน; ปฏิเสธ 2 ครั้ง = ไม่ถามอีก; Scoped Storage บังคับ</td></tr>
+  <tr><td>Android 12</td><td>31</td><td><b>approximate location</b> (ผู้ใช้เลือกตำแหน่งคร่าว ๆ); privacy dashboard; PendingIntent ต้องระบุ mutability; SCHEDULE_EXACT_ALARM; ไมค์/กล้อง indicator</td></tr>
+  <tr><td>Android 13</td><td>33</td><td><b>POST_NOTIFICATIONS</b> (ต้องขอสิทธิ์ส่งแจ้งเตือน); <b>READ_MEDIA_IMAGES/VIDEO/AUDIO</b> (แทน READ_EXTERNAL_STORAGE); Photo Picker</td></tr>
+  <tr><td>Android 14</td><td>34</td><td><b>selected photos access</b> (ให้เข้าถึงบางรูป); foreground service ต้องประกาศ type; จำกัด implicit intent</td></tr>
+  <tr><td>Android 15/16</td><td>35+</td><td>privacy เข้มขึ้นต่อเนื่อง; จำกัดสิทธิ์อ่อนไหวมากขึ้น; เน้น minimal permission</td></tr>
+</table>
+<div class="note"><b>บทสรุปเชิงประวัติ:</b> ทิศทางทุกเวอร์ชันคือ <b>ให้สิทธิ์แคบลง + ผู้ใช้คุมได้
+มากขึ้น + ขอเฉพาะตอนใช้</b> — โค้ดที่ขอเท่าที่จำเป็น + เผื่อกรณีถูกปฏิเสธ/ได้แค่ coarse จะ
+รอดทุกเวอร์ชัน</div>
+</section>
+
+<section id="proscons">
+<h2>12. ข้อดี / ข้อเสีย ของระบบ permission Android</h2>
+<ul class="pros">
+  <li>✅ <span>ปกป้องความเป็นส่วนตัวผู้ใช้ — ควบคุมได้ว่าให้สิทธิ์อะไร</span></li>
+  <li>✅ <span>ขอเฉพาะตอนใช้ → ผู้ใช้เข้าใจบริบท ตัดสินใจง่าย</span></li>
+  <li>✅ <span>one-time/auto-reset → ลดความเสี่ยงสิทธิ์ค้าง</span></li>
+  <li>✅ <span>Scoped Storage/Photo Picker → เข้าถึงไฟล์ได้โดยไม่ต้องขอสิทธิ์กว้าง</span></li>
+</ul>
+<ul class="cons">
+  <li>❌ <span>โค้ดขอ permission ซับซ้อน (เช็ค/rationale/ปฏิเสธถาวร/settings)</span></li>
+  <li>❌ <span>พฤติกรรมต่างกันมากตามเวอร์ชัน → ต้องเทสต์หลายเวอร์ชัน</span></li>
+  <li>❌ <span>ผู้ใช้ปฏิเสธได้ → ต้องออกแบบ fallback ทุกกรณี</span></li>
+  <li>❌ <span>บาง permission (background location/storage) Play ตรวจเข้ม อาจถูกปฏิเสธ</span></li>
+</ul>
+</section>
+
+<section id="choose">
+<h2>13. การเลือกใช้</h2>
+<table>
+  <tr><th>ต้องการ</th><th>ใช้</th></tr>
+  <tr><td>เลือกรูป/ไฟล์จากเครื่อง</td><td>Photo Picker / Document Picker (ไม่ต้องขอ permission)</td></tr>
+  <tr><td>ตำแหน่งแค่เมือง/ย่าน</td><td>COARSE location (ไม่ต้อง fine)</td></tr>
+  <tr><td>เก็บ token/ข้อมูลลับ</td><td>EncryptedSharedPreferences / Keystore</td></tr>
+  <tr><td>ยืนยันตัวตน</td><td>BiometricPrompt</td></tr>
+  <tr><td>ขอ runtime permission</td><td>Activity Result API (RequestPermission)</td></tr>
+  <tr><td>special permission</td><td>พาไป Settings ด้วย Intent</td></tr>
+  <tr><td>กัน MITM</td><td>HTTPS + Network Security Config (+ cert pinning)</td></tr>
+</table>
+<div class="note"><b>หลักคิด:</b> ก่อนขอ permission ถามตัวเองว่า "มีวิธีที่ไม่ต้องขอไหม" (เช่น
+Photo Picker แทน storage, coarse แทน fine) — ขอเป็นทางเลือกสุดท้าย</div>
+</section>
+
+<section id="practical">
+<h2>14. ภาคปฏิบัติ: ขอ permission กล้องแบบครบ flow</h2>
+<h4>ขั้น 1 — ประกาศใน Manifest</h4>
+<pre><code><span class="xml">&lt;uses-permission android:name="android.permission.CAMERA" /&gt;</span></code></pre>
+
+<h4>ขั้น 2 — ViewModel เก็บ state (optional แต่แนะนำ)</h4>
+<pre><code><span class="kw">data class</span> CameraUiState(
+    <span class="kw">val</span> hasPermission: Boolean = <span class="kw">false</span>,
+    <span class="kw">val</span> showRationale: Boolean = <span class="kw">false</span>,
+    <span class="kw">val</span> permanentlyDenied: Boolean = <span class="kw">false</span>
+)</code></pre>
+
+<h4>ขั้น 3 — Fragment: ลงทะเบียน launcher + flow ครบ</h4>
+<pre><code><span class="kw">class</span> CameraFragment : Fragment() {
+
+    <span class="com">// ลงทะเบียน launcher ครั้งเดียว</span>
+    <span class="kw">private val</span> requestPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted -&gt;
+        <span class="kw">if</span> (granted) {
+            openCamera()
+        } <span class="kw">else if</span> (!shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
+            <span class="com">// ปฏิเสธถาวร (Android 11+) → พาไป Settings</span>
+            showGoToSettingsDialog()
+        } <span class="kw">else</span> {
+            showDeniedMessage()
+        }
+    }
+
+    <span class="kw">fun</span> <span class="fn">onTakePhotoClick</span>() {
+        <span class="kw">when</span> {
+            ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED -&gt; openCamera()
+
+            shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -&gt;
+                <span class="com">// เคยปฏิเสธ 1 ครั้ง → อธิบายก่อนขอใหม่</span>
+                showRationaleDialog(
+                    onOk = { requestPermission.launch(Manifest.permission.CAMERA) }
+                )
+
+            <span class="kw">else</span> -&gt; requestPermission.launch(Manifest.permission.CAMERA)   <span class="com">// ขอครั้งแรก</span>
+        }
+    }
+
+    <span class="kw">private fun</span> <span class="fn">showGoToSettingsDialog</span>() {
+        <span class="com">// พาไปหน้า Settings ของแอปให้ผู้ใช้เปิดเอง</span>
+        <span class="kw">val</span> intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.parse(<span class="str">"package:${requireContext().packageName}"</span>))
+        startActivity(intent)
+    }
+}</code></pre>
+<div class="ok">flow นี้ครอบคลุมครบ: มีสิทธิ์แล้ว / ขอครั้งแรก / เคยปฏิเสธ (rationale) / ปฏิเสธ
+ถาวร (ไป Settings) — เป็น template มาตรฐานที่ใช้ได้ทุกแอป</div>
+
+<h3>14.1 permission อื่น ๆ — ส่วนใหญ่ "เหมือนกัน แค่เปลี่ยนชื่อ"</h3>
+<p>ข่าวดี: <b>permission กลุ่ม dangerous ที่เป็น "อันเดียว" เกือบทั้งหมดใช้โค้ด flow เดียวกัน
+กับกล้องด้านบน</b> — แค่เปลี่ยน 2 อย่าง: (1) ชื่อ permission ที่ launch (2) การกระทำเมื่อได้สิทธิ์</p>
+<div class="diagram"><span style="color:#8ce99a">// เปลี่ยนแค่ตรงนี้จาก template กล้อง</span>
+requestPermission.launch(Manifest.permission.<span style="color:#ffd580">XXX</span>)   // ← เปลี่ยนชื่อ
+onGranted = { <span style="color:#ffd580">doSomething()</span> }                        // ← เปลี่ยนการกระทำ</div>
+<table>
+  <tr><th>ต้องการ</th><th>permission (ใส่แทน CAMERA)</th><th>โค้ด flow</th></tr>
+  <tr><td>ไมโครโฟน (อัดเสียง)</td><td><code>RECORD_AUDIO</code></td><td>เหมือนกล้องเป๊ะ</td></tr>
+  <tr><td>อ่านผู้ติดต่อ</td><td><code>READ_CONTACTS</code></td><td>เหมือนกล้องเป๊ะ</td></tr>
+  <tr><td>เขียนผู้ติดต่อ</td><td><code>WRITE_CONTACTS</code></td><td>เหมือนกล้องเป๊ะ</td></tr>
+  <tr><td>ปฏิทิน</td><td><code>READ_CALENDAR</code> / <code>WRITE_CALENDAR</code></td><td>เหมือนกล้องเป๊ะ</td></tr>
+  <tr><td>โทรศัพท์</td><td><code>CALL_PHONE</code> / <code>READ_PHONE_STATE</code></td><td>เหมือนกล้องเป๊ะ</td></tr>
+  <tr><td>SMS</td><td><code>SEND_SMS</code> / <code>READ_SMS</code></td><td>เหมือนกล้องเป๊ะ</td></tr>
+  <tr><td>เซ็นเซอร์ร่างกาย</td><td><code>BODY_SENSORS</code></td><td>เหมือนกล้องเป๊ะ</td></tr>
+  <tr><td>แจ้งเตือน (Android 13+)</td><td><code>POST_NOTIFICATIONS</code></td><td>เหมือนกล้อง (ดู 14.2)</td></tr>
+</table>
+<div class="note"><b>สรุป:</b> ถ้าเป็น permission dangerous อันเดียว → ก๊อป template กล้อง แล้ว
+เปลี่ยนชื่อ permission พอ ไม่ต้องเขียนใหม่</div>
+
+<h3>14.2 กรณีที่ต้องเขียน "ต่าง" จาก template</h3>
+
+<h4>ก) หลาย permission พร้อมกัน → ใช้ RequestMultiplePermissions</h4>
+<pre><code><span class="com">// เช่น ตำแหน่ง (fine+coarse) หรือ SMS อ่าน+ส่งพร้อมกัน</span>
+<span class="kw">private val</span> multiPerms = registerForActivityResult(
+    ActivityResultContracts.RequestMultiplePermissions()   <span class="com">// ← ต่าง: Multiple</span>
+) { result: Map&lt;String, Boolean&gt; -&gt;                        <span class="com">// ← ต่าง: ได้ Map</span>
+    <span class="kw">when</span> {
+        result[Manifest.permission.ACCESS_FINE_LOCATION] == <span class="kw">true</span> -&gt; useFine()
+        result[Manifest.permission.ACCESS_COARSE_LOCATION] == <span class="kw">true</span> -&gt; useApprox()
+        <span class="kw">else</span> -&gt; showDenied()
+    }
+}
+multiPerms.launch(arrayOf(
+    Manifest.permission.ACCESS_FINE_LOCATION,
+    Manifest.permission.ACCESS_COARSE_LOCATION
+))</code></pre>
+
+<h4>ข) Background location → ต้องขอ "2 สเต็ป"</h4>
+<pre><code><span class="com">// ต้องได้ WHEN_IN_USE (foreground) ก่อน แล้วค่อยขอ background แยกอีกที</span>
+<span class="com">// (ขอพร้อมกันไม่ได้ตั้งแต่ Android 11)</span>
+<span class="kw">private val</span> bgLocation = registerForActivityResult(
+    ActivityResultContracts.RequestPermission()
+) { granted -&gt; <span class="kw">if</span> (granted) startTracking() }
+
+<span class="kw">fun</span> <span class="fn">requestBackgroundLocation</span>() {
+    <span class="com">// สเต็ป 1: ต้องมี foreground location ก่อน (ขอด้วย template ปกติ)</span>
+    <span class="com">// สเต็ป 2: แล้วค่อยขอ background</span>
+    bgLocation.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+}</code></pre>
+<div class="warn">background location ต้องมีเหตุผลชัดมาก + Play รีวิวเข้ม — ขอเฉพาะเมื่อจำเป็นจริง</div>
+
+<h4>ค) Special permission → ไม่ใช่ dialog แต่พาไป Settings</h4>
+<pre><code><span class="com">// SYSTEM_ALERT_WINDOW / MANAGE_EXTERNAL_STORAGE / SCHEDULE_EXACT_ALARM</span>
+<span class="com">// เช็คด้วยเมธอดเฉพาะ (ไม่ใช่ checkSelfPermission) แล้วพาไป Settings</span>
+<span class="kw">fun</span> <span class="fn">requestOverlay</span>() {
+    <span class="kw">if</span> (!Settings.canDrawOverlays(<span class="kw">this</span>)) {              <span class="com">// ← ต่าง: เช็คเฉพาะทาง</span>
+        startActivity(Intent(
+            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+            Uri.parse(<span class="str">"package:$packageName"</span>)))         <span class="com">// ← ต่าง: เปิด Settings</span>
+    }
+}</code></pre>
+<table>
+  <tr><th>special permission</th><th>เช็คด้วย</th><th>Settings intent</th></tr>
+  <tr><td>SYSTEM_ALERT_WINDOW</td><td><code>Settings.canDrawOverlays()</code></td><td>ACTION_MANAGE_OVERLAY_PERMISSION</td></tr>
+  <tr><td>MANAGE_EXTERNAL_STORAGE</td><td><code>Environment.isExternalStorageManager()</code></td><td>ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION</td></tr>
+  <tr><td>SCHEDULE_EXACT_ALARM</td><td><code>alarmManager.canScheduleExactAlarms()</code></td><td>ACTION_REQUEST_SCHEDULE_EXACT_ALARM</td></tr>
+  <tr><td>REQUEST_INSTALL_PACKAGES</td><td><code>packageManager.canRequestPackageInstalls()</code></td><td>ACTION_MANAGE_UNKNOWN_APP_SOURCES</td></tr>
+</table>
+
+<h4>ง) ไฟล์/รูป → ไม่ต้องขอ permission เลย (ใช้ Picker)</h4>
+<pre><code><span class="com">// แทนการขอ READ_MEDIA_IMAGES → ใช้ Photo Picker (ไม่ต้อง permission)</span>
+<span class="kw">val</span> picker = registerForActivityResult(
+    ActivityResultContracts.PickVisualMedia()
+) { uri -&gt; <span class="kw">if</span> (uri != <span class="kw">null</span>) showImage(uri) }
+picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))</code></pre>
+
+<h4>จ) POST_NOTIFICATIONS (Android 13+) → เหมือน template แต่ต้องเช็คเวอร์ชัน</h4>
+<pre><code><span class="kw">fun</span> <span class="fn">askNotificationPermission</span>() {
+    <span class="kw">if</span> (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.TIRAMISU) {   <span class="com">// ← ต่าง: เช็ค API 33+</span>
+        requestPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+    <span class="com">// ต่ำกว่า 13 ไม่ต้องขอ — ได้อัตโนมัติ</span>
+}</code></pre>
+
+<h4>สรุปตารางว่า "ต่าง" ตรงไหน</h4>
+<table>
+  <tr><th>กลุ่ม</th><th>ต่างจาก template ยังไง</th></tr>
+  <tr><td>dangerous อันเดียว (กล้อง/ไมค์/ผู้ติดต่อ...)</td><td>ไม่ต่าง — เปลี่ยนชื่อ permission พอ</td></tr>
+  <tr><td>หลายอันพร้อมกัน (ตำแหน่ง/SMS)</td><td>ใช้ RequestMultiplePermissions (ได้ Map)</td></tr>
+  <tr><td>background location</td><td>ขอ 2 สเต็ป (foreground ก่อน)</td></tr>
+  <tr><td>special (overlay/storage/alarm)</td><td>เช็คเมธอดเฉพาะ + พาไป Settings</td></tr>
+  <tr><td>ไฟล์/รูป</td><td>ใช้ Picker ไม่ต้องขอ permission</td></tr>
+  <tr><td>POST_NOTIFICATIONS</td><td>template ปกติ + เช็ค API 33+</td></tr>
+</table>
+</section>
+
+<section id="pitfalls">
+<h2>15. ข้อผิดพลาดที่พบบ่อย</h2>
+<table>
+  <tr><th>ข้อผิดพลาด</th><th>ผล / วิธีแก้</th></tr>
+  <tr><td>ขอ permission ทั้งหมดตอนเปิดแอป</td><td>ผู้ใช้ปฏิเสธ/ลบแอป → ขอตอนใช้จริงทีละอัน</td></tr>
+  <tr><td>ไม่เผื่อกรณีถูกปฏิเสธ</td><td>แอปแครช/ค้าง → ต้องมี fallback ทุกครั้ง</td></tr>
+  <tr><td>ไม่จัดการ "ปฏิเสธถาวร"</td><td>ขอซ้ำ dialog ไม่ขึ้น → พาไป Settings</td></tr>
+  <tr><td>เก็บ token แบบ plain text</td><td>รั่วง่าย → EncryptedSharedPreferences/Keystore</td></tr>
+  <tr><td>ใช้ HTTP</td><td>ถูกบล็อก (Android 9+)/ไม่ปลอดภัย → HTTPS</td></tr>
+  <tr><td>ขอ background location ทั้งที่ไม่จำเป็น</td><td>Play ปฏิเสธ → ขอ WHEN_IN_USE พอ</td></tr>
+  <tr><td>hardcode API key ในโค้ด</td><td>ถอด APK อ่านได้ → เก็บฝั่ง server</td></tr>
+  <tr><td>ลืม POST_NOTIFICATIONS (Android 13+)</td><td>notification ไม่ขึ้น → ขอ runtime permission</td></tr>
+  <tr><td>ไม่ระบุ exported (Android 12+)</td><td>ติดตั้ง/build ไม่ผ่าน → ระบุ exported ชัดเจน</td></tr>
+</table>
+</section>
+
+<section id="trends">
+<h2>16. แนวโน้มในอนาคต</h2>
+<ul>
+  <li><b>สิทธิ์ยิ่งแคบลง + ผู้ใช้คุมมากขึ้น</b> — selected photos, approximate location,
+      one-time เป็นทิศทางที่ต่อเนื่อง</li>
+  <li><b>Photo/Document Picker แทน storage permission</b> — เข้าถึงไฟล์โดยไม่ต้องขอสิทธิ์กว้าง</li>
+  <li><b>Play Integrity + passkeys</b> — ยืนยันแอป/ตัวตนที่ปลอดภัยขึ้น (passwordless)</li>
+  <li><b>auto-reset permission</b> ขยายผล — แอปที่ไม่ได้ใช้จะถูกถอนสิทธิ์อัตโนมัติ</li>
+  <li><b>privacy dashboard/indicator</b> โปร่งใสขึ้น — ผู้ใช้เห็นว่าแอปใช้กล้อง/ไมค์/ตำแหน่งเมื่อไร</li>
+  <li><b>สรุป:</b> ออกแบบแอปแบบ <b>privacy-first + least privilege</b> ตั้งแต่ต้น จะรอด
+      นโยบายที่เข้มขึ้นเรื่อย ๆ และผ่านรีวิวของ Play ง่าย</li>
+</ul>
+</section>
+
+<section id="glossary">
+<h2>17. ศัพท์ทางเทคนิค (Glossary)</h2>
+<ul>
+  <li><b>Permission</b> — สิทธิ์เข้าถึงข้อมูล/ฟีเจอร์อ่อนไหว</li>
+  <li><b>Normal / Dangerous / Signature / Special</b> — ระดับความเสี่ยงของ permission</li>
+  <li><b>Runtime permission</b> — permission ที่ขอตอนใช้งาน (dangerous, ตั้งแต่ API 23)</li>
+  <li><b>Activity Result API</b> — วิธีปัจจุบันในการขอ permission/รับผลลัพธ์</li>
+  <li><b>shouldShowRequestPermissionRationale</b> — เช็คว่าควรอธิบายเหตุผลก่อนขอไหม</li>
+  <li><b>one-time permission</b> — อนุญาตเฉพาะครั้งนี้ (Android 11+)</li>
+  <li><b>Scoped Storage</b> — เข้าถึงไฟล์แบบจำกัดขอบเขต (Android 10+)</li>
+  <li><b>Photo Picker</b> — เลือกรูปโดยไม่ต้องขอ storage permission</li>
+  <li><b>EncryptedSharedPreferences</b> — เก็บ key-value แบบเข้ารหัส</li>
+  <li><b>Android Keystore</b> — ที่เก็บ key เข้ารหัสในฮาร์ดแวร์</li>
+  <li><b>Network Security Config</b> — นโยบายความปลอดภัยเครือข่ายต่อ domain</li>
+  <li><b>Certificate pinning</b> — ผูก cert ของ server กัน MITM</li>
+  <li><b>exported</b> — component เปิดให้แอปอื่นเรียกได้ไหม</li>
+  <li><b>BiometricPrompt</b> — ยืนยันตัวตนด้วยชีวมิติ (นิ้ว/หน้า)</li>
+  <li><b>Play Integrity API</b> — ตรวจความน่าเชื่อถือของแอป/เครื่อง</li>
+  <li><b>FLAG_SECURE</b> — ป้องกัน screenshot/บันทึกหน้าจอที่มีข้อมูลลับ</li>
+</ul>
+</section>
+
+<hr>
+<p class="lead">เอกสารที่เกี่ยวข้อง: ภาพรวม Android — <code>docs/android-for-programmers.md</code> (B8) •
+ประวัติเวอร์ชัน + ช่องโหว่ — <code>docs/android-versions.md</code> • Service — <code>docs/android-services.md</code></p>
+</main>
+</div>
+</body>
+</html>

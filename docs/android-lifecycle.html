@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lifecycle ใน Android (ฉบับสมบูรณ์)</title>
+<style>
+  :root {
+    --accent: #00d1b2; --accent-dark: #00a88f;
+    --bg: #0f1419; --surface: #1a2029; --surface2: #232b36;
+    --text: #e6edf3; --muted: #9aa7b4; --border: #2d3742;
+    --code-bg: #11161c; --warn: #ffb454; --danger: #ff6b6b; --ok: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: -apple-system, "Segoe UI", "Sarabun", Tahoma, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.7; }
+  .layout { display: flex; }
+  nav.toc { position: sticky; top: 0; width: 300px; height: 100vh; overflow-y: auto;
+    background: var(--surface); border-right: 1px solid var(--border); padding: 24px 18px; flex-shrink: 0; }
+  nav.toc h2 { color: var(--accent); font-size: 14px; margin: 18px 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+  nav.toc h2:first-child { margin-top: 0; }
+  nav.toc a { display: block; color: var(--muted); text-decoration: none; font-size: 13.5px; padding: 5px 10px; border-radius: 6px; }
+  nav.toc a:hover { background: var(--surface2); color: var(--text); }
+  main { flex: 1; max-width: 900px; margin: 0 auto; padding: 40px 48px 120px; }
+  h1 { color: var(--accent); font-size: 30px; border-bottom: 2px solid var(--border); padding-bottom: 16px; }
+  h2 { color: var(--accent); font-size: 24px; margin-top: 48px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { color: var(--accent-dark); font-size: 19px; margin-top: 32px; }
+  h4 { color: var(--text); font-size: 16px; margin-top: 22px; }
+  p, li { color: var(--text); }
+  code { background: var(--code-bg); color: var(--accent); padding: 2px 6px; border-radius: 4px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 13.5px; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; }
+  pre code { background: none; color: #d6dee6; padding: 0; }
+  .kw { color: #ff7edb; } .str { color: #8ce99a; } .com { color: #6b7683; font-style: italic; } .num { color: #ffd580; } .fn { color: #66d9ef; }
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14.5px; }
+  th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--surface2); color: var(--accent); }
+  tr:nth-child(even) td { background: var(--surface); }
+  .note, .warn, .danger, .ok { border-radius: 10px; padding: 14px 18px; margin: 18px 0; border-left: 4px solid; }
+  .note { background: rgba(0,209,178,.08); border-color: var(--accent); }
+  .warn { background: rgba(255,180,84,.08); border-color: var(--warn); }
+  .danger { background: rgba(255,107,107,.08); border-color: var(--danger); }
+  .ok { background: rgba(74,222,128,.08); border-color: var(--ok); }
+  .pros li { color: var(--ok); } .pros li span { color: var(--text); }
+  .cons li { color: var(--danger); } .cons li span { color: var(--text); }
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+  .lead { color: var(--muted); font-size: 16px; }
+  .diagram { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 13px; white-space: pre; overflow-x: auto; color: #d6dee6; }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc">
+  <h2>สารบัญ</h2>
+  <a href="#intro">1. Lifecycle คืออะไร</a>
+  <a href="#activity">2. Activity Lifecycle</a>
+  <a href="#fragment">3. Fragment Lifecycle</a>
+  <a href="#viewlc">4. View Lifecycle (จุดพลาด)</a>
+  <a href="#viewmodel">5. ViewModel Lifecycle</a>
+  <a href="#process">6. Process Death</a>
+  <a href="#aware">7. Lifecycle-Aware</a>
+  <a href="#others">8. Service/Compose/App</a>
+  <a href="#state">9. จัดการ State</a>
+  <a href="#choose">10. เลือกใช้ (เก็บที่ไหน)</a>
+  <a href="#proscons">11. ข้อดี/ข้อเสีย</a>
+  <a href="#versions">12. ต่างกันแต่ละเวอร์ชัน</a>
+  <a href="#pitfalls">13. ข้อผิดพลาดที่พบบ่อย</a>
+  <a href="#testing">14. การทดสอบ</a>
+  <a href="#trends">15. แนวโน้มในอนาคต</a>
+  <a href="#glossary">16. ศัพท์เทคนิค</a>
+</nav>
+<main>
+
+<h1>Lifecycle ใน Android (ฉบับสมบูรณ์)</h1>
+<p class="lead">อธิบายวงจรชีวิต (Lifecycle) บน Android ครบทุกส่วน — Activity, Fragment, View,
+ViewModel, Process, Compose — พร้อมการจัดการ state, ข้อดี/ข้อเสีย, การเลือกใช้, ความแตกต่าง
+ตามเวอร์ชัน, ข้อผิดพลาดที่พบบ่อย, การทดสอบ และแนวโน้ม อ่านจบแล้วเข้าใจได้โดยไม่ต้องหาข้อมูลเพิ่ม</p>
+
+<div class="note"><b>สรุปสั้นสุด:</b> ทุกอย่างใน Android มี "วงจรชีวิต" ที่ระบบสร้าง/ทำลายให้ —
+หน้าที่เราคือ <b>ทำงานให้ถูกช่วง</b> (เริ่มตอน start, หยุดตอน stop), <b>เก็บ state ที่ต้องรอด</b>
+(ViewModel + SavedStateHandle) และ <b>ปล่อย resource ให้ตรงเวลา</b> เพื่อกัน memory leak /
+crash / เปลืองแบต</div>
+
+<section id="intro">
+<h2>1. Lifecycle คืออะไร ทำไมต้องสนใจ</h2>
+<p><b>Lifecycle</b> คือลำดับ "สถานะ" ที่ component ผ่านตั้งแต่ถูกสร้างจนถูกทำลาย โดย
+<b>ระบบ (Android framework) เป็นคนเรียก callback</b> เหล่านี้ให้ ไม่ใช่เรา</p>
+<p>ทำไมต้องเข้าใจ:</p>
+<ul>
+  <li><b>หมุนจอ / เปลี่ยนภาษา / ปรับขนาดหน้าต่าง</b> → Activity/Fragment ถูกทำลายและสร้างใหม่
+      ตัวแปรที่ถือไว้ตรง ๆ จะหาย</li>
+  <li><b>สลับแอป / รับสาย</b> → แอปไป background ระบบอาจ kill process เพื่อคืน RAM</li>
+  <li>ทำงาน/ปล่อย resource <b>ผิดช่วง</b> → memory leak, crash, เปลืองแบต, กล้อง/ไมค์ค้าง</li>
+</ul>
+<div class="note">หลักคิดหลัก: <b>"ทำงานให้เริ่ม-หยุดตามสถานะ"</b> และ
+<b>"อย่าถือ reference ข้ามช่วงชีวิต"</b></div>
+</section>
+
+<section id="activity">
+<h2>2. Activity Lifecycle</h2>
+<div class="diagram">   onCreate()        ← สร้าง UI, init (ครั้งเดียวต่อการสร้าง)
+      ↓
+   onStart()         ← มองเห็นบนจอ (ยังโต้ตอบไม่ได้)
+      ↓
+   onResume()        ← อยู่หน้าสุด โต้ตอบได้ (foreground)
+      ↓
+   [ ผู้ใช้ใช้งาน ]
+      ↓
+   onPause()         ← กำลังจะเสียโฟกัส (มีอย่างอื่นบัง)
+      ↓
+   onStop()          ← มองไม่เห็นแล้ว
+      ↓
+   onDestroy()       ← ถูกทำลาย (จบ activity หรือ config change)</div>
+<table>
+  <tr><th>callback</th><th>เกิดเมื่อ</th><th>ควรทำ</th></tr>
+  <tr><td><code>onCreate()</code></td><td>สร้าง Activity</td><td>inflate layout, init ViewModel, กู้ state</td></tr>
+  <tr><td><code>onStart()</code></td><td>เริ่มมองเห็น</td><td>เริ่ม observe ข้อมูล/animation</td></tr>
+  <tr><td><code>onResume()</code></td><td>อยู่ foreground</td><td>เริ่มกล้อง/เซ็นเซอร์/งานที่ต้องเห็นจอ</td></tr>
+  <tr><td><code>onPause()</code></td><td>กำลังเสียโฟกัส</td><td>หยุดงานเบา ๆ (ต้องเร็ว อย่าทำงานหนัก)</td></tr>
+  <tr><td><code>onStop()</code></td><td>มองไม่เห็น</td><td>หยุด/ปล่อยกล้อง-เซ็นเซอร์, บันทึกข้อมูล</td></tr>
+  <tr><td><code>onDestroy()</code></td><td>ถูกทำลาย</td><td>เก็บกวาดสุดท้าย</td></tr>
+</table>
+<h4>Configuration change (หมุนจอ ฯลฯ)</h4>
+<div class="diagram">onPause → onStop → onDestroy → onCreate → onStart → onResume  (สร้างใหม่ทั้งหมด!)</div>
+<p>ค่าใน property ของ Activity <b>หายหมด</b> → ต้องเก็บใน <b>ViewModel</b> (รอด) หรือ
+<code>onSaveInstanceState()</code> (Bundle เล็ก ๆ)</p>
+<div class="note"><b>Multi-resume (Android 10+):</b> หลาย Activity อาจอยู่สถานะ RESUMED พร้อมกัน
+ในโหมดหลายหน้าต่าง — อย่าคิดว่ามีแค่ตัวเดียว resume เสมอ</div>
+</section>
+
+<section id="fragment">
+<h2>3. Fragment Lifecycle</h2>
+<p>Fragment มี callback มากกว่า Activity เพราะมีทั้ง lifecycle ของตัว Fragment <b>และของ View</b></p>
+<div class="diagram">onAttach()            ← ผูกกับ Activity
+   ↓
+onCreate()            ← init (ยังไม่มี view)
+   ↓
+onCreateView()        ← สร้าง view hierarchy
+   ↓
+onViewCreated()       ← view พร้อม → setup UI/observe ที่นี่
+   ↓
+onStart() → onResume()  ← เหมือน Activity
+   ↓
+[ ใช้งาน ]
+   ↓
+onPause() → onStop()
+   ↓
+onDestroyView()       ← ทำลาย view (แต่ Fragment ยังอยู่!)
+   ↓
+onDestroy() → onDetach()</div>
+<div class="warn"><b>จุดต่างสำคัญ:</b> เมื่อ Fragment อยู่ใน back stack แล้วถูกแทนที่ → เรียก
+<code>onDestroyView()</code> แต่ไม่ <code>onDestroy()</code> (ตัว Fragment ยังมีชีวิต) พอกลับ
+มาจะ <code>onCreateView()</code> ใหม่โดยไม่ <code>onCreate()</code> ใหม่ → ที่มาของบั๊ก
+ViewBinding รั่ว (หัวข้อ 4)</div>
+</section>
+
+<section id="viewlc">
+<h2>4. View Lifecycle ของ Fragment (จุดพลาดบ่อยสุด)</h2>
+<p>Fragment มี 2 lifecycle ที่ <b>อายุไม่เท่ากัน</b>: <b>Fragment lifecycle</b> (ยาวกว่า) และ
+<b>View lifecycle</b> (สั้นกว่า และเกิดใหม่ได้หลายรอบ)</p>
+<h4>1) observe ต้องใช้ viewLifecycleOwner</h4>
+<pre><code><span class="com">// ✅ ถูก — ผูกกับ view lifecycle</span>
+viewModel.state.observe(viewLifecycleOwner) { render(it) }
+<span class="com">// ❌ ผิด — ใช้ this (Fragment) → observer ซ้อน/รั่วเมื่อ view สร้างใหม่</span>
+viewModel.state.observe(<span class="kw">this</span>) { render(it) }</code></pre>
+<h4>2) ViewBinding ต้องเคลียร์ใน onDestroyView</h4>
+<pre><code><span class="kw">private var</span> _binding: FragmentHomeBinding? = <span class="kw">null</span>
+<span class="kw">private val</span> binding <span class="kw">get</span>() = _binding!!
+
+<span class="kw">override fun</span> <span class="fn">onCreateView</span>(i: LayoutInflater, c: ViewGroup?, s: Bundle?): View {
+    _binding = FragmentHomeBinding.inflate(i, c, <span class="kw">false</span>)
+    <span class="kw">return</span> binding.root
+}
+<span class="kw">override fun</span> <span class="fn">onDestroyView</span>() {
+    <span class="kw">super</span>.onDestroyView()
+    _binding = <span class="kw">null</span>   <span class="com">// ปล่อย view เพื่อกัน memory leak</span>
+}</code></pre>
+<h4>3) collect Flow ผูกกับ view</h4>
+<pre><code>viewLifecycleOwner.lifecycleScope.launch {
+    viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        viewModel.uiState.collect { render(it) }   <span class="com">// หยุดตอน background, เริ่มใหม่ตอนกลับมาเห็น</span>
+    }
+}</code></pre>
+</section>
+
+<section id="viewmodel">
+<h2>5. ViewModel Lifecycle</h2>
+<p><b>ViewModel อยู่ยาวกว่า Activity/Fragment</b> — รอดจาก configuration change (หมุนจอ)
+โดยไม่ถูกสร้างใหม่ จึงเหมาะเก็บ UI state / ผลลัพธ์ที่ไม่อยากโหลดซ้ำ</p>
+<div class="diagram">Activity สร้าง → ViewModel สร้าง
+หมุนจอ: Activity ทำลาย+สร้างใหม่ → ViewModel "ตัวเดิม" ถูกส่งต่อ (ไม่สร้างใหม่)
+ออกจากหน้าจริง (finish): → onCleared() → เก็บกวาด</div>
+<ul>
+  <li><code>onCleared()</code> — เรียกเมื่อ ViewModel ถูกทิ้งจริง → ปิด resource</li>
+  <li><code>viewModelScope</code> — coroutine scope ที่ถูกยกเลิกอัตโนมัติเมื่อ onCleared (ไม่รั่ว)</li>
+  <li>ขอบเขต (scope): <code>by viewModels()</code> (Fragment), <code>by activityViewModels()</code>
+      (แชร์ทั้ง Activity), <code>by navGraphViewModels(id)</code> (แชร์ระดับ nav graph — import
+      <code>androidx.navigation</code>)</li>
+</ul>
+<div class="warn"><b>ViewModel รอด config change แต่ไม่รอด process death</b> — ข้อมูลที่ต้องรอด
+ทั้งสองกรณีต้องใช้ <b>SavedStateHandle</b> (หัวข้อ 9) • และ <b>ห้ามเก็บ Context/View/Activity
+ใน ViewModel</b> เพราะอายุยาวกว่า → leak</div>
+</section>
+
+<section id="process">
+<h2>6. Process Lifecycle & Process Death</h2>
+<p>เมื่อแอปอยู่ background นาน ระบบอาจ <b>kill process</b> เพื่อคืน RAM — เรียก
+<b>process death</b> พอผู้ใช้กลับมา ระบบสร้างแอปใหม่ทั้งหมด (ViewModel ก็หายด้วย)</p>
+<ul>
+  <li>ลำดับความสำคัญ process: <b>foreground &gt; visible &gt; service &gt; cached</b> — cached
+      (แอป background) ถูก kill ก่อน</li>
+  <li><b>จำลองทดสอบ:</b> เปิดแอป → กด home → ใช้ "Don't keep activities" (Developer options)
+      หรือสั่ง kill จาก Android Studio → กลับเข้าแอป ดูว่า state กลับมาครบไหม</li>
+  <li><b>ป้องกันข้อมูลหาย:</b> เก็บ state สำคัญใน SavedStateHandle / onSaveInstanceState
+      (ข้อมูลเล็ก) หรือ persist ลง DataStore/Room (ข้อมูลใหญ่/ถาวร)</li>
+</ul>
+<div class="note"><code>ProcessLifecycleOwner</code> — ให้ lifecycle ระดับทั้งแอป (รู้ว่าแอป
+ทั้งตัวเข้า foreground/background) เหมาะกับงานอย่าง "แอปกลับมา foreground แล้วรีเฟรช token"</div>
+</section>
+
+<section id="aware">
+<h2>7. Lifecycle-Aware Components</h2>
+<p>Jetpack ให้เครื่องมือที่ "รู้จัก lifecycle" เพื่อไม่ต้องเขียน callback เองทุกจุด:</p>
+<pre><code><span class="com">// component ที่ทำงานตาม lifecycle ของเจ้าของเอง (เช่น ตัวจับตำแหน่ง)</span>
+<span class="kw">class</span> LocationTracker : DefaultLifecycleObserver {
+    <span class="kw">override fun</span> <span class="fn">onStart</span>(owner: LifecycleOwner) { startUpdates() }
+    <span class="kw">override fun</span> <span class="fn">onStop</span>(owner: LifecycleOwner) { stopUpdates() }
+}
+<span class="com">// ใน Activity/Fragment</span>
+lifecycle.addObserver(LocationTracker())</code></pre>
+<ul>
+  <li><code>lifecycleScope</code> — coroutine scope ผูกกับ lifecycle (ยกเลิกเมื่อ destroy)</li>
+  <li><code>repeatOnLifecycle(STARTED)</code> — วิธีแนะนำในการ collect Flow ให้หยุดตอน
+      background และเริ่มใหม่ตอนกลับมาเห็น</li>
+  <li><code>LiveData</code> — lifecycle-aware โดยธรรมชาติ (ส่งค่าเฉพาะตอน active)</li>
+  <li>Compose → <code>collectAsStateWithLifecycle()</code></li>
+</ul>
+</section>
+
+<section id="others">
+<h2>8. Service / Compose / Application lifecycle</h2>
+<h4>Service (ย่อ — ดูละเอียดใน android-services)</h4>
+<div class="diagram">Started: onCreate → onStartCommand → onDestroy
+Bound:   onCreate → onBind → onUnbind → onDestroy</div>
+<h4>Compose lifecycle (ต่างจาก View)</h4>
+<ul>
+  <li>Composable ไม่มี onCreate/onDestroy แต่มี <b>enter/leave composition</b></li>
+  <li><code>remember</code> — เก็บค่าข้าม recomposition • <code>rememberSaveable</code> — รอด
+      config change/process death</li>
+  <li><code>DisposableEffect</code> — ทำงานตอนเข้า composition + คืน <code>onDispose{}</code>
+      ตอนออก (แทน onStop/onDestroy)</li>
+  <li><code>LaunchedEffect</code> — รัน coroutine ผูกกับ composition</li>
+</ul>
+<h4>Application lifecycle</h4>
+<ul>
+  <li><code>Application.onCreate()</code> — เรียกครั้งเดียวตอน process เกิด (init library)</li>
+  <li>ใช้ App Startup library หรือ <code>ProcessLifecycleOwner</code> สำหรับงานระดับแอป</li>
+</ul>
+</section>
+
+<section id="state">
+<h2>9. การจัดการ State ให้รอดแต่ละกรณี</h2>
+<p>มี 3 "ระดับการรอด" ที่ต้องแยกให้ชัด:</p>
+<table>
+  <tr><th>กรณี</th><th>ViewModel</th><th>SavedStateHandle / onSaveInstanceState</th><th>DataStore/Room</th></tr>
+  <tr><td>หมุนจอ / config change</td><td>✅ รอด</td><td>✅ รอด</td><td>✅ รอด</td></tr>
+  <tr><td>process death (ระบบ kill)</td><td>❌ หาย</td><td>✅ รอด (Bundle)</td><td>✅ รอด</td></tr>
+  <tr><td>ปิดแอปเอง/รีบูต</td><td>❌ หาย</td><td>❌ หาย</td><td>✅ รอด (persistent)</td></tr>
+</table>
+<h4>SavedStateHandle (แนะนำ) — รอดทั้ง config change และ process death</h4>
+<pre><code><span class="kw">class</span> SearchViewModel(<span class="kw">private val</span> state: SavedStateHandle) : ViewModel() {
+    <span class="kw">val</span> query: StateFlow&lt;String&gt; = state.getStateFlow(<span class="str">"query"</span>, <span class="str">""</span>)
+    <span class="kw">fun</span> <span class="fn">setQuery</span>(q: String) { state[<span class="str">"query"</span>] = q }   <span class="com">// เก็บอัตโนมัติ</span>
+}</code></pre>
+<div class="warn">ใช้เก็บ<b>ของเล็ก</b> (query, ตำแหน่ง scroll, id ที่เลือก) — <b>ห้ามเก็บของใหญ่</b>
+(list/bitmap) • ของใหญ่/ถาวร → Room/DataStore; ของชั่วคราวใหญ่ → เก็บ id แล้วโหลดใหม่จาก repository</div>
+</section>
+
+<section id="choose">
+<h2>10. การเลือกใช้ (เก็บอะไรไว้ที่ไหน)</h2>
+<div class="diagram">ข้อมูลนี้ต้องอยู่ถาวร (ปิดแอป/รีบูตแล้วยังอยู่) ไหม?
+  └─ ใช่ → DataStore (preference) / Room (ข้อมูลมีโครงสร้าง)
+
+ต้องรอด process death (ระบบ kill ตอน background) ไหม?
+  └─ ใช่ + ข้อมูลเล็ก → SavedStateHandle
+     ใช่ + ข้อมูลใหญ่ → เก็บ id/คีย์ใน SavedStateHandle แล้วโหลดจาก repository
+
+แค่ต้องรอดหมุนจอ (config change) ก็พอ ไหม?
+  └─ ใช่ → ViewModel (StateFlow/LiveData)
+
+เป็นแค่ค่าชั่วคราวใน UI ระหว่าง recomposition (Compose)?
+  └─ remember (ไม่ต้องรอด) / rememberSaveable (รอด config+process death)</div>
+<h4>observe ข้อมูลใน UI</h4>
+<ul>
+  <li>View system → <code>repeatOnLifecycle(STARTED)</code> + <code>viewLifecycleOwner</code> (แนะนำ) หรือ LiveData</li>
+  <li>Compose → <code>collectAsStateWithLifecycle()</code></li>
+</ul>
+</section>
+
+<section id="proscons">
+<h2>11. ข้อดี / ข้อเสีย ของโมเดล lifecycle</h2>
+<ul class="pros">
+  <li>✅ <span>ระบบจัดการ resource ให้อัตโนมัติ (คืน RAM, ประหยัดแบต) — แอปหลายตัวอยู่ร่วมกันได้ลื่น</span></li>
+  <li>✅ <span>callback ชัดเจนว่า "ควรทำอะไรตอนไหน" → จัดการกล้อง/เซ็นเซอร์/network ถูกจังหวะ</span></li>
+  <li>✅ <span>lifecycle-aware components (lifecycleScope, repeatOnLifecycle, LiveData) ลด boilerplate และลด leak</span></li>
+</ul>
+<ul class="cons">
+  <li>❌ <span>ซับซ้อน โดยเฉพาะ Fragment 2 lifecycle — แหล่งบั๊กยอดฮิต (leak, observer ซ้อน)</span></li>
+  <li>❌ <span>config change สร้างใหม่ทั้งหมด — ต้องวางแผนเก็บ state ตั้งแต่ต้น</span></li>
+  <li>❌ <span>process death มองไม่เห็นตอน dev — ลืมเทสต์แล้วเจอบั๊กตอน production</span></li>
+  <li>❌ <span>callback เยอะ ทำให้มือใหม่สับสนว่าควรวาง logic ตรงไหน</span></li>
+</ul>
+<div class="note">Compose พยายามลดความเจ็บปวดนี้ด้วยโมเดล state-driven + effect API แต่ก็ยังต้อง
+เข้าใจ lifecycle ที่อยู่ข้างล่างอยู่ดี</div>
+</section>
+
+<section id="versions">
+<h2>12. ความแตกต่างในแต่ละเวอร์ชัน Android</h2>
+<table>
+  <tr><th>เวอร์ชัน</th><th>API</th><th>สิ่งที่เปลี่ยนเกี่ยวกับ lifecycle</th></tr>
+  <tr><td>Android 3</td><td>11</td><td>เพิ่ม <b>Fragment</b> (แยก UI ย่อย + lifecycle ของตัวเอง)</td></tr>
+  <tr><td>Android 6</td><td>23</td><td><b>Doze &amp; App Standby</b> — background lifecycle ถูกจำกัดเมื่อเครื่องนิ่ง/แอปไม่ถูกใช้</td></tr>
+  <tr><td>Android 7</td><td>24</td><td><b>Multi-window (split-screen)</b> — Activity เข้า/ออก resumed บ่อยขึ้น, config change จากปรับขนาด</td></tr>
+  <tr><td>Android 8</td><td>26</td><td>จำกัด background execution — แอปที่ไป background ถูกหยุดงานเร็วขึ้น</td></tr>
+  <tr><td>Android 9</td><td>28</td><td>แอป background เข้าถึงกล้อง/ไมค์/เซ็นเซอร์ไม่ได้ → ต้องหยุดใน onStop</td></tr>
+  <tr><td><b>Android 10</b></td><td>29</td><td><b>Multi-resume</b> — หลาย Activity เป็น RESUMED พร้อมกันได้; จำกัดการเริ่ม Activity จาก background</td></tr>
+  <tr><td>Android 11</td><td>30</td><td>one-time permission → สถานะ permission เปลี่ยนกลางคันได้ ต้องเช็คใหม่ทุกครั้งที่กลับ resumed</td></tr>
+  <tr><td>Android 12</td><td>31</td><td>splash screen API ใหม่กระทบช่วง start; ปรับพฤติกรรม back/task</td></tr>
+  <tr><td>Android 13</td><td>33</td><td><b>Predictive back (ทดลอง)</b> — จัดการ back ผ่าน OnBackPressedCallback/OnBackInvokedCallback แทนของเดิม</td></tr>
+  <tr><td>Android 14</td><td>34</td><td><b>Predictive back</b> เสถียรขึ้น → ควรย้ายมาใช้ back API ใหม่</td></tr>
+  <tr><td>Android 15/16</td><td>35+</td><td>edge-to-edge/หน้าต่างปรับขนาดเป็นค่าเริ่มต้นมากขึ้น → config change เกิดบ่อยขึ้น</td></tr>
+</table>
+<div class="note"><b>บทสรุปเชิงประวัติ:</b> ทิศทางคือ <b>หน้าต่าง/สถานะยืดหยุ่นขึ้น</b>
+(multi-window, multi-resume, predictive back, resizable) ทำให้ config change และการสลับสถานะ
+<b>เกิดบ่อยขึ้น</b> — โค้ดที่เก็บ state ถูกวิธีตั้งแต่ต้นจะได้เปรียบ</div>
+</section>
+
+<section id="pitfalls">
+<h2>13. ข้อผิดพลาดที่พบบ่อย</h2>
+<table>
+  <tr><th>ข้อผิดพลาด</th><th>ผล / วิธีแก้</th></tr>
+  <tr><td>observe ด้วย <code>this</code> แทน <code>viewLifecycleOwner</code></td><td>observer ซ้อน/รั่ว → ใช้ viewLifecycleOwner</td></tr>
+  <tr><td>ลืมเคลียร์ ViewBinding ใน onDestroyView</td><td>memory leak → ตั้ง <code>_binding = null</code></td></tr>
+  <tr><td>เก็บ Context/View/Activity ใน ViewModel</td><td>leak (ViewModel อายุยาวกว่า)</td></tr>
+  <tr><td>ทำงานหนักใน onCreate/onResume</td><td>เปิดหน้าจอช้า/กระตุก → ย้ายไป background</td></tr>
+  <tr><td>ไม่จัดการ config change</td><td>ข้อมูลหายตอนหมุนจอ → เก็บใน ViewModel (อย่าใช้ configChanges แบบมักง่าย)</td></tr>
+  <tr><td>ไม่เทสต์ process death</td><td>ผู้ใช้กลับมาแล้วแอปว่าง/แครช</td></tr>
+  <tr><td>collect Flow ไม่ใช้ repeatOnLifecycle</td><td>collect ต่อตอน background เปลืองทรัพยากร</td></tr>
+  <tr><td>ทำงานหนักใน onPause</td><td>หน่วง transition (onPause ต้องเร็ว)</td></tr>
+</table>
+</section>
+
+<section id="testing">
+<h2>14. การทดสอบเกี่ยวกับ lifecycle</h2>
+<ul>
+  <li><b>หมุนจอ / config change:</b> เปลี่ยน orientation แล้วดูว่า state ยังอยู่</li>
+  <li><b>process death:</b> เปิด "Don't keep activities" หรือ kill process แล้วกลับเข้าแอป</li>
+  <li><b>ActivityScenario / FragmentScenario:</b> ขับ lifecycle ในเทสต์</li>
+</ul>
+<pre><code><span class="kw">val</span> scenario = launchActivity&lt;MainActivity&gt;()
+scenario.moveToState(Lifecycle.State.CREATED)   <span class="com">// จำลองสถานะต่าง ๆ</span>
+scenario.recreate()                             <span class="com">// จำลอง config change</span></code></pre>
+<ul>
+  <li><code>TestLifecycleOwner</code> (androidx) — ทดสอบ lifecycle observer ที่เราเขียน</li>
+  <li><b>LeakCanary</b> — จับ memory leak จากการถือ reference ข้าม lifecycle อัตโนมัติตอน dev</li>
+</ul>
+</section>
+
+<section id="trends">
+<h2>15. แนวโน้มในอนาคต</h2>
+<ul>
+  <li><b>Compose ลดการแตะ lifecycle ตรง ๆ</b> — โมเดล state-driven + rememberSaveable + effect
+      API ทำให้จัดการ state/side-effect เป็นธรรมชาติขึ้น แต่ยังต้องเข้าใจ lifecycle ข้างใต้</li>
+  <li><b>collectAsStateWithLifecycle / repeatOnLifecycle เป็นมาตรฐาน</b> — observe แบบ
+      lifecycle-aware กลายเป็น default ที่ Google แนะนำ</li>
+  <li><b>หน้าต่างยืดหยุ่นเป็นค่าเริ่มต้น</b> — พับได้/แท็บเล็ต/เดสก์ท็อป/หลายหน้าต่าง → config
+      change เกิดบ่อย โค้ดต้อง "ไม่กลัวการสร้างใหม่" ตั้งแต่ออกแบบ</li>
+  <li><b>Predictive back</b> — การจัดการ back เปลี่ยนมาใช้ callback API ใหม่ ควรย้ายออกจาก
+      <code>onBackPressed()</code> เดิม</li>
+  <li><b>สรุปทิศทาง:</b> เครื่องมือช่วยจัดการ lifecycle จะ "อัตโนมัติ" ขึ้นเรื่อย ๆ แต่หลักการ
+      พื้นฐาน (สร้างใหม่ได้เสมอ, เก็บ state ถูกที่, ปล่อย resource ตรงเวลา) จะยังจำเป็นเสมอ</li>
+</ul>
+</section>
+
+<section id="glossary">
+<h2>16. ศัพท์ทางเทคนิค (Glossary)</h2>
+<ul>
+  <li><b>Configuration change</b> — การเปลี่ยนค่าระบบ (หมุนจอ, ภาษา, ขนาดหน้าต่าง, ธีม) ที่ทำให้ Activity/Fragment ถูกสร้างใหม่</li>
+  <li><b>Process death</b> — ระบบ kill process ของแอป (ตอน background) เพื่อคืน RAM</li>
+  <li><b>LifecycleOwner</b> — สิ่งที่มี lifecycle (Activity, Fragment, viewLifecycleOwner, process)</li>
+  <li><b>viewLifecycleOwner</b> — LifecycleOwner ของ view ใน Fragment (อายุสั้นกว่าตัว Fragment)</li>
+  <li><b>SavedStateHandle</b> — ที่เก็บ state ใน ViewModel ที่รอดทั้ง config change และ process death</li>
+  <li><b>onSaveInstanceState</b> — callback เก็บ state ลง Bundle (รอด process death, ของเล็ก)</li>
+  <li><b>viewModelScope</b> — coroutine scope ที่ยกเลิกเมื่อ ViewModel ถูก clear</li>
+  <li><b>repeatOnLifecycle</b> — API ให้ collect Flow เฉพาะช่วงที่ lifecycle อย่างน้อย STARTED</li>
+  <li><b>ProcessLifecycleOwner</b> — lifecycle ระดับทั้งแอป (foreground/background ของทั้งโปรเซส)</li>
+  <li><b>DisposableEffect / LaunchedEffect (Compose)</b> — effect API ที่ผูกกับ composition</li>
+  <li><b>recomposition (Compose)</b> — การวาด composable ใหม่เมื่อ state เปลี่ยน</li>
+  <li><b>Multi-resume</b> — หลาย Activity เป็น RESUMED พร้อมกันได้ (Android 10+, หลายหน้าต่าง)</li>
+</ul>
+</section>
+
+<hr>
+<p class="lead">เอกสารที่เกี่ยวข้อง: ภาพรวม Android — <code>docs/android-for-programmers.md</code> (B5) •
+Service — <code>docs/android-services.md</code> • ฉบับ markdown — <code>docs/android-lifecycle.md</code></p>
+</main>
+</div>
+</body>
+</html>

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>การจัดการ State และข้อมูลใน Android (ฉบับสมบูรณ์)</title>
+<style>
+  :root {
+    --accent: #00d1b2; --accent-dark: #00a88f;
+    --bg: #0f1419; --surface: #1a2029; --surface2: #232b36;
+    --text: #e6edf3; --muted: #9aa7b4; --border: #2d3742;
+    --code-bg: #11161c; --warn: #ffb454; --danger: #ff6b6b; --ok: #4ade80;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: -apple-system, "Segoe UI", "Sarabun", Tahoma, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.7; }
+  .layout { display: flex; }
+  nav.toc { position: sticky; top: 0; width: 320px; height: 100vh; overflow-y: auto;
+    background: var(--surface); border-right: 1px solid var(--border); padding: 24px 18px; flex-shrink: 0; }
+  nav.toc h2 { color: var(--accent); font-size: 14px; margin: 18px 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+  nav.toc h2:first-child { margin-top: 0; }
+  nav.toc a { display: block; color: var(--muted); text-decoration: none; font-size: 13.5px; padding: 5px 10px; border-radius: 6px; }
+  nav.toc a:hover { background: var(--surface2); color: var(--text); }
+  main { flex: 1; max-width: 900px; margin: 0 auto; padding: 40px 48px 120px; }
+  h1 { color: var(--accent); font-size: 30px; border-bottom: 2px solid var(--border); padding-bottom: 16px; }
+  h2 { color: var(--accent); font-size: 24px; margin-top: 48px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { color: var(--accent-dark); font-size: 19px; margin-top: 32px; }
+  h4 { color: var(--text); font-size: 16px; margin-top: 22px; }
+  p, li { color: var(--text); }
+  code { background: var(--code-bg); color: var(--accent); padding: 2px 6px; border-radius: 4px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 13.5px; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; overflow-x: auto; font-size: 13.5px; line-height: 1.55; }
+  pre code { background: none; color: #d6dee6; padding: 0; }
+  .kw { color: #ff7edb; } .str { color: #8ce99a; } .com { color: #6b7683; font-style: italic; } .num { color: #ffd580; } .fn { color: #66d9ef; }
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14.5px; }
+  th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--surface2); color: var(--accent); }
+  tr:nth-child(even) td { background: var(--surface); }
+  .note, .warn, .danger, .ok { border-radius: 10px; padding: 14px 18px; margin: 18px 0; border-left: 4px solid; }
+  .note { background: rgba(0,209,178,.08); border-color: var(--accent); }
+  .warn { background: rgba(255,180,84,.08); border-color: var(--warn); }
+  .danger { background: rgba(255,107,107,.08); border-color: var(--danger); }
+  .ok { background: rgba(74,222,128,.08); border-color: var(--ok); }
+  .pros li { color: var(--ok); } .pros li span { color: var(--text); }
+  .cons li { color: var(--danger); } .cons li span { color: var(--text); }
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+  .lead { color: var(--muted); font-size: 16px; }
+  .diagram { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 13px; white-space: pre; overflow-x: auto; color: #d6dee6; }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc">
+  <h2>ภาคทฤษฎี</h2>
+  <a href="#intro">1. State และข้อมูลคืออะไร</a>
+  <a href="#types">2. ประเภทของ state</a>
+  <a href="#holders">3. State holders (ที่เก็บ)</a>
+  <a href="#observable">4. Observable: StateFlow/LiveData</a>
+  <a href="#events">5. State vs Event (one-shot)</a>
+  <a href="#survival">6. ระดับการรอด (survival)</a>
+  <a href="#persistence">7. เก็บถาวร: DataStore/Room</a>
+  <a href="#network">8. ข้อมูลจากเครือข่าย</a>
+  <a href="#ssot">9. SSOT + ทิศทางข้อมูล</a>
+  <h2>เลือกใช้</h2>
+  <a href="#choose">10. เก็บอะไรไว้ที่ไหน</a>
+  <a href="#proscons">11. ข้อดี/ข้อเสียแต่ละตัว</a>
+  <h2>ภาคปฏิบัติ</h2>
+  <a href="#practical">12. สร้างจริง step-by-step</a>
+  <a href="#pitfalls">13. ข้อผิดพลาดที่พบบ่อย</a>
+  <a href="#testing">14. การทดสอบ</a>
+  <a href="#trends">15. แนวโน้มในอนาคต</a>
+  <a href="#glossary">16. ศัพท์เทคนิค</a>
+</nav>
+<main>
+
+<h1>การจัดการ State และข้อมูลใน Android (ฉบับสมบูรณ์)</h1>
+<p class="lead">อธิบายการจัดการ state (สถานะ UI) และข้อมูลบน Android ครบทุกส่วน — ประเภท state,
+ที่เก็บ (ViewModel/SavedStateHandle), StateFlow/LiveData, event vs state, ระดับการรอด
+(config change/process death/ถาวร), DataStore/Room, ข้อมูลเครือข่าย, SSOT — พร้อมภาคปฏิบัติ
+สร้างจริง, ข้อดี/ข้อเสีย, การเลือกใช้ และแนวโน้ม อ่านจบแล้วนำไปใช้ได้ทันที</p>
+
+<div class="note"><b>สรุปสั้นสุด:</b> <b>UI state</b> เก็บใน ViewModel เปิดเป็น <b>StateFlow</b>
+(read-only) • <b>state ที่ต้องรอด process death</b> ใช้ <b>SavedStateHandle</b> •
+<b>ข้อมูลถาวร</b> ใช้ <b>DataStore</b> (คู่ค่า) หรือ <b>Room</b> (มีโครงสร้าง) • ยึดหลัก
+<b>SSOT</b> (แหล่งความจริงเดียว) + <b>UDF</b> (state ลง, event ขึ้น)</div>
+
+<section id="intro">
+<h2>1. State และข้อมูลคืออะไร</h2>
+<p><b>State (สถานะ)</b> คือ "ข้อมูลที่อธิบายว่า ณ ตอนนี้ UI ควรแสดงอะไร" — เช่น รายการสินค้า,
+กำลังโหลดอยู่ไหม, มี error ไหม • เมื่อ state เปลี่ยน UI ต้องอัปเดตตาม</p>
+<p>แยก 2 คำที่มักสับสน:</p>
+<ul>
+  <li><b>State</b> — ค่าปัจจุบันที่ "คงอยู่" และ UI สะท้อนตลอด (เช่น list, isLoading)</li>
+  <li><b>ข้อมูล (Data)</b> — ตัวเนื้อข้อมูลจริง (จาก network/db) ที่ถูกแปลงมาเป็น state</li>
+</ul>
+<div class="note">หลักคิด: <b>UI = f(state)</b> — หน้าจอเป็นผลลัพธ์ของ state ล้วน ๆ ไม่ควรมี
+ข้อมูลซ่อนอยู่ใน view เอง</div>
+</section>
+
+<section id="types">
+<h2>2. ประเภทของ state</h2>
+<table>
+  <tr><th>ประเภท</th><th>คือ</th><th>ตัวอย่าง</th><th>เก็บที่</th></tr>
+  <tr><td><b>UI element state</b></td><td>สถานะของ view ชั่วคราว</td><td>scroll position, ข้อความในช่องกรอก</td><td>view/rememberSaveable</td></tr>
+  <tr><td><b>Screen (UI) state</b></td><td>สถานะทั้งหน้าจอ</td><td>list, isLoading, error</td><td>ViewModel (StateFlow)</td></tr>
+  <tr><td><b>App/persistent state</b></td><td>ข้อมูลที่ต้องอยู่ถาวร</td><td>ตั้งค่าผู้ใช้, ข้อมูลที่ cache</td><td>DataStore/Room</td></tr>
+</table>
+</section>
+
+<section id="holders">
+<h2>3. State holders (ที่เก็บ state)</h2>
+<h4>ViewModel — ที่เก็บ screen state หลัก</h4>
+<p>ถือ UI state ของหน้าจอ, รอด configuration change (หมุนจอ), มี <code>viewModelScope</code></p>
+<pre><code><span class="kw">class</span> MenuViewModel(<span class="kw">private val</span> repo: MenuRepository) : ViewModel() {
+    <span class="kw">private val</span> _uiState = MutableStateFlow(MenuUiState())   <span class="com">// แก้ได้ (ภายใน)</span>
+    <span class="kw">val</span> uiState: StateFlow&lt;MenuUiState&gt; = _uiState.asStateFlow()  <span class="com">// read-only (ออกไป)</span>
+}</code></pre>
+<h4>SavedStateHandle — state ที่ต้องรอด process death</h4>
+<pre><code><span class="kw">class</span> SearchViewModel(<span class="kw">private val</span> state: SavedStateHandle) : ViewModel() {
+    <span class="com">// รอดทั้งหมุนจอ และตอนระบบ kill แอปคืน RAM</span>
+    <span class="kw">val</span> query: StateFlow&lt;String&gt; = state.getStateFlow(<span class="str">"query"</span>, <span class="str">""</span>)
+    <span class="kw">fun</span> <span class="fn">setQuery</span>(q: String) { state[<span class="str">"query"</span>] = q }
+}</code></pre>
+<h4>Compose: remember / rememberSaveable</h4>
+<pre><code><span class="kw">var</span> text <span class="kw">by</span> remember { mutableStateOf(<span class="str">""</span>) }          <span class="com">// รอด recomposition</span>
+<span class="kw">var</span> text <span class="kw">by</span> rememberSaveable { mutableStateOf(<span class="str">""</span>) }  <span class="com">// รอด config change/process death</span></code></pre>
+</section>
+
+<section id="observable">
+<h2>4. Observable state: StateFlow vs LiveData</h2>
+<p>เปิด state ให้ UI "สังเกต (observe)" แล้ววาดใหม่เมื่อเปลี่ยน — มี 2 ตัวหลัก:</p>
+<table>
+  <tr><th>ประเด็น</th><th>StateFlow</th><th>LiveData</th></tr>
+  <tr><td>มาจาก</td><td>Kotlin Coroutines (Flow)</td><td>Jetpack (เก่ากว่า)</td></tr>
+  <tr><td>มีค่าเริ่มต้น</td><td>ต้องมีเสมอ</td><td>ไม่บังคับ (null ได้)</td></tr>
+  <tr><td>lifecycle-aware</td><td>ต้องใช้ repeatOnLifecycle เอง</td><td>ในตัว</td></tr>
+  <tr><td>ใช้กับ Compose</td><td>collectAsStateWithLifecycle()</td><td>observeAsState()</td></tr>
+  <tr><td>แนะนำปัจจุบัน</td><td>✅ (มาตรฐานใหม่)</td><td>ยังใช้ได้ (โปรเจกต์เก่า)</td></tr>
+</table>
+<h4>สังเกต StateFlow ใน View (ถูกต้อง)</h4>
+<pre><code>viewLifecycleOwner.lifecycleScope.launch {
+    viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        viewModel.uiState.collect { state -&gt; render(state) }  <span class="com">// หยุด/เริ่มตามการมองเห็น</span>
+    }
+}</code></pre>
+<h4>สังเกตใน Compose</h4>
+<pre><code><span class="kw">val</span> state <span class="kw">by</span> viewModel.uiState.collectAsStateWithLifecycle()
+Text(state.title)   <span class="com">// recompose อัตโนมัติเมื่อ state เปลี่ยน</span></code></pre>
+</section>
+
+<section id="events">
+<h2>5. State vs Event (one-shot) — จุดพลาดบ่อย</h2>
+<p>ต้องแยก "state ที่คงอยู่" กับ "event ที่เกิดครั้งเดียว" (toast, navigate, snackbar)</p>
+<ul>
+  <li><b>State</b> — สะท้อนตลอด (list, isLoading) → StateFlow/LiveData</li>
+  <li><b>One-shot event</b> — เกิดครั้งเดียวแล้วจบ → ถ้าเก็บเป็น state จะ "เด้งซ้ำ" ตอนหมุนจอ</li>
+</ul>
+<pre><code><span class="com">// ❌ ผิด: เก็บ navigate เป็น state → หมุนจอแล้ว navigate ซ้ำ</span>
+<span class="com">// ✅ ถูก: ใช้ Channel (consume ครั้งเดียว)</span>
+<span class="kw">private val</span> _events = Channel&lt;UiEvent&gt;()
+<span class="kw">val</span> events = _events.receiveAsFlow()
+
+<span class="kw">fun</span> <span class="fn">onSubmit</span>() = viewModelScope.launch {
+    repo.submit()
+    _events.send(UiEvent.NavigateToSuccess)   <span class="com">// ส่ง event ครั้งเดียว</span>
+}</code></pre>
+<div class="note"><b>สรุป:</b> อะไรที่ "แสดงค้างบนจอ" = state • อะไรที่ "ทำครั้งเดียวแล้วจบ"
+(นำทาง/แจ้งเตือน) = event ผ่าน Channel/SharedFlow</div>
+</section>
+
+<section id="survival">
+<h2>6. ระดับการรอด (survival) — สำคัญที่สุด</h2>
+<p>ต้องรู้ว่า state แต่ละอันต้อง "รอด" สถานการณ์ไหนบ้าง แล้วเลือกที่เก็บให้ถูก:</p>
+<table>
+  <tr><th>สถานการณ์</th><th>ViewModel</th><th>SavedStateHandle</th><th>DataStore/Room</th></tr>
+  <tr><td>หมุนจอ / config change</td><td>✅ รอด</td><td>✅ รอด</td><td>✅ รอด</td></tr>
+  <tr><td>process death (ระบบ kill background)</td><td>❌ หาย</td><td>✅ รอด</td><td>✅ รอด</td></tr>
+  <tr><td>ปิดแอปเอง / รีบูตเครื่อง</td><td>❌ หาย</td><td>❌ หาย</td><td>✅ รอด (ถาวร)</td></tr>
+</table>
+<div class="warn"><b>process death มองไม่เห็นตอน dev</b> — ต้องจงใจทดสอบ (Developer options →
+"Don't keep activities" หรือ kill จาก Android Studio) ไม่งั้นเจอบั๊กตอน production</div>
+</section>
+
+<section id="persistence">
+<h2>7. เก็บถาวร: DataStore vs Room</h2>
+<table>
+  <tr><th>ประเด็น</th><th>DataStore</th><th>Room</th></tr>
+  <tr><td>เก็บอะไร</td><td>ค่าเดี่ยว/preference (คู่ key-value)</td><td>ข้อมูลมีโครงสร้าง (ตาราง/ความสัมพันธ์)</td></tr>
+  <tr><td>ตัวอย่าง</td><td>dark mode, ภาษา, token, onboarding เสร็จไหม</td><td>รายการสินค้า, ประวัติสั่งอาหาร, cache</td></tr>
+  <tr><td>query ซับซ้อน</td><td>ไม่ได้</td><td>ได้ (SQL)</td></tr>
+  <tr><td>แทนที่</td><td>SharedPreferences (เก่า)</td><td>SQLite ดิบ</td></tr>
+  <tr><td>async</td><td>coroutines/Flow ในตัว</td><td>coroutines/Flow</td></tr>
+</table>
+<h4>DataStore (Preferences)</h4>
+<pre><code><span class="kw">val</span> Context.dataStore <span class="kw">by</span> preferencesDataStore(<span class="str">"settings"</span>)
+<span class="kw">val</span> DARK = booleanPreferencesKey(<span class="str">"dark_mode"</span>)
+
+<span class="com">// อ่าน (Flow — อัปเดตอัตโนมัติเมื่อค่าเปลี่ยน)</span>
+<span class="kw">val</span> darkMode: Flow&lt;Boolean&gt; = context.dataStore.data.map { it[DARK] ?: <span class="kw">false</span> }
+<span class="com">// เขียน</span>
+<span class="kw">suspend fun</span> <span class="fn">setDark</span>(on: Boolean) { context.dataStore.edit { it[DARK] = on } }</code></pre>
+<h4>Room</h4>
+<pre><code>@Entity <span class="kw">data class</span> OrderEntity(@PrimaryKey <span class="kw">val</span> id: String, <span class="kw">val</span> total: Double)
+
+@Dao <span class="kw">interface</span> OrderDao {
+    @Query(<span class="str">"SELECT * FROM OrderEntity"</span>) <span class="kw">fun</span> <span class="fn">observeAll</span>(): Flow&lt;List&lt;OrderEntity&gt;&gt;
+    @Upsert <span class="kw">suspend fun</span> <span class="fn">upsert</span>(order: OrderEntity)
+}</code></pre>
+</section>
+
+<section id="network">
+<h2>8. ข้อมูลจากเครือข่าย</h2>
+<ul>
+  <li><b>Retrofit</b> (นิยมสุด) หรือ <b>Ktor</b> — คู่กับ <b>OkHttp</b> + coroutines</li>
+  <li>คืน DTO → แปลงเป็น domain model (mapper) → ไม่ให้ network detail รั่วเข้าชั้นบน</li>
+  <li>จัดการ error ด้วย <code>try/catch</code> หรือห่อใน <code>Result</code></li>
+</ul>
+<pre><code><span class="kw">interface</span> MenuApi {
+    @GET(<span class="str">"menu"</span>) <span class="kw">suspend fun</span> <span class="fn">fetchMenu</span>(): List&lt;MenuDto&gt;
+}
+<span class="com">// ใน Repository: network → cache DB → UI อ่านจาก DB (offline ได้)</span></code></pre>
+</section>
+
+<section id="ssot">
+<h2>9. SSOT + ทิศทางข้อมูล (UDF)</h2>
+<ul>
+  <li><b>SSOT (Single Source of Truth):</b> ข้อมูลแต่ละชนิดมี "แหล่งความจริงเดียว" — มัก
+      เป็น <b>Repository/DB</b> คนอื่นแค่อ่าน</li>
+  <li><b>UDF (Unidirectional Data Flow):</b> state ไหลลง (Repo→VM→UI), event ไหลขึ้น (UI→VM)</li>
+</ul>
+<div class="diagram">        event (คลิก/พิมพ์)  ▲
+UI ──────────────────────────┘
+ ▲ observe state (StateFlow)
+ │
+ViewModel ◄── Repository ◄── DB / Network
+                (SSOT)</div>
+<div class="note">ยึด SSOT + UDF แล้วบั๊ก "ข้อมูลไม่ตรงกันหลายที่" จะหายไปเกือบหมด</div>
+</section>
+
+<section id="choose">
+<h2>10. เก็บอะไรไว้ที่ไหน (Decision Guide)</h2>
+<div class="diagram">ข้อมูลนี้ต้องอยู่ถาวร (ปิดแอป/รีบูตแล้วยังอยู่)?
+  ├─ ใช่ + เป็นค่าเดี่ยว/ตั้งค่า → DataStore
+  └─ ใช่ + มีโครงสร้าง/หลายรายการ → Room
+
+ต้องรอด process death (ระบบ kill ตอน background)?
+  ├─ ใช่ + ข้อมูลเล็ก → SavedStateHandle
+  └─ ใช่ + ข้อมูลใหญ่ → เก็บ id/คีย์ใน SavedStateHandle แล้วโหลดจาก repository
+
+แค่ต้องรอดหมุนจอ (config change)?
+  └─ ใช่ → ViewModel (StateFlow)
+
+เป็นค่าชั่วคราวใน UI (Compose)?
+  └─ remember (ไม่รอด) / rememberSaveable (รอด config+process death)
+
+เป็น "ทำครั้งเดียว" (navigate/toast)?
+  └─ Channel / SharedFlow (ไม่ใช่ state)</div>
+<table>
+  <tr><th>ต้องการ</th><th>ใช้</th></tr>
+  <tr><td>UI state ของหน้าจอ</td><td>ViewModel + StateFlow</td></tr>
+  <tr><td>รอด process death (เล็ก)</td><td>SavedStateHandle</td></tr>
+  <tr><td>ตั้งค่า/ค่าเดี่ยวถาวร</td><td>DataStore</td></tr>
+  <tr><td>ข้อมูลมีโครงสร้าง/cache</td><td>Room</td></tr>
+  <tr><td>ข้อมูลจาก server</td><td>Retrofit/Ktor → map → Repository</td></tr>
+  <tr><td>navigate/toast/snackbar</td><td>Channel/SharedFlow (event)</td></tr>
+</table>
+</section>
+
+<section id="proscons">
+<h2>11. ข้อดี / ข้อเสียของแต่ละตัว</h2>
+<h4>ViewModel + StateFlow</h4>
+<ul class="pros"><li>✅ <span>รอด config change, มี scope จัดการ coroutine, เข้ากับ Compose/UDF</span></li></ul>
+<ul class="cons"><li>❌ <span>ไม่รอด process death (ต้องคู่กับ SavedStateHandle), StateFlow ต้อง repeatOnLifecycle เอง</span></li></ul>
+<h4>SavedStateHandle</h4>
+<ul class="pros"><li>✅ <span>รอด process death, ผูกกับ ViewModel สะดวก</span></li></ul>
+<ul class="cons"><li>❌ <span>เก็บได้แต่ของเล็ก (Bundle) — ห้าม list/bitmap ใหญ่</span></li></ul>
+<h4>DataStore</h4>
+<ul class="pros"><li>✅ <span>async ปลอดภัย (แทน SharedPreferences), Flow ในตัว, ถาวร</span></li></ul>
+<ul class="cons"><li>❌ <span>ไม่เหมาะข้อมูลมีโครงสร้าง/query ซับซ้อน</span></li></ul>
+<h4>Room</h4>
+<ul class="pros"><li>✅ <span>query ได้, type-safe, Flow, เหมาะ cache/offline</span></li></ul>
+<ul class="cons"><li>❌ <span>setup มากกว่า, over-kill สำหรับค่าเดี่ยว ๆ</span></li></ul>
+<h4>LiveData</h4>
+<ul class="pros"><li>✅ <span>lifecycle-aware ในตัว, ง่ายสำหรับมือใหม่/โปรเจกต์เก่า</span></li></ul>
+<ul class="cons"><li>❌ <span>เก่ากว่า, ไม่เข้ากับ coroutines/Compose เท่า StateFlow</span></li></ul>
+</section>
+
+<section id="practical">
+<h2>12. ภาคปฏิบัติ: สร้างจริง step-by-step</h2>
+<p>โจทย์: หน้าจอ <b>"ค้นหาเมนู"</b> ที่ (1) เก็บคำค้นให้รอด process death, (2) โหลดผลจาก
+Repository, (3) จำ dark mode ถาวร, (4) navigate เมื่อกดรายการ — ครบทุกประเภท state</p>
+
+<h4>ขั้น 1 — UI State (immutable)</h4>
+<pre><code><span class="kw">data class</span> SearchUiState(
+    <span class="kw">val</span> query: String = <span class="str">""</span>,
+    <span class="kw">val</span> results: List&lt;MenuItem&gt; = emptyList(),
+    <span class="kw">val</span> isLoading: Boolean = <span class="kw">false</span>,
+    <span class="kw">val</span> error: String? = <span class="kw">null</span>
+)
+
+<span class="com">// one-shot event แยกจาก state</span>
+<span class="kw">sealed interface</span> SearchEvent {
+    <span class="kw">data class</span> OpenDetail(<span class="kw">val</span> id: String) : SearchEvent
+    <span class="kw">data class</span> ShowError(<span class="kw">val</span> msg: String) : SearchEvent
+}</code></pre>
+
+<h4>ขั้น 2 — ViewModel: รวม SavedStateHandle + StateFlow + Channel</h4>
+<pre><code>@HiltViewModel
+<span class="kw">class</span> SearchViewModel @Inject <span class="kw">constructor</span>(
+    <span class="kw">private val</span> repo: MenuRepository,
+    <span class="kw">private val</span> savedState: SavedStateHandle
+) : ViewModel() {
+
+    <span class="com">// 1) query เก็บใน SavedStateHandle → รอด process death</span>
+    <span class="kw">val</span> query: StateFlow&lt;String&gt; = savedState.getStateFlow(<span class="str">"query"</span>, <span class="str">""</span>)
+
+    <span class="com">// 2) results มาจาก query (debounce กันยิงถี่) แล้วโหลดจาก repo</span>
+    <span class="kw">val</span> uiState: StateFlow&lt;SearchUiState&gt; = query
+        .debounce(<span class="num">300</span>)
+        .flatMapLatest { q -&gt;
+            <span class="kw">if</span> (q.isBlank()) flowOf(SearchUiState())
+            <span class="kw">else</span> repo.search(q)
+                .map { SearchUiState(query = q, results = it) }
+                .onStart { emit(SearchUiState(query = q, isLoading = <span class="kw">true</span>)) }
+                .catch { emit(SearchUiState(query = q, error = it.toUiMessage())) }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(<span class="num">5000</span>), SearchUiState())
+
+    <span class="com">// 3) event ครั้งเดียว (navigate)</span>
+    <span class="kw">private val</span> _events = Channel&lt;SearchEvent&gt;()
+    <span class="kw">val</span> events = _events.receiveAsFlow()
+
+    <span class="kw">fun</span> <span class="fn">onQueryChange</span>(q: String) { savedState[<span class="str">"query"</span>] = q }   <span class="com">// เก็บอัตโนมัติ</span>
+    <span class="kw">fun</span> <span class="fn">onItemClick</span>(id: String) = viewModelScope.launch {
+        _events.send(SearchEvent.OpenDetail(id))
+    }
+}</code></pre>
+
+<h4>ขั้น 3 — dark mode ถาวรด้วย DataStore (แยก Repository)</h4>
+<pre><code><span class="kw">class</span> SettingsRepository(<span class="kw">private val</span> dataStore: DataStore&lt;Preferences&gt;) {
+    <span class="kw">private val</span> DARK = booleanPreferencesKey(<span class="str">"dark_mode"</span>)
+    <span class="kw">val</span> darkMode: Flow&lt;Boolean&gt; = dataStore.data.map { it[DARK] ?: <span class="kw">false</span> }
+    <span class="kw">suspend fun</span> <span class="fn">setDark</span>(on: Boolean) { dataStore.edit { it[DARK] = on } }
+}</code></pre>
+
+<h4>ขั้น 4 — UI (Fragment): observe state + consume event</h4>
+<pre><code><span class="kw">class</span> SearchFragment : Fragment() {
+    <span class="kw">private val</span> vm: SearchViewModel <span class="kw">by</span> viewModels()
+
+    <span class="kw">override fun</span> <span class="fn">onViewCreated</span>(v: View, s: Bundle?) {
+        <span class="com">// state → วาด UI</span>
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch { vm.uiState.collect { render(it) } }
+                launch { vm.events.collect { handleEvent(it) } }   <span class="com">// event ครั้งเดียว</span>
+            }
+        }
+        <span class="com">// event → ส่งขึ้น ViewModel</span>
+        binding.searchInput.doAfterTextChanged { vm.onQueryChange(it.toString()) }
+    }
+
+    <span class="kw">private fun</span> <span class="fn">handleEvent</span>(e: SearchEvent) = <span class="kw">when</span> (e) {
+        <span class="kw">is</span> SearchEvent.OpenDetail -&gt; findNavController().navigate(<span class="com">/* to detail */</span>)
+        <span class="kw">is</span> SearchEvent.ShowError  -&gt; showSnackbar(e.msg)
+    }
+}</code></pre>
+<div class="note">ครบทุกประเภท: <b>query</b> = SavedStateHandle (รอด process death), <b>results/
+isLoading</b> = StateFlow, <b>navigate</b> = Channel (event), <b>dark mode</b> = DataStore (ถาวร)</div>
+</section>
+
+<section id="pitfalls">
+<h2>13. ข้อผิดพลาดที่พบบ่อย</h2>
+<table>
+  <tr><th>ข้อผิดพลาด</th><th>ผล / วิธีแก้</th></tr>
+  <tr><td>expose <code>MutableStateFlow</code> ออกจาก ViewModel</td><td>ข้างนอกแก้ได้ → ใช้ <code>asStateFlow()</code></td></tr>
+  <tr><td>เก็บ navigate/toast เป็น state</td><td>เด้งซ้ำตอนหมุนจอ → ใช้ Channel/SharedFlow</td></tr>
+  <tr><td>ไม่ทดสอบ process death</td><td>query/state หายเมื่อกลับมา → ใช้ SavedStateHandle</td></tr>
+  <tr><td>เก็บของใหญ่ใน SavedStateHandle</td><td>TransactionTooLarge/ช้า → เก็บ id แล้วโหลดใหม่</td></tr>
+  <tr><td>collect StateFlow ไม่ใช้ repeatOnLifecycle</td><td>collect ตอน background เปลืองทรัพยากร</td></tr>
+  <tr><td>UI แก้ state เอง (ไม่ผ่าน VM)</td><td>state ไม่ตรงกัน → ยึด UDF</td></tr>
+  <tr><td>ใช้ SharedPreferences บน main thread</td><td>ANR → ใช้ DataStore (async)</td></tr>
+  <tr><td>หลาย state แยกกันหลายตัว</td><td>ประกอบยาก → รวมเป็น UI state ก้อนเดียว (data class)</td></tr>
+</table>
+</section>
+
+<section id="testing">
+<h2>14. การทดสอบ</h2>
+<pre><code><span class="com">// เทสต์ ViewModel state ด้วย coroutines-test + Turbine</span>
+@Test <span class="kw">fun</span> `<span class="fn">พิมพ์ query แล้วได้ผลลัพธ์</span>`() = runTest {
+    <span class="kw">val</span> repo = FakeMenuRepository(results = listOf(item))
+    <span class="kw">val</span> vm = SearchViewModel(repo, SavedStateHandle())
+
+    vm.uiState.test {                          <span class="com">// Turbine</span>
+        assertEquals(SearchUiState(), awaitItem())   <span class="com">// state เริ่มต้น</span>
+        vm.onQueryChange(<span class="str">"ผัด"</span>)
+        <span class="kw">val</span> loaded = awaitItem()
+        assertEquals(<span class="num">1</span>, loaded.results.size)
+    }
+}</code></pre>
+<ul>
+  <li><b>coroutines-test</b> (<code>runTest</code>) — คุมเวลา/dispatcher</li>
+  <li><b>Turbine</b> — เทสต์ค่าที่ Flow/StateFlow emit ทีละตัว</li>
+  <li><b>SavedStateHandle()</b> — สร้าง empty ใส่ในเทสต์ได้ตรง ๆ</li>
+  <li><b>Room:</b> ใช้ in-memory database ในเทสต์ • <b>DataStore:</b> ใช้ temp file</li>
+</ul>
+</section>
+
+<section id="trends">
+<h2>15. แนวโน้มในอนาคต</h2>
+<ul>
+  <li><b>StateFlow + collectAsStateWithLifecycle เป็นมาตรฐาน</b> — แทน LiveData เดิม</li>
+  <li><b>DataStore แทน SharedPreferences เต็มตัว</b> — SharedPreferences ถือว่า legacy</li>
+  <li><b>UI state ก้อนเดียว (single state) + UDF/MVI</b> นิยมขึ้นกับ Compose</li>
+  <li><b>Room + Flow เป็น cache/offline-first มาตรฐาน</b></li>
+  <li><b>KMP:</b> StateFlow/coroutines/Room(KMP) แชร์ logic การจัดการ state ข้ามแพลตฟอร์มได้</li>
+  <li><b>สรุป:</b> ทิศทางคือ state-driven + reactive (Flow) + immutable single state — เครื่องมือ
+      เปลี่ยน (LiveData→StateFlow, SharedPreferences→DataStore) แต่หลักการ (SSOT/UDF/survival) คงเดิม</li>
+</ul>
+</section>
+
+<section id="glossary">
+<h2>16. ศัพท์ทางเทคนิค (Glossary)</h2>
+<ul>
+  <li><b>State</b> — ข้อมูลที่อธิบายว่า UI ควรแสดงอะไรตอนนี้</li>
+  <li><b>UI State</b> — ก้อน immutable ที่อธิบายทั้งหน้าจอ</li>
+  <li><b>State holder</b> — ตัวถือ state (ViewModel)</li>
+  <li><b>StateFlow</b> — Flow ที่มีค่าปัจจุบันเสมอ (จาก coroutines) ใช้เปิด state</li>
+  <li><b>LiveData</b> — observable แบบ lifecycle-aware ของ Jetpack (เก่ากว่า)</li>
+  <li><b>SavedStateHandle</b> — ที่เก็บ state ใน ViewModel ที่รอด process death</li>
+  <li><b>one-shot event</b> — เหตุการณ์ที่เกิดครั้งเดียว (navigate/toast) → Channel/SharedFlow</li>
+  <li><b>Channel / SharedFlow</b> — ช่องส่ง event แบบ consume ครั้งเดียว</li>
+  <li><b>DataStore</b> — ที่เก็บ preference แบบ async (แทน SharedPreferences)</li>
+  <li><b>Room</b> — ORM บน SQLite (ข้อมูลมีโครงสร้าง)</li>
+  <li><b>SSOT</b> — Single Source of Truth (แหล่งความจริงเดียว)</li>
+  <li><b>UDF</b> — Unidirectional Data Flow (state ลง, event ขึ้น)</li>
+  <li><b>process death</b> — ระบบ kill process แอป (background) เพื่อคืน RAM</li>
+  <li><b>debounce</b> — หน่วงรอให้หยุดพิมพ์ก่อนค่อยยิง (กัน request ถี่)</li>
+</ul>
+</section>
+
+<hr>
+<p class="lead">เอกสารที่เกี่ยวข้อง: ภาพรวม Android — <code>docs/android-for-programmers.md</code> (B6) •
+Lifecycle — <code>docs/android-lifecycle.html</code> • สถาปัตยกรรม — <code>docs/android-architecture.html</code></p>
+</main>
+</div>
+</body>
+</html>

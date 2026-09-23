@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">FoodOrder</string>
+
+    <!-- Menu screen -->
+    <string name="title_menu">เมนูอาหาร</string>
+    <string name="title_cart">ตะกร้าสินค้า</string>
+    <string name="action_add">เพิ่ม</string>
+    <string name="action_view_cart">ดูตะกร้า (%1$d)</string>
+    <string name="price_format">฿%1$.0f</string>
+
+    <!-- Cart screen -->
+    <string name="cart_empty">ยังไม่มีสินค้าในตะกร้า</string>
+    <string name="cart_total">รวมทั้งหมด: ฿%1$.0f</string>
+    <string name="action_place_order">สั่งอาหาร</string>
+    <string name="action_increase">เพิ่มจำนวน</string>
+    <string name="action_decrease">ลดจำนวน</string>
+    <string name="quantity_format">x%1$d</string>
+    <string name="order_success">สั่งอาหารสำเร็จ! ยอดรวม ฿%1$.0f</string>
+</resources>
