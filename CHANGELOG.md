@@ -1164,6 +1164,16 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 **Changed**
 - ใน `docs/android-for-programmers.md` (B8) เพิ่มลิงก์ไปฉบับ HTML
 
+## 124. เพิ่มโค้ด permission ครบทุกกลุ่มในภาคปฏิบัติ (Permissions doc)
+
+**Added**
+- ใน `docs/android-permissions-security.html` (ภาคปฏิบัติ) เพิ่มหัวข้อ 14.1 "permission อื่น ๆ
+  ส่วนใหญ่เหมือนกัน แค่เปลี่ยนชื่อ" (ตารางรายการ dangerous permission ที่ใช้ flow เดียวกับ
+  กล้อง: ไมค์/ผู้ติดต่อ/ปฏิทิน/โทร/SMS/เซ็นเซอร์) และ 14.2 "กรณีที่ต้องเขียนต่าง" พร้อมโค้ด
+  + comment ชี้จุดที่ต่าง: หลาย permission (RequestMultiplePermissions/Map), background
+  location (ขอ 2 สเต็ป), special permission (เช็คเมธอดเฉพาะ + Settings intent + ตารางแต่ละตัว),
+  ไฟล์/รูป (Photo Picker ไม่ต้องขอ), POST_NOTIFICATIONS (เช็ค API 33+) + ตารางสรุปว่าต่างตรงไหน
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

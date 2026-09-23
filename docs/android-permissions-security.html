@@ -391,6 +391,102 @@ Photo Picker แทน storage, coarse แทน fine) — ขอเป็นท
 }</code></pre>
 <div class="ok">flow นี้ครอบคลุมครบ: มีสิทธิ์แล้ว / ขอครั้งแรก / เคยปฏิเสธ (rationale) / ปฏิเสธ
 ถาวร (ไป Settings) — เป็น template มาตรฐานที่ใช้ได้ทุกแอป</div>
+
+<h3>14.1 permission อื่น ๆ — ส่วนใหญ่ "เหมือนกัน แค่เปลี่ยนชื่อ"</h3>
+<p>ข่าวดี: <b>permission กลุ่ม dangerous ที่เป็น "อันเดียว" เกือบทั้งหมดใช้โค้ด flow เดียวกัน
+กับกล้องด้านบน</b> — แค่เปลี่ยน 2 อย่าง: (1) ชื่อ permission ที่ launch (2) การกระทำเมื่อได้สิทธิ์</p>
+<div class="diagram"><span style="color:#8ce99a">// เปลี่ยนแค่ตรงนี้จาก template กล้อง</span>
+requestPermission.launch(Manifest.permission.<span style="color:#ffd580">XXX</span>)   // ← เปลี่ยนชื่อ
+onGranted = { <span style="color:#ffd580">doSomething()</span> }                        // ← เปลี่ยนการกระทำ</div>
+<table>
+  <tr><th>ต้องการ</th><th>permission (ใส่แทน CAMERA)</th><th>โค้ด flow</th></tr>
+  <tr><td>ไมโครโฟน (อัดเสียง)</td><td><code>RECORD_AUDIO</code></td><td>เหมือนกล้องเป๊ะ</td></tr>
+  <tr><td>อ่านผู้ติดต่อ</td><td><code>READ_CONTACTS</code></td><td>เหมือนกล้องเป๊ะ</td></tr>
+  <tr><td>เขียนผู้ติดต่อ</td><td><code>WRITE_CONTACTS</code></td><td>เหมือนกล้องเป๊ะ</td></tr>
+  <tr><td>ปฏิทิน</td><td><code>READ_CALENDAR</code> / <code>WRITE_CALENDAR</code></td><td>เหมือนกล้องเป๊ะ</td></tr>
+  <tr><td>โทรศัพท์</td><td><code>CALL_PHONE</code> / <code>READ_PHONE_STATE</code></td><td>เหมือนกล้องเป๊ะ</td></tr>
+  <tr><td>SMS</td><td><code>SEND_SMS</code> / <code>READ_SMS</code></td><td>เหมือนกล้องเป๊ะ</td></tr>
+  <tr><td>เซ็นเซอร์ร่างกาย</td><td><code>BODY_SENSORS</code></td><td>เหมือนกล้องเป๊ะ</td></tr>
+  <tr><td>แจ้งเตือน (Android 13+)</td><td><code>POST_NOTIFICATIONS</code></td><td>เหมือนกล้อง (ดู 14.2)</td></tr>
+</table>
+<div class="note"><b>สรุป:</b> ถ้าเป็น permission dangerous อันเดียว → ก๊อป template กล้อง แล้ว
+เปลี่ยนชื่อ permission พอ ไม่ต้องเขียนใหม่</div>
+
+<h3>14.2 กรณีที่ต้องเขียน "ต่าง" จาก template</h3>
+
+<h4>ก) หลาย permission พร้อมกัน → ใช้ RequestMultiplePermissions</h4>
+<pre><code><span class="com">// เช่น ตำแหน่ง (fine+coarse) หรือ SMS อ่าน+ส่งพร้อมกัน</span>
+<span class="kw">private val</span> multiPerms = registerForActivityResult(
+    ActivityResultContracts.RequestMultiplePermissions()   <span class="com">// ← ต่าง: Multiple</span>
+) { result: Map&lt;String, Boolean&gt; -&gt;                        <span class="com">// ← ต่าง: ได้ Map</span>
+    <span class="kw">when</span> {
+        result[Manifest.permission.ACCESS_FINE_LOCATION] == <span class="kw">true</span> -&gt; useFine()
+        result[Manifest.permission.ACCESS_COARSE_LOCATION] == <span class="kw">true</span> -&gt; useApprox()
+        <span class="kw">else</span> -&gt; showDenied()
+    }
+}
+multiPerms.launch(arrayOf(
+    Manifest.permission.ACCESS_FINE_LOCATION,
+    Manifest.permission.ACCESS_COARSE_LOCATION
+))</code></pre>
+
+<h4>ข) Background location → ต้องขอ "2 สเต็ป"</h4>
+<pre><code><span class="com">// ต้องได้ WHEN_IN_USE (foreground) ก่อน แล้วค่อยขอ background แยกอีกที</span>
+<span class="com">// (ขอพร้อมกันไม่ได้ตั้งแต่ Android 11)</span>
+<span class="kw">private val</span> bgLocation = registerForActivityResult(
+    ActivityResultContracts.RequestPermission()
+) { granted -&gt; <span class="kw">if</span> (granted) startTracking() }
+
+<span class="kw">fun</span> <span class="fn">requestBackgroundLocation</span>() {
+    <span class="com">// สเต็ป 1: ต้องมี foreground location ก่อน (ขอด้วย template ปกติ)</span>
+    <span class="com">// สเต็ป 2: แล้วค่อยขอ background</span>
+    bgLocation.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+}</code></pre>
+<div class="warn">background location ต้องมีเหตุผลชัดมาก + Play รีวิวเข้ม — ขอเฉพาะเมื่อจำเป็นจริง</div>
+
+<h4>ค) Special permission → ไม่ใช่ dialog แต่พาไป Settings</h4>
+<pre><code><span class="com">// SYSTEM_ALERT_WINDOW / MANAGE_EXTERNAL_STORAGE / SCHEDULE_EXACT_ALARM</span>
+<span class="com">// เช็คด้วยเมธอดเฉพาะ (ไม่ใช่ checkSelfPermission) แล้วพาไป Settings</span>
+<span class="kw">fun</span> <span class="fn">requestOverlay</span>() {
+    <span class="kw">if</span> (!Settings.canDrawOverlays(<span class="kw">this</span>)) {              <span class="com">// ← ต่าง: เช็คเฉพาะทาง</span>
+        startActivity(Intent(
+            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+            Uri.parse(<span class="str">"package:$packageName"</span>)))         <span class="com">// ← ต่าง: เปิด Settings</span>
+    }
+}</code></pre>
+<table>
+  <tr><th>special permission</th><th>เช็คด้วย</th><th>Settings intent</th></tr>
+  <tr><td>SYSTEM_ALERT_WINDOW</td><td><code>Settings.canDrawOverlays()</code></td><td>ACTION_MANAGE_OVERLAY_PERMISSION</td></tr>
+  <tr><td>MANAGE_EXTERNAL_STORAGE</td><td><code>Environment.isExternalStorageManager()</code></td><td>ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION</td></tr>
+  <tr><td>SCHEDULE_EXACT_ALARM</td><td><code>alarmManager.canScheduleExactAlarms()</code></td><td>ACTION_REQUEST_SCHEDULE_EXACT_ALARM</td></tr>
+  <tr><td>REQUEST_INSTALL_PACKAGES</td><td><code>packageManager.canRequestPackageInstalls()</code></td><td>ACTION_MANAGE_UNKNOWN_APP_SOURCES</td></tr>
+</table>
+
+<h4>ง) ไฟล์/รูป → ไม่ต้องขอ permission เลย (ใช้ Picker)</h4>
+<pre><code><span class="com">// แทนการขอ READ_MEDIA_IMAGES → ใช้ Photo Picker (ไม่ต้อง permission)</span>
+<span class="kw">val</span> picker = registerForActivityResult(
+    ActivityResultContracts.PickVisualMedia()
+) { uri -&gt; <span class="kw">if</span> (uri != <span class="kw">null</span>) showImage(uri) }
+picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))</code></pre>
+
+<h4>จ) POST_NOTIFICATIONS (Android 13+) → เหมือน template แต่ต้องเช็คเวอร์ชัน</h4>
+<pre><code><span class="kw">fun</span> <span class="fn">askNotificationPermission</span>() {
+    <span class="kw">if</span> (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.TIRAMISU) {   <span class="com">// ← ต่าง: เช็ค API 33+</span>
+        requestPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+    <span class="com">// ต่ำกว่า 13 ไม่ต้องขอ — ได้อัตโนมัติ</span>
+}</code></pre>
+
+<h4>สรุปตารางว่า "ต่าง" ตรงไหน</h4>
+<table>
+  <tr><th>กลุ่ม</th><th>ต่างจาก template ยังไง</th></tr>
+  <tr><td>dangerous อันเดียว (กล้อง/ไมค์/ผู้ติดต่อ...)</td><td>ไม่ต่าง — เปลี่ยนชื่อ permission พอ</td></tr>
+  <tr><td>หลายอันพร้อมกัน (ตำแหน่ง/SMS)</td><td>ใช้ RequestMultiplePermissions (ได้ Map)</td></tr>
+  <tr><td>background location</td><td>ขอ 2 สเต็ป (foreground ก่อน)</td></tr>
+  <tr><td>special (overlay/storage/alarm)</td><td>เช็คเมธอดเฉพาะ + พาไป Settings</td></tr>
+  <tr><td>ไฟล์/รูป</td><td>ใช้ Picker ไม่ต้องขอ permission</td></tr>
+  <tr><td>POST_NOTIFICATIONS</td><td>template ปกติ + เช็ค API 33+</td></tr>
+</table>
 </section>
 
 <section id="pitfalls">
