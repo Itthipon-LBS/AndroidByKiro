@@ -102,16 +102,18 @@ input โดยไม่ตรวจ, เปิด WebView ผิด, ส่ง 
 <h2>2. โมเดลภัยคุกคาม (attack surface บน Android)</h2>
 <p>รู้ว่า "ทางเข้า" ของการโจมตีมาจากไหน จะเขียนโค้ดกันได้ถูกจุด:</p>
 <table>
-  <tr><th>ทางเข้า (attack surface)</th><th>ภัยที่เกิด</th></tr>
-  <tr><td>Input จากผู้ใช้ (ช่องกรอก)</td><td>injection, XSS (ใน WebView)</td></tr>
-  <tr><td>Intent/deep link จากแอปอื่น</td><td>intent redirection, task hijacking, ข้อมูลปลอม</td></tr>
-  <tr><td>ContentProvider/Service ที่ export</td><td>แอปอื่นเข้าถึงข้อมูล/สั่งงาน</td></tr>
-  <tr><td>WebView โหลด URL/JS ภายนอก</td><td>รันโค้ดอันตราย, ขโมยข้อมูล</td></tr>
-  <tr><td>ไฟล์/ข้อมูลที่เก็บในเครื่อง</td><td>อ่านได้ถ้าเครื่อง root / backup รั่ว</td></tr>
-  <tr><td>Network</td><td>man-in-the-middle, ดักข้อมูล</td></tr>
-  <tr><td>Dependency (library)</td><td>ช่องโหว่/โค้ดอันตรายจากภายนอก</td></tr>
-  <tr><td>APK ที่ถูกถอด/ดัดแปลง</td><td>อ่าน secret, ปลอมแอป, bypass logic</td></tr>
+  <tr><th>ทางเข้า (attack surface)</th><th>ภัยที่เกิด</th><th>ตัวอย่างภัยจริง</th></tr>
+  <tr><td>Input จากผู้ใช้ (ช่องกรอก)</td><td>injection, XSS (ใน WebView)</td><td>ช่องค้นหาต่อ SQL เอง → ผู้ใช้พิมพ์ <code>'; DROP TABLE user; --</code> ทำให้ตารางผู้ใช้หาย</td></tr>
+  <tr><td>Intent/deep link จากแอปอื่น</td><td>intent redirection, task hijacking, ข้อมูลปลอม</td><td>แอปร้ายส่ง intent ให้แอปเรา forward ต่อไปยังหน้า "ตั้งค่าบัญชี" ที่ปกติเข้าจากภายนอกไม่ได้ → เปลี่ยนอีเมล/รหัสเหยื่อ</td></tr>
+  <tr><td>ContentProvider/Service ที่ export</td><td>แอปอื่นเข้าถึงข้อมูล/สั่งงาน</td><td>Provider เก็บโน้ตตั้ง exported=true ไม่ใส่ permission → แอปอื่น query ดึงโน้ตทั้งหมดของผู้ใช้ออกไป</td></tr>
+  <tr><td>WebView โหลด URL/JS ภายนอก</td><td>รันโค้ดอันตราย, ขโมยข้อมูล</td><td>WebView เปิด JS + addJavascriptInterface โหลดหน้าโฆษณาภายนอก → JS ในโฆษณาเรียก bridge อ่าน token/ไฟล์ในเครื่อง</td></tr>
+  <tr><td>ไฟล์/ข้อมูลที่เก็บในเครื่อง</td><td>อ่านได้ถ้าเครื่อง root / backup รั่ว</td><td>เก็บ token เป็น plain text ใน SharedPreferences → เครื่อง root หรือ Auto Backup ขึ้น cloud แล้วถูกดึงไปสวมสิทธิ์</td></tr>
+  <tr><td>Network</td><td>man-in-the-middle, ดักข้อมูล</td><td>ใช้ HTTP บน WiFi สาธารณะ → ผู้โจมตีดักอ่าน/แก้ข้อมูลระหว่างทาง (เช่นแก้ยอดเงิน/ราคา)</td></tr>
+  <tr><td>Dependency (library)</td><td>ช่องโหว่/โค้ดอันตรายจากภายนอก</td><td>ใช้ library เวอร์ชันเก่าที่มีช่องโหว่ (เช่น log4j-style) หรือ typosquatting ชื่อคล้าย → โค้ดอันตรายฝังมากับแอป</td></tr>
+  <tr><td>APK ที่ถูกถอด/ดัดแปลง</td><td>อ่าน secret, ปลอมแอป, bypass logic</td><td>hardcode API secret ในโค้ด → ผู้โจมตี decompile APK อ่าน secret ไปเรียก API แทน; หรือ patch เช็ค "จ่ายเงินแล้ว" ให้ผ่านฟรี</td></tr>
+  <tr><td>Clipboard / หน้าจอ</td><td>ข้อมูลลับรั่วผ่าน clipboard/screenshot</td><td>copy OTP/เลขบัตรลง clipboard → แอปอื่นอ่าน clipboard ได้; หรือหน้าจอ OTP ถูก screen-record ด้วยมัลแวร์</td></tr>
 </table>
+<div class="note">ทุกภัยข้างบนมีวิธีป้องกันในหัวข้อถัด ๆ ไป (แต่ละหัวข้อมีโค้ด ❌ ผิด vs ✅ ถูก)</div>
 </section>
 
 <section id="input">

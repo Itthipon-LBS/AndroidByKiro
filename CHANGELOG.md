@@ -1189,6 +1189,14 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 - ใน `docs/android-permissions-security.html` และ `docs/android-for-programmers.md` (B8)
   เพิ่มลิงก์ชี้ไปเอกสาร secure coding
 
+## 126. เพิ่มตัวอย่างภัยจริงในตารางโมเดลภัยคุกคาม (Secure Coding doc)
+
+**Changed**
+- ใน `docs/android-secure-coding.html` (หัวข้อ 2 โมเดลภัยคุกคาม) เพิ่มคอลัมน์ "ตัวอย่างภัยจริง"
+  ให้แต่ละ attack surface เห็นภาพว่าเกิดอะไรขึ้นจริง (เช่น SQL injection ลบตาราง, intent
+  redirection เปลี่ยนอีเมลเหยื่อ, WebView bridge อ่าน token, HTTP บน WiFi สาธารณะโดนแก้ยอด,
+  decompile อ่าน secret/patch bypass การจ่ายเงิน) + เพิ่มแถว clipboard/หน้าจอ
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
