@@ -1240,6 +1240,15 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   BuildConfig, C) restrict key ใน Cloud Console (package+SHA-1), D) secret สำคัญ → backend
   proxy (diagram + Retrofit), E) Keystore + เพิ่มลิงก์สารบัญ
 
+## 131. เพิ่มมาตรฐาน vs แข็งแกร่งสุด + แนวปฏิบัติแอปจริง (Secrets doc)
+
+**Added**
+- ใน `docs/android-secrets-management.html` เพิ่ม 2 หัวข้อ: "📊 ตารางฟันธง = มาตรฐาน ไม่ใช่
+  แข็งแกร่งสุดสัมบูรณ์" (อธิบาย tradeoff ของการเพิ่มความปลอดภัย + ตารางเทียบ มาตรฐาน vs
+  แข็งแกร่งสุดของแต่ละข้อ token/Maps/secret/ข้อมูล/API/integrity + หลัก security สมกับความเสี่ยง)
+  และ "🏢 แอปจริงเขาใช้แบบไหน" (แนวปฏิบัติตามระดับ: แอปทั่วไป/Big Tech/การเงิน + ข้อสังเกตว่า
+  ทุกระดับใช้ฐานเดียวกับตารางฟันธง ต่างที่ชั้นเสริม + หมายเหตุว่าเป็นข้อมูลสาธารณะ) + ลิงก์สารบัญ
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
