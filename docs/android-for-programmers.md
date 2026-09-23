@@ -561,6 +561,7 @@ Service คือ component สำหรับงานที่ **ไม่ม�
 
 > **เจาะลึกเรื่องสถาปัตยกรรมทั้งหมด** (layers, UI/Domain/Data, UDF, MVVM/MVI/MVP/MVC, DI,
 > modularization, การเลือกใช้, แนวโน้ม): ดูฉบับ HTML `docs/android-architecture.html`
+> • **Clean Architecture + เทียบกับ Google Guide:** `docs/android-clean-architecture.html`
 
 ## B5. Lifecycle (จุดพลาดบ่อย)
 ```

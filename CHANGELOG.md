@@ -1078,6 +1078,20 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 **Changed**
 - ใน `docs/android-for-programmers.md` (B4) เพิ่มลิงก์ไปฉบับ HTML
 
+## 117. สร้างเอกสาร HTML เรื่อง Clean Architecture + เทียบกับ Google Guide
+
+**Added**
+- สร้าง `docs/android-clean-architecture.html` เอกสาร standalone HTML ครบ 16 หัวข้อ: Clean
+  Architecture คืออะไร, **Dependency Rule** (หัวใจ + diagram วงกลมซ้อน), 4 ชั้น (Entities/
+  UseCases/Interface Adapters/Frameworks), แต่ละชั้นพร้อมโค้ด, การแมปลงโครง Android, ตัวอย่าง
+  โค้ดเต็มไล่ทุกชั้น, โครงสร้างแพ็กเกจ/โมดูล (multi/single), ข้อดี/ข้อเสีย, **หัวข้อเปรียบเทียบ
+  Clean Architecture vs Google Guide** (ตารางเทียบ + การแมป + ความสัมพันธ์), การเลือกใช้,
+  ข้อผิดพลาดที่พบบ่อย, แนวโน้ม (KMP) และ glossary
+
+**Changed**
+- ใน `docs/android-for-programmers.md` (B4) และ `docs/android-architecture.html` เพิ่มลิงก์
+  ไปเอกสาร Clean Architecture
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
