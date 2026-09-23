@@ -608,6 +608,10 @@ onCreate → onStart → onResume → (ใช้งาน) → onPause → onSto
   (EncryptedSharedPreferences/Keystore)
 - ระวังข้อมูลอ่อนไหวตอนทำ **Auto Backup**
 
+> **เจาะลึกเรื่อง Permissions & ความปลอดภัยทั้งหมด** (ประเภท permission, runtime flow,
+> Scoped Storage, เก็บข้อมูล/เครือข่ายปลอดภัย, เทียบตามเวอร์ชัน, ภาคปฏิบัติ): ดูฉบับ HTML
+> `docs/android-permissions-security.html`
+
 ## B9. การทดสอบ (Testing)
 - **Unit test (JVM):** JUnit + MockK/Mockito + coroutines-test — เร็ว ไม่ต้องใช้อุปกรณ์
 - **UI/Instrumented test:** **Espresso** (View) / **Compose UI test** — รันบน emulator/

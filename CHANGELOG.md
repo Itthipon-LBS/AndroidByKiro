@@ -1149,6 +1149,21 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 **Changed**
 - ใน `docs/android-for-programmers.md` (B7) เพิ่มลิงก์ไปฉบับ HTML
 
+## 123. สร้างเอกสาร HTML เรื่อง Permissions & ความปลอดภัย
+
+**Added**
+- สร้าง `docs/android-permissions-security.html` เอกสาร standalone HTML ครบ 17 หัวข้อ ทฤษฎี+
+  ปฏิบัติ: Permission คืออะไร, ประเภท (normal/dangerous/signature/special), runtime permission
+  flow (Activity Result API + rationale + ปฏิเสธถาวร), special permissions, ตำแหน่ง (fine/
+  coarse/background/approximate), Scoped Storage (Photo Picker), เก็บข้อมูลปลอดภัย
+  (EncryptedSharedPreferences/Keystore), ความปลอดภัยเครือข่าย (HTTPS/Network Security Config/
+  cert pinning), ป้องกัน component (exported), ความปลอดภัยอื่น (Biometric/Play Integrity/
+  FLAG_SECURE), **ตารางเทียบตามเวอร์ชัน Android 6→16**, ข้อดี/ข้อเสีย, การเลือกใช้, ภาคปฏิบัติ
+  ขอ permission กล้องครบ flow, ข้อผิดพลาดที่พบบ่อย, แนวโน้ม และ glossary
+
+**Changed**
+- ใน `docs/android-for-programmers.md` (B8) เพิ่มลิงก์ไปฉบับ HTML
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
