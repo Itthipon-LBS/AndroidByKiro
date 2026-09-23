@@ -896,6 +896,95 @@ sync ลงทุกเครื่องเอง (เหมือนส่ง�
 อีเมลแอป/primary) → เก็บ accountName → ตอนเขียนค่อยแปลงเป็น CALENDAR_ID ของเครื่องนั้น</b>
 • เก็บ accountName ไม่ใช่ id เพราะ id ต่างกันในแต่ละเครื่อง</div>
 
+<h3>2.3.2 เลือกปฏิทินอัตโนมัติ (ไม่ถามผู้ใช้)</h3>
+<p>ถ้าไม่อยากรบกวนให้ผู้ใช้เลือก สามารถเลือกปฏิทินให้อัตโนมัติตามลำดับความสำคัญ (heuristic)
+ได้ — เหมาะกับแอปที่อยากให้ "ใช้ได้เลย" แต่ควรมีทางให้เปลี่ยนภายหลังในหน้าตั้งค่า</p>
+
+<h4>ลำดับการเลือกอัตโนมัติ (priority)</h4>
+<pre><code>1. ปฏิทินที่ accountName == อีเมลที่ล็อกอินแอป   (ตรงเจตนาผู้ใช้ที่สุด)
+2. ปฏิทินหลัก (IS_PRIMARY = 1) ของบัญชี Google   (ปฏิทินหลักของเครื่อง)
+3. ปฏิทิน Google ตัวแรกที่เขียนได้               (com.google)
+4. ปฏิทิน local ตัวแรกที่เขียนได้                 (ถ้าไม่มี Google เลย)
+5. ไม่มีเลย → สร้าง local calendar ของแอปเอง</code></pre>
+
+<h4>โค้ดเลือกอัตโนมัติ</h4>
+<pre><code><span class="com">// เลือกปฏิทินปลายทางให้อัตโนมัติ คืน CALENDAR_ID (หรือ null ถ้าเลือกไม่ได้จริง ๆ)</span>
+<span class="kw">fun</span> <span class="fn">autoPickCalendarId</span>(resolver: ContentResolver, appEmail: String?): Long? {
+    <span class="kw">val</span> calendars = loadWritableCalendars(resolver)   <span class="com">// จาก 2.3.1</span>
+    <span class="kw">if</span> (calendars.isEmpty()) <span class="kw">return null</span>            <span class="com">// ไม่มีปฏิทินเขียนได้เลย</span>
+
+    <span class="com">// ไล่ตามลำดับความสำคัญ — ตัวแรกที่เจอถือว่าเลือก</span>
+    <span class="kw">val</span> picked =
+        <span class="com">// 1) ตรงกับอีเมลที่ล็อกอินแอป</span>
+        calendars.firstOrNull { it.accountName == appEmail }
+        <span class="com">// 2) ปฏิทินหลักของบัญชี Google</span>
+        ?: calendars.firstOrNull { it.isPrimary }
+        <span class="com">// 3) ปฏิทิน Google ตัวแรก (อีเมลมักลงท้าย @gmail / เป็น account google)</span>
+        ?: calendars.firstOrNull { it.accountName.contains(<span class="str">"@"</span>) }
+        <span class="com">// 4) อันแรกที่เขียนได้ (เช่น local)</span>
+        ?: calendars.first()
+
+    <span class="com">// จำ accountName ไว้ (เหมือน 2.3.1) เพื่อให้ครั้งต่อไปใช้ตัวเดิม</span>
+    saveSelectedCalendar(picked)
+    <span class="kw">return</span> picked.id
+}</code></pre>
+
+<h4>ถ้าไม่มีปฏิทินเขียนได้เลย → สร้าง local calendar ของแอปเอง</h4>
+<p>บางเครื่อง (เช่นไม่ได้ล็อกอิน Google และไม่มีปฏิทิน local) อาจไม่มีปฏิทินให้เขียน — สร้าง
+ปฏิทิน local ของแอปเองได้ผ่าน <code>CalendarContract.Calendars</code>:</p>
+<pre><code><span class="kw">import</span> android.content.ContentUris
+<span class="kw">import</span> android.net.Uri
+
+<span class="kw">private const val</span> APP_CAL_NAME = <span class="str">"FoodOrder"</span>
+<span class="kw">private const val</span> APP_CAL_ACCOUNT = <span class="str">"FoodOrder Local"</span>
+
+<span class="com">// ต้องต่อ query parameter บอกว่าเป็น local account (ACCOUNT_TYPE_LOCAL)</span>
+<span class="kw">private fun</span> <span class="fn">asSyncAdapter</span>(uri: Uri, account: String): Uri =
+    uri.buildUpon()
+        .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, <span class="str">"true"</span>)
+        .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, account)
+        .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE,
+            CalendarContract.ACCOUNT_TYPE_LOCAL)
+        .build()
+
+<span class="com">// สร้างปฏิทิน local ของแอป แล้วคืน CALENDAR_ID</span>
+<span class="kw">fun</span> <span class="fn">createLocalCalendar</span>(resolver: ContentResolver): Long? {
+    <span class="kw">val</span> values = ContentValues().apply {
+        put(CalendarContract.Calendars.ACCOUNT_NAME, APP_CAL_ACCOUNT)
+        put(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+        put(CalendarContract.Calendars.NAME, APP_CAL_NAME)
+        put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, <span class="str">"ปฏิทิน FoodOrder"</span>)
+        put(CalendarContract.Calendars.CALENDAR_COLOR, <span class="num">0xFF00D1B2</span>.toInt())
+        <span class="com">// ให้แอป (owner) มีสิทธิ์เขียนเต็ม</span>
+        put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,
+            CalendarContract.Calendars.CAL_ACCESS_OWNER)
+        put(CalendarContract.Calendars.OWNER_ACCOUNT, APP_CAL_ACCOUNT)
+        put(CalendarContract.Calendars.SYNC_EVENTS, <span class="num">1</span>)
+        put(CalendarContract.Calendars.VISIBLE, <span class="num">1</span>)
+    }
+    <span class="com">// insert ต้องยิงผ่าน URI แบบ sync-adapter (ไม่งั้นสร้าง local calendar ไม่ได้)</span>
+    <span class="kw">val</span> uri = resolver.insert(
+        asSyncAdapter(CalendarContract.Calendars.CONTENT_URI, APP_CAL_ACCOUNT), values
+    )
+    <span class="kw">return</span> uri?.let { ContentUris.parseId(it) }   <span class="com">// คืน id ที่เพิ่งสร้าง</span>
+}</code></pre>
+<div class="warn">การสร้าง local calendar ต้องมีสิทธิ์ <code>WRITE_CALENDAR</code> (และการยิงผ่าน
+URI แบบ sync-adapter) • ปฏิทินนี้อยู่เฉพาะในเครื่อง ไม่ sync ขึ้น cloud</div>
+
+<h4>รวมทั้งหมด: ได้ CALENDAR_ID แน่นอน (มีก็ใช้ ไม่มีก็สร้าง)</h4>
+<pre><code><span class="com">// เรียกใช้จุดเดียว — คืน CALENDAR_ID ที่พร้อมเขียน event เสมอ</span>
+<span class="kw">fun</span> <span class="fn">ensureCalendarId</span>(resolver: ContentResolver, appEmail: String?): Long? {
+    <span class="com">// 1) เคยเลือก/เคยเก็บไว้แล้ว → ใช้ตัวเดิม (จาก 2.3.1)</span>
+    resolveTargetCalendarId(resolver)?.let { <span class="kw">return</span> it }
+    <span class="com">// 2) ยังไม่มี → เลือกอัตโนมัติ</span>
+    autoPickCalendarId(resolver, appEmail)?.let { <span class="kw">return</span> it }
+    <span class="com">// 3) ไม่มีปฏิทินเลย → สร้าง local calendar ของแอป</span>
+    <span class="kw">return</span> createLocalCalendar(resolver)
+}</code></pre>
+<div class="note"><b>เลือกอัตโนมัติ vs ให้ผู้ใช้เลือก:</b> อัตโนมัติสะดวกกว่าแต่เสี่ยงลงผิดบัญชี
+(เช่นผู้ใช้มีหลายบัญชี) — แนวทางที่ดีคือ <b>เลือกอัตโนมัติเป็น default แล้วเปิดให้เปลี่ยนใน
+หน้าตั้งค่า</b> (เรียก <code>showCalendarPicker</code> จาก 2.3.1)</div>
+
 <h3>2.4 เขียน event (โค้ดเต็ม)</h3>
 <pre><code><span class="kw">fun</span> <span class="fn">insertEvent</span>(resolver: ContentResolver, calendarId: Long): Uri? {
     <span class="kw">val</span> start = Calendar.getInstance().apply { add(Calendar.HOUR_OF_DAY, <span class="num">2</span>) }

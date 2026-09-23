@@ -1041,6 +1041,15 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   + ข้ามถ้ามีปฏิทินเดียว, (3) `saveSelectedCalendar` เก็บ accountName (ไม่ใช่ id), (4)
   `resolveTargetCalendarId` แปลง accountName → CALENDAR_ID ของเครื่องปัจจุบันตอนเขียน
 
+## 114. เพิ่มโค้ดเลือกปฏิทินอัตโนมัติ (วิธี 2) ในเอกสาร Google Calendar
+
+**Added**
+- ใน `docs/google-calendar-integration.html` เพิ่มหัวข้อ 2.3.2 "เลือกปฏิทินอัตโนมัติ
+  (ไม่ถามผู้ใช้)" พร้อม comment: ลำดับความสำคัญการเลือก (อีเมลแอป → primary → Google ตัวแรก
+  → local → สร้างใหม่), `autoPickCalendarId()`, `createLocalCalendar()` สร้าง local calendar
+  ของแอปผ่าน sync-adapter URI (กรณีไม่มีปฏิทินเลย), และ `ensureCalendarId()` รวมทุกอย่าง
+  (ใช้ที่เก็บไว้ → เลือกอัตโนมัติ → สร้างใหม่) พร้อมข้อแนะนำ auto-default + เปลี่ยนได้ในตั้งค่า
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
