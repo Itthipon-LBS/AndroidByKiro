@@ -361,6 +361,9 @@ inline reply/bubble) แล้วต้องใช้ explicit intent เท่
 securePrefs.edit().putString(<span class="str">"access_token"</span>, token).apply()</code></pre>
 <div class="warn"><b>อย่า commit secret ลง git</b> — ใช้ <code>local.properties</code>/env vars +
 <code>.gitignore</code>; ถ้าเผลอ commit ไปแล้ว ให้ถือว่า secret นั้นรั่วและ rotate ทันที</div>
+<div class="note"><b>เจาะลึกการเก็บ key/secret ทุกชนิด</b> (Google Maps/Firebase/Facebook/
+Stripe/token ผู้ใช้ — ควร/ไม่ควรเก็บที่ไหน, restrict, Keystore, backend proxy): ดู
+<code>docs/android-secrets-management.html</code></div>
 </section>
 
 <section id="storage">

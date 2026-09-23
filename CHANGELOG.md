@@ -1215,6 +1215,21 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ภายนอก (จำกัด domain ผ่าน shouldOverrideUrlLoading), กลุ่ม 3 เปิดเฉพาะเมื่อจำเป็น (JS/
   domStorage/addJavascriptInterface + ข้อควรระวัง) พร้อมเทมเพลต setupSecureWebView() ที่นำไปใช้ได้
 
+## 129. สร้างเอกสาร HTML เรื่องการเก็บ Key & Secret
+
+**Added**
+- สร้าง `docs/android-secrets-management.html` เอกสาร standalone HTML ครบ 17 หัวข้อ เจาะลึก
+  การเก็บ key/secret: กฎเหล็ก (APK ถอดได้เสมอ), จำแนกประเภท secret ตามความเสียหาย/restrict ได้,
+  ตารางที่เก็บทั้งหมด (hardcode→backend เรียงตามความปลอดภัย), ที่ห้ามเก็บเด็ดขาด, Android
+  Keystore, EncryptedSharedPreferences, backend proxy (diagram), token ผู้ใช้, **ตารางเจาะจง
+  ว่าแต่ละ key เก็บที่ไหน** (Google Maps/Firebase/Facebook App ID vs Secret/Stripe pk vs sk/
+  OAuth/DB credential), การ restrict key (package+SHA-1), BuildConfig/gradle/git, ข้อดี/ข้อเสีย
+  แต่ละที่, ขั้นตอนเมื่อ key รั่ว, checklist, แนวโน้ม (BFF/short-lived token/secret scanning)
+  และ glossary
+
+**Changed**
+- ใน `docs/android-secure-coding.html` (หัวข้อ 9) เพิ่มลิงก์ไปเอกสารการเก็บ secret
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
