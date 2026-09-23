@@ -559,6 +559,9 @@ Service คือ component สำหรับงานที่ **ไม่ม�
   เป็นแหล่งความจริงเดียวที่รวมข้อมูลจาก DB/network
 - **ทิศทางข้อมูล:** `UI ← observe ← ViewModel ← Repository ← (DB / Network)`
 
+> **เจาะลึกเรื่องสถาปัตยกรรมทั้งหมด** (layers, UI/Domain/Data, UDF, MVVM/MVI/MVP/MVC, DI,
+> modularization, การเลือกใช้, แนวโน้ม): ดูฉบับ HTML `docs/android-architecture.html`
+
 ## B5. Lifecycle (จุดพลาดบ่อย)
 ```
 onCreate → onStart → onResume → (ใช้งาน) → onPause → onStop → onDestroy

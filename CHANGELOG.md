@@ -1064,6 +1064,20 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 **Changed**
 - ใน `docs/android-for-programmers.md` (B5) เพิ่มลิงก์ไปฉบับ HTML
 
+## 116. สร้างเอกสาร HTML เรื่องสถาปัตยกรรมที่แนะนำ
+
+**Added**
+- สร้าง `docs/android-architecture.html` เอกสาร standalone HTML (sidebar, ธีม #00d1b2,
+  โค้ด syntax-highlight, diagram) เรื่อง App Architecture ครบ 16 หัวข้อ: ทำไมต้องมี
+  สถาปัตยกรรม, หลักการ (SSOT/UDF/separation), การแบ่งชั้น (UI/Domain/Data + dependency rule),
+  UI Layer (ViewModel/UI state), Domain Layer (Use Case), Data Layer (Repository/DataSource),
+  UDF, รูปแบบ MVVM/MVI/MVP/MVC (+ MVVM vs MVI), DI (Hilt/Dagger/Koin), Modularization,
+  ตัวอย่างโค้ดเต็มทุกชั้น, ข้อดี/ข้อเสีย, การเลือกใช้ตามขนาดโปรเจกต์, ข้อผิดพลาดที่พบบ่อย,
+  แนวโน้ม (Compose+MVI/KMP) และ glossary
+
+**Changed**
+- ใน `docs/android-for-programmers.md` (B4) เพิ่มลิงก์ไปฉบับ HTML
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
