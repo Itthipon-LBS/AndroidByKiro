@@ -1019,6 +1019,18 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   ต้องตรง millisecond, race condition) + แนะนำเช็คด้วย orderId (custom field/_SYNC_ID)
 - ปรับตารางสรุปเลือกแนวทางให้มีคอลัมน์ "ใช้อะไรเป็นตัวเช็ค" และเพิ่มข้อสรุปเรื่องตัวเช็ค
 
+## 112. เพิ่มหัวข้อกันซ้ำในสถานการณ์จริงในเอกสาร Google Calendar
+
+**Added**
+- ใน `docs/google-calendar-integration.html` เพิ่มหัวข้อใหญ่ "การกันซ้ำในสถานการณ์จริง
+  (หลายเครื่อง / หลายบัญชี / sync)" รวบองค์ความรู้จากคำถามหลายรอบ: 2 หลักคิด (ปฏิทินอยู่
+  cloud, กันซ้ำที่จุดกลาง), เคส sync race หลายเครื่องบัญชีเดียวกัน (พร้อม timeline), เคส
+  หลายเครื่องคนละบัญชี, เคสสร้างก่อนล็อกอิน Google, ตารางว่าเคสไหนกันได้ด้วยอะไร, ตาราง
+  sync delay, การเลือกปฏิทินปลายทาง (mock dialog + loadCalendars + เก็บ ACCOUNT_NAME),
+  เรื่องล็อกอินแอป≠ปฏิทินในเครื่อง (match default), และสถาปัตยกรรม 2 เป้าหมาย (A: วิธี 3 +
+  backend server-authoritative + UNIQUE(appUserId,orderId); B: วิธี 2 + backend + mapping
+  local) พร้อม reconciliation และตารางสรุปเลือกสถาปัตยกรรม + ลิงก์สารบัญ
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

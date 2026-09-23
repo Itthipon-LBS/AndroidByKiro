@@ -80,6 +80,10 @@
   <a href="#crud">สร้าง/แก้/ลบ แต่ละวิธี</a>
   <a href="#reminders">การตั้งเตือน 3 วิธี</a>
   <a href="#dedup">การป้องกัน event ซ้ำ</a>
+  <a href="#realworld">กันซ้ำในสถานการณ์จริง</a>
+  <a href="#rw-scenarios">— เคสต่าง ๆ</a>
+  <a href="#rw-target">— เลือกปฏิทินปลายทาง</a>
+  <a href="#rw-arch">— สถาปัตยกรรมที่แนะนำ</a>
   <h2>วิธีที่ 1</h2>
   <a href="#m1">Intent (ง่ายสุด)</a>
   <h2>วิธีที่ 2</h2>
@@ -498,6 +502,184 @@ query ด้วยคีย์นั้นแทนการเดาจาก�
 <div class="note"><b>สรุปเรื่องตัวเช็ค:</b> ก่อนสร้างครั้งแรกยังไม่มี event_id → เช็คด้วย
 title+DTSTART (เดา) หรือ orderId (แม่นกว่า) • หลังสร้างแล้ว → เก็บ event_id ไว้ใช้เช็ค
 "ยังอยู่ไหม" ได้แม่นสุด • วิธีเด็ดขาดสุดคือให้ Google กันซ้ำเองด้วย event.id ที่กำหนดจาก orderId</div>
+</section>
+
+<hr>
+
+<section id="realworld">
+<h2>การกันซ้ำในสถานการณ์จริง (หลายเครื่อง / หลายบัญชี / sync)</h2>
+<p>หัวข้อก่อนหน้าเป็นการกันซ้ำ "พื้นฐาน" ที่พอสำหรับเครื่องเดียว แต่ในโลกจริงมีหลายเครื่อง
+หลายบัญชี และ sync ที่ไม่ทันกัน — ส่วนนี้รวบทุกเคสและสถาปัตยกรรมที่ตอบโจทย์</p>
+
+<div class="note"><b>2 หลักคิดที่ต้องจำ:</b>
+<ol>
+  <li><b>ปฏิทิน Google อยู่บน cloud ไม่ใช่บนเครื่อง</b> — เขียน event = เขียนลงปฏิทินของ
+      "บัญชี" บน cloud แล้วอุปกรณ์ทุกเครื่องที่ล็อกอินบัญชีนั้น sync ลงมาเอง</li>
+  <li><b>ตัวกันซ้ำต้องอยู่ที่ "จุดกลางจุดเดียว"</b> — ถ้ากันซ้ำแบบต่างเครื่องต่างเช็คกันเอง
+      จะพลาดเสมอ เพราะแต่ละเครื่องไม่รู้ว่าอีกเครื่องทำอะไรไปแล้ว</li>
+</ol></div>
+
+<h3 id="rw-scenarios">เคสต่าง ๆ และผลลัพธ์</h3>
+
+<h4>เคส 1 — หลายเครื่อง บัญชี Google เดียวกัน (sync race)</h4>
+<p>เครื่อง A สร้าง event → เครื่อง B เปิดแอปก่อน sync ของ A จะมาถึง → B เช็คแล้ว "ไม่เจอ"
+→ เขียนซ้ำ → พอ sync มาก็ได้ 2 อัน</p>
+<pre><code><span class="com">timeline:</span>
+t1  เครื่อง A: สร้าง event ลงปฏิทินบัญชี G (ขึ้น cloud)
+t2  เครื่อง B: จะสร้าง → query ปฏิทินก่อน แต่ยัง sync ของ A ไม่ถึง → ไม่เจอ → เขียนใหม่
+t3  เครื่อง B: sync ของ A ลงมา → ปฏิทิน B มี 2 event  ← ซ้ำ</code></pre>
+<div class="danger"><b>สาเหตุ:</b> sync ไม่ใช่ real-time + การ "query เช็คก่อนเขียน" เป็นการ
+เช็คกับข้อมูลที่อาจล้าสมัย → มีช่องว่างให้เขียนซ้ำ</div>
+
+<h4>เคส 2 — หลายเครื่อง บัญชี Google คนละบัญชี</h4>
+<p>ปฏิทินผูกกับบัญชี — บัญชี A กับ B แยกกันสิ้นเชิง event.id ซ้ำได้ข้ามบัญชี และปฏิทินไม่ sync
+ข้ามบัญชี → กลไกที่พึ่ง Google กันไม่ได้</p>
+<div class="warn">ต้องนิยามก่อนว่า "order เดียวลง 2 ปฏิทินคนละบัญชี" ถือว่าซ้ำไหม — ถ้าคนละคน/
+คนละปฏิทินอาจ<b>ไม่ใช่ซ้ำ</b> • ถ้าต้องการ "order เดียว = event เดียวในโลก" → Google ช่วย
+ไม่ได้ ต้องมี backend กลาง</div>
+
+<h4>เคส 3 — สร้าง event ตอนเครื่องยังไม่ล็อกอิน Google</h4>
+<p>event จะไปอยู่ <b>ปฏิทิน local</b> ของเครื่อง • พอผู้ใช้ล็อกอินบัญชี A ภายหลัง event local
+<b>ไม่ย้าย</b>เข้า A + event ของ A ที่ sync ลงมา → เห็น 2 อัน = ซ้ำ</p>
+<div class="danger">กลไก 409/query/Room กันเคสนี้ไม่ทัน เพราะ ณ ตอนสร้าง เครื่องยังไม่มีข้อมูล
+ของบัญชี A เลย</div>
+
+<h4>สรุปว่าเคสไหนกันซ้ำได้ด้วยอะไร</h4>
+<table>
+  <tr><th>เคส</th><th>query เช็ค (local)</th><th>event.id + 409 (API)</th><th>backend กลาง</th></tr>
+  <tr><td>เครื่องเดียว</td><td>⚠️ พอได้</td><td>✅</td><td>✅</td></tr>
+  <tr><td>หลายเครื่อง บัญชีเดียวกัน</td><td>❌ (sync race)</td><td>✅ (Google ตัดสินที่ cloud)</td><td>✅</td></tr>
+  <tr><td>หลายเครื่อง คนละบัญชี</td><td>❌</td><td>❌ (คนละปฏิทิน)</td><td>✅</td></tr>
+  <tr><td>ก่อนล็อกอิน Google</td><td>❌</td><td>❌ (เขียน local)</td><td>✅</td></tr>
+</table>
+
+<h4>เรื่อง sync delay</h4>
+<p>ระยะเวลา sync <b>ไม่มีการันตีทางการ</b> และแกว่งตามสถานะเครื่อง (ค่าที่พบในทางปฏิบัติ):</p>
+<table>
+  <tr><th>สถานการณ์</th><th>delay ที่พบบ่อย</th></tr>
+  <tr><td>เขียนผ่าน API → cloud</td><td>แทบทันที</td></tr>
+  <tr><td>cloud → เครื่องอื่น (เน็ตดี, แอปเปิด)</td><td>วินาที – หลักสิบวินาที</td></tr>
+  <tr><td>cloud → เครื่อง background/Doze</td><td>หลักนาที</td></tr>
+  <tr><td>เครื่องออฟไลน์ / ปิด auto-sync</td><td>ไม่จำกัด จนกว่าจะออนไลน์/เปิด sync</td></tr>
+</table>
+<div class="warn"><b>อย่าออกแบบกันซ้ำโดยพึ่งว่า "sync น่าจะเสร็จใน X วินาที"</b> — ต้องกันที่จุด
+ที่ไม่เกี่ยวกับ sync (409 ผ่าน API / backend กลาง)</div>
+
+<h3 id="rw-target">การเลือกปฏิทินปลายทาง (เขียนลงปฏิทินไหน)</h3>
+<p>เครื่องหนึ่งมี <b>หลายปฏิทินซ้อนกัน</b> (แต่ละบัญชี + local + วันเกิด) — ต้องระบุว่าจะลงอันไหน
+มิฉะนั้นลงผิด</p>
+<pre><code>ปฏิทินในเครื่องนี้:
+  • a@gmail.com          (บัญชี Google 1)
+  • b@company.com        (บัญชี Google 2)
+  • ปฏิทินในเครื่อง       (local ไม่ผูกบัญชี)</code></pre>
+
+<h4>แต่ละวิธีเขียนลงไหน</h4>
+<table>
+  <tr><th>วิธี</th><th>ปลายทาง</th><th>ถ้าหลายบัญชี</th></tr>
+  <tr><td>1. Intent</td><td>ผู้ใช้เลือกตอนกดบันทึก</td><td>ปลอดภัย (ผู้ใช้เลือกเอง)</td></tr>
+  <tr><td>2. CalendarContract</td><td>ตาม <code>CALENDAR_ID</code> ที่เราใส่</td><td><b>ต้อง query + เลือกเอง</b> ไม่งั้นลงผิด</td></tr>
+  <tr><td>3. Calendar API</td><td>ตามบัญชีที่ token ผูก + <code>calendarId</code></td><td>เลือกตอน OAuth / ตรึงที่ server</td></tr>
+</table>
+
+<h4>"เลือกปฏิทินปลายทาง" หน้าตาจริง (วิธี 2)</h4>
+<p>query ปฏิทินที่เขียนได้ในเครื่อง แล้วโชว์ให้ผู้ใช้เลือก 1 อัน:</p>
+<pre><code>┌─────────────────────────────────────┐
+│  เลือกปฏิทินสำหรับบันทึกนัดหมาย        │
+├─────────────────────────────────────┤
+│  ◉  a@gmail.com                       │
+│  ○  b@company.com                     │
+│  ○  ปฏิทินในเครื่อง (Local)            │
+├─────────────────────────────────────┤
+│                    [ ยกเลิก ]  [ ตกลง ] │
+└─────────────────────────────────────┘</code></pre>
+<pre><code><span class="kw">data class</span> CalendarOption(<span class="kw">val</span> id: Long, <span class="kw">val</span> accountName: String, <span class="kw">val</span> displayName: String)
+
+<span class="kw">fun</span> <span class="fn">loadCalendars</span>(resolver: ContentResolver): List&lt;CalendarOption&gt; {
+    <span class="kw">val</span> proj = arrayOf(
+        CalendarContract.Calendars._ID,
+        CalendarContract.Calendars.ACCOUNT_NAME,               <span class="com">// เช่น a@gmail.com</span>
+        CalendarContract.Calendars.CALENDAR_DISPLAY_NAME
+    )
+    <span class="com">// กรองเฉพาะปฏิทินที่ "เขียนได้"</span>
+    <span class="kw">val</span> sel = <span class="str">"${CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL} >= " +
+              "${CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR}"</span>
+    <span class="kw">val</span> out = mutableListOf&lt;CalendarOption&gt;()
+    resolver.query(CalendarContract.Calendars.CONTENT_URI, proj, sel, <span class="kw">null</span>, <span class="kw">null</span>)
+        ?.use { c -&gt; <span class="kw">while</span> (c.moveToNext())
+            out += CalendarOption(c.getLong(<span class="num">0</span>), c.getString(<span class="num">1</span>), c.getString(<span class="num">2</span>)) }
+    <span class="kw">return</span> out   <span class="com">// เอาไปโชว์ใน dialog ให้ผู้ใช้เลือก</span>
+}</code></pre>
+<div class="note">เก็บค่าที่เลือกเป็น <b>ACCOUNT_NAME</b> (คงที่ข้ามเครื่อง) ไม่ใช่ CALENDAR_ID
+(เป็นเลขเฉพาะเครื่อง อาจต่างในแต่ละเครื่อง) — แล้วตอนเขียนจริงค่อย query หา CALENDAR_ID บน
+เครื่องนั้นจาก account name อีกที</div>
+
+<h4>ล็อกอินแอปด้วย Google ≠ ปฏิทินถูกเลือกอัตโนมัติ</h4>
+<div class="danger">การ <b>ล็อกอินแอป</b> ด้วย Google เป็นคนละเรื่องกับ <b>ปฏิทินที่ล็อกอินใน
+เครื่อง (OS)</b> — ผู้ใช้อาจล็อกอินแอปด้วย <code>a@gmail.com</code> แต่ในเครื่องผูก
+<code>b@gmail.com</code> ไว้ • วิธี 2 เห็นเฉพาะปฏิทินที่ <b>sync อยู่ในเครื่อง</b> เท่านั้น</div>
+<pre><code><span class="kw">val</span> appEmail = session.googleEmail          <span class="com">// อีเมลที่ล็อกอินแอป</span>
+<span class="kw">val</span> calendars = loadCalendars(resolver)      <span class="com">// ปฏิทินที่มีจริงในเครื่อง</span>
+
+<span class="com">// ใช้อีเมลแอปเป็นแค่ตัว "เดา default" — ไม่ตั้งให้อัตโนมัติทั้งหมด</span>
+<span class="kw">val</span> match = calendars.firstOrNull { it.accountName == appEmail }
+<span class="kw">when</span> {
+    match != <span class="kw">null</span>       -&gt; useAsDefault(match)      <span class="com">// เจอ → ตั้ง default (ยืนยัน/เปลี่ยนได้)</span>
+    calendars.size == <span class="num">1</span> -&gt; useAsDefault(calendars[<span class="num">0</span>])
+    <span class="kw">else</span>               -&gt; showCalendarPicker(calendars) <span class="com">// ไม่เจอ → ให้ผู้ใช้เลือก</span>
+}</code></pre>
+
+<h3 id="rw-arch">สถาปัตยกรรมที่แนะนำ (แยกตามเป้าหมาย)</h3>
+
+<h4>เป้าหมาย A — event เดียวไม่ซ้ำทุกเครื่อง + ล็อกอินแอปได้หลายแบบ</h4>
+<p>ใช้ <b>วิธี 3 (Calendar API) เรียกจาก backend</b> เป็น server-authoritative:</p>
+<pre><code>backend เรา (แหล่งความจริงกลาง)
+  ├─ เก็บ refresh token ของบัญชี Google ที่ผู้ใช้ผูก (ผูกกับ appUserId)
+  ├─ ตาราง event: UNIQUE (appUserId, orderId) → googleEventId
+  └─ เป็นคนเรียก Google Calendar API เขียน event
+
+client ทุกเครื่อง → เรียก API ของ backend เรา (ไม่เขียนปฏิทินเอง)</code></pre>
+<ul>
+  <li><b>appUserId</b> เป็นคีย์กันซ้ำ (ไม่ผูกกับวิธีล็อกอิน) — ล็อกอินแบบไหนก็ได้</li>
+  <li><b>UNIQUE (appUserId, orderId)</b> ที่ DB → กัน race แม้ 2 เครื่องยิงพร้อมกัน</li>
+  <li>backend เขียนผ่าน refresh token → <b>ไม่สนว่าเครื่องล็อกอิน Google หรือยัง</b></li>
+  <li>เสริม client-generated <code>event.id</code> → Google คืน 409 เป็นด่านสอง</li>
+</ul>
+<div class="note"><b>server รู้ได้ไงว่าเขียนลงปฏิทินไหน:</b> ไม่ได้ "ยิงไปที่เครื่อง" — server
+เขียนลงปฏิทินของ <b>บัญชี</b> บน cloud ผ่าน refresh token ที่ผูกกับ appUserId แล้ว Google
+sync ลงทุกเครื่องเอง (เหมือนส่งเข้า mailbox ไม่ใช่ส่งไปที่โทรศัพท์)</div>
+
+<h4>เป้าหมาย B — ต้องเห็นในปฏิทินบนเครื่อง แม้ไม่ล็อกอิน Google</h4>
+<p>ใช้ <b>วิธี 2 (CalendarContract)</b> ให้แอปดึง event จาก backend แล้วเขียนลงปฏิทิน local
+ของแต่ละเครื่อง:</p>
+<pre><code>backend (แหล่งข้อมูล event + ปลายทางปฏิทินที่เลือก ผูก appUserId)
+        │  แอปดึงรายการตาม appUserId
+        ▼
+แอปบนเครื่อง → เขียนผ่าน CalendarContract (+ WRITE_CALENDAR)
+        ▼
+ปฏิทิน local/บัญชีในเครื่อง → ผู้ใช้เห็น + reminder เด้ง</code></pre>
+<ul>
+  <li>กันซ้ำต้องพึ่ง <b>backend</b> (ไม่ใช่ sync ปฏิทิน) + mapping local ต่อเครื่องผูก
+      <code>(appUserId, orderId)</code></li>
+  <li>ยอมรับว่า event ถูกเขียน <b>หนึ่งชุดต่อเครื่อง</b> (ปฏิทิน local ไม่ sync ข้ามเครื่อง)</li>
+  <li>ถ้าเลือกลงปฏิทินที่เป็น <b>Google account</b> → จะ sync ข้ามเครื่องให้ (ได้ประโยชน์ทั้งคู่)</li>
+</ul>
+
+<h4>reconciliation — ตาข่ายกันพลาดชั้นสุดท้าย</h4>
+<p>ในระบบกระจาย การกัน "ก่อนเกิด" อาจพลาด จึงควรมีการเก็บกวาด "หลังเกิด":</p>
+<ul>
+  <li>ฝัง <b>orderId ลงทุก event</b> (เช่นใน description / extended property / <code>_SYNC_ID</code>)</li>
+  <li>เป็นระยะ/หลัง sync → query event ที่มี orderId เดียวกัน ถ้าเจอ &gt;1 → เก็บตัวเก่าสุด
+      ลบที่เหลือ</li>
+</ul>
+
+<h4>สรุปเลือกสถาปัตยกรรม</h4>
+<table>
+  <tr><th>เป้าหมาย</th><th>วิธี</th><th>กันซ้ำด้วย</th></tr>
+  <tr><td>event เดียวทุกเครื่อง, ล็อกอินหลายแบบ</td><td>3 + backend (server เขียน)</td><td>UNIQUE(appUserId,orderId) + 409</td></tr>
+  <tr><td>เห็นบนเครื่อง แม้ไม่ล็อกอิน Google</td><td>2 + backend (แอปเขียน)</td><td>backend + mapping local</td></tr>
+  <tr><td>แค่เตือนตามเวลา (ไม่ต้องอยู่ในปฏิทินระบบ)</td><td>AlarmManager / WorkManager</td><td>ไม่เกี่ยว Calendar</td></tr>
+  <tr><td>ทุกกรณี</td><td>+ reconciliation</td><td>ลบซ้ำภายหลังด้วย orderId</td></tr>
+</table>
 </section>
 
 <hr>
