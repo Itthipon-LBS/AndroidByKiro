@@ -1197,6 +1197,15 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   redirection เปลี่ยนอีเมลเหยื่อ, WebView bridge อ่าน token, HTTP บน WiFi สาธารณะโดนแก้ยอด,
   decompile อ่าน secret/patch bypass การจ่ายเงิน) + เพิ่มแถว clipboard/หน้าจอ
 
+## 127. เพิ่มตารางค่าดีฟอลต์ WebSettings ในหัวข้อ WebView (Secure Coding doc)
+
+**Added**
+- ใน `docs/android-secure-coding.html` (หัวข้อ 4 WebView) เพิ่มหัวข้อ 4.1 "ค่าดีฟอลต์ของ
+  WebSettings" ตารางค่าเริ่มต้นของแต่ละ setting + ระบุว่าปลอดภัยไหม (javaScriptEnabled=false,
+  addJavascriptInterface ไม่มี, allowFileAccess ต่างตามเวอร์ชัน, mixedContentMode=NEVER_ALLOW
+  ฯลฯ) พร้อมกล่องเตือนเรื่อง allowFileAccess ที่ดีฟอลต์ต่างกัน API ≤29 vs 30+ และข้อสรุปว่า
+  ช่องโหว่ส่วนใหญ่มาจากการเปิดค่าเพิ่มเอง ควรตั้งค่าความปลอดภัยชัดเจน
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

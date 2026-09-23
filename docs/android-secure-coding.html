@@ -174,6 +174,30 @@ webView.webViewClient = <span class="kw">object</span> : WebViewClient() {
 <div class="danger"><b>addJavascriptInterface อันตรายมาก</b> — ถ้าจำเป็นต้องใช้ ให้เปิดเฉพาะกับ
 เนื้อหาที่เราควบคุม 100%, ใช้ <code>@JavascriptInterface</code> เฉพาะเมธอดที่ตั้งใจ, และอย่าให้
 เข้าถึงข้อมูลอ่อนไหว • หลีกเลี่ยงการโหลด untrusted URL ใน WebView ที่เปิด JS</div>
+
+<h4>4.1 ค่าดีฟอลต์ของ WebSettings (ถ้าไม่ตั้งอะไรเลย)</h4>
+<p>ค่าดีฟอลต์ค่อนข้างปลอดภัยในหลายเรื่อง แต่มีบางอันที่เปิดช่องได้ + บางอัน
+<b>ต่างกันตามเวอร์ชัน</b>:</p>
+<table>
+  <tr><th>setting</th><th>ค่าดีฟอลต์</th><th>ปลอดภัย?</th></tr>
+  <tr><td><code>javaScriptEnabled</code></td><td><b>false</b></td><td>✅ (ต้องเปิดเอง)</td></tr>
+  <tr><td><code>addJavascriptInterface</code></td><td>ไม่มี (ต้องเรียกเอง)</td><td>✅</td></tr>
+  <tr><td><code>allowFileAccess</code></td><td><b>true</b> (API ≤29) / <b>false</b> (API 30+)</td><td>⚠️ ต่างตามเวอร์ชัน</td></tr>
+  <tr><td><code>allowContentAccess</code></td><td>true</td><td>⚠️ เข้าถึง content:// ได้</td></tr>
+  <tr><td><code>allowFileAccessFromFileURLs</code></td><td>false</td><td>✅</td></tr>
+  <tr><td><code>allowUniversalAccessFromFileURLs</code></td><td>false</td><td>✅</td></tr>
+  <tr><td><code>domStorageEnabled</code></td><td>false</td><td>✅</td></tr>
+  <tr><td><code>databaseEnabled</code></td><td>false</td><td>✅</td></tr>
+  <tr><td><code>mixedContentMode</code></td><td>NEVER_ALLOW (API 21+)</td><td>✅ บล็อก HTTP ในหน้า HTTPS</td></tr>
+  <tr><td><code>geolocationEnabled</code></td><td>true</td><td>⚠️ (แต่ยังต้องมี permission จริง)</td></tr>
+</table>
+<div class="warn"><b>จุดที่พลาดบ่อย — <code>allowFileAccess</code> ต่างตามเวอร์ชัน:</b> API 29
+(Android 10) ลงไปดีฟอลต์เป็น <b>true</b> (WebView อ่านไฟล์ <code>file://</code> ในเครื่องได้)
+แต่ API 30+ เป็น false → ควรตั้ง <code>false</code> เองให้ชัดเพื่อพฤติกรรมเหมือนกันทุกเวอร์ชัน</div>
+<div class="note"><b>สรุป:</b> ไม่ตั้งอะไรเลย = ปลอดภัยพอสำหรับแสดง HTML ธรรมดา (JS ปิด, ไม่มี
+JS interface, mixed content บล็อก) • แต่ช่องโหว่ส่วนใหญ่เกิดจากที่นักพัฒนา <b>เปิดเพิ่มเอง</b>
+(javaScriptEnabled/addJavascriptInterface) • หลัก <b>explicit ดีกว่า implicit</b> — ตั้งค่า
+ความปลอดภัยชัดเจนเอง อย่าพึ่งดีฟอลต์ที่เปลี่ยนตามเวอร์ชัน</div>
 </section>
 
 <section id="intent">
