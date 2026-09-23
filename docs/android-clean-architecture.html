@@ -366,6 +366,80 @@ Use Cases           ≈    Domain layer
 Interface Adapters  ≈    ViewModel + Repository
 Frameworks          ≈    UI + Retrofit/Room</div>
 
+<h3>เห็นภาพชัดสุด: โค้ดฟีเจอร์เดียวกัน 2 แบบ</h3>
+<p><b>โจทย์:</b> กดปุ่ม "สั่งอาหาร" โดยต้องมี <b>ยอดขั้นต่ำ 100 บาท</b> — มาดูว่าเขียน 2 แบบ
+ต่างกันตรงไหน</p>
+
+<h4>แบบ Google Guide (เบา) — ViewModel คุย Repository ตรง — 2 ไฟล์</h4>
+<pre><code><span class="com">// 1) Repository (data layer)</span>
+<span class="kw">interface</span> OrderRepository {
+    <span class="kw">suspend fun</span> <span class="fn">submit</span>(items: List&lt;CartItem&gt;): Result&lt;OrderId&gt;
+}
+
+<span class="com">// 2) ViewModel — ใส่ logic "ยอดขั้นต่ำ" ไว้ตรงนี้เลย</span>
+<span class="kw">class</span> OrderViewModel(<span class="kw">private val</span> repo: OrderRepository) : ViewModel() {
+    <span class="kw">fun</span> <span class="fn">placeOrder</span>(items: List&lt;CartItem&gt;) = viewModelScope.launch {
+        <span class="kw">val</span> total = items.sumOf { it.price * it.qty.toBigDecimal() }
+        <span class="kw">if</span> (total &lt; BigDecimal(<span class="num">100</span>)) {              <span class="com">// ← logic อยู่ใน ViewModel</span>
+            _state.update { it.copy(error = <span class="str">"ยอดขั้นต่ำ 100 บาท"</span>) }
+            <span class="kw">return@launch</span>
+        }
+        repo.submit(items).onSuccess { <span class="com">/* ... */</span> }.onFailure { <span class="com">/* ... */</span> }
+    }
+}</code></pre>
+
+<h4>แบบ Clean Architecture — แยก logic เป็น Entity + UseCase — 4 ไฟล์</h4>
+<pre><code><span class="com">// 1) Entity — กฎ "ยอดขั้นต่ำ" อยู่ในตัวโมเดล (pure Kotlin)</span>
+<span class="kw">data class</span> Cart(<span class="kw">val</span> items: List&lt;CartItem&gt;) {
+    <span class="kw">val</span> total <span class="kw">get</span>() = items.sumOf { it.price * it.qty.toBigDecimal() }
+    <span class="kw">fun</span> <span class="fn">canCheckout</span>() = total &gt;= BigDecimal(<span class="num">100</span>)      <span class="com">// ← logic อยู่ที่นี่</span>
+}
+
+<span class="com">// 2) Repository interface (domain)</span>
+<span class="kw">interface</span> OrderRepository { <span class="kw">suspend fun</span> <span class="fn">submit</span>(cart: Cart): Result&lt;OrderId&gt; }
+
+<span class="com">// 3) UseCase — 1 การกระทำทางธุรกิจ</span>
+<span class="kw">class</span> PlaceOrderUseCase(<span class="kw">private val</span> repo: OrderRepository) {
+    <span class="kw">suspend operator fun</span> <span class="fn">invoke</span>(cart: Cart): Result&lt;OrderId&gt; {
+        <span class="kw">if</span> (!cart.canCheckout()) <span class="kw">return</span> Result.failure(MinimumNotMetException())
+        <span class="kw">return</span> repo.submit(cart)
+    }
+}
+
+<span class="com">// 4) ViewModel — บางมาก แค่เรียก UseCase (ไม่มี logic)</span>
+<span class="kw">class</span> OrderViewModel(<span class="kw">private val</span> placeOrder: PlaceOrderUseCase) : ViewModel() {
+    <span class="kw">fun</span> <span class="fn">onPlaceOrder</span>(cart: Cart) = viewModelScope.launch {
+        placeOrder(cart).onSuccess { <span class="com">/* ... */</span> }.onFailure { <span class="com">/* ... */</span> }
+    }
+}</code></pre>
+
+<table>
+  <tr><th></th><th>Google Guide</th><th>Clean Architecture</th></tr>
+  <tr><td>logic "ยอดขั้นต่ำ" อยู่ที่ไหน</td><td>ใน <b>ViewModel</b></td><td>ใน <b>Entity + UseCase</b></td></tr>
+  <tr><td>จำนวนไฟล์</td><td>2</td><td>4</td></tr>
+  <tr><td>ViewModel</td><td>มี logic ปนอยู่</td><td>บางมาก แค่ต่อสาย</td></tr>
+</table>
+
+<h3>ต่างกันตอน "ใช้งานจริง" ยังไง — 3 สถานการณ์</h3>
+<h4>สถานการณ์ 1 — logic เดียวกันถูกใช้ 2 ที่ (หน้า Cart + Checkout ด่วน)</h4>
+<ul>
+  <li><b>Google Guide:</b> ต้อง copy <code>if (total &lt; 100)</code> ไปอีก ViewModel →
+      เสี่ยงลืมแก้ที่เดียว logic ไม่ตรงกัน</li>
+  <li><b>Clean:</b> เรียก <code>PlaceOrderUseCase</code> เดิมซ้ำได้ทันที → logic อยู่ที่เดียว</li>
+</ul>
+<h4>สถานการณ์ 2 — เขียน test กฎ "ยอดขั้นต่ำ"</h4>
+<ul>
+  <li><b>Google Guide:</b> ต้อง test ผ่าน ViewModel (mock Repository + จัดการ coroutine)</li>
+  <li><b>Clean:</b> test <code>cart.canCheckout()</code> เป็น pure function → เร็ว ง่าย ไม่แตะ Android</li>
+</ul>
+<h4>สถานการณ์ 3 — แอปเล็ก logic แค่นี้ ไม่ได้ใช้ซ้ำ</h4>
+<ul>
+  <li><b>Google Guide:</b> จบใน 2 ไฟล์ อ่านง่าย</li>
+  <li><b>Clean:</b> เขียน 4 ไฟล์เพื่อ logic บรรทัดเดียว → <b>over-engineering</b></li>
+</ul>
+<div class="ok"><b>จุดตัดสินง่าย ๆ:</b> ถาม "logic ธุรกิจนี้จะถูก <b>ใช้ซ้ำ / ซับซ้อน / ต้องเทสต์
+หนัก</b> ไหม?" — <b>ใช่ → Clean คุ้ม</b> • <b>ไม่ → Google Guide พอ</b></div>
+
 <h3>เลือกยังไง (กฎง่าย ๆ)</h3>
 <ul>
   <li>แอป <b>เล็ก/กลาง</b> → <b>Google Guide</b> (เบา พอแล้ว ไม่ต้องมี Use Case ทุกอัน)</li>
