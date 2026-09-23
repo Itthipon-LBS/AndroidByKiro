@@ -777,6 +777,125 @@ sync ลงทุกเครื่องเอง (เหมือนส่ง�
     <span class="kw">return null</span>
 }</code></pre>
 
+<h3>2.3.1 เลือกปฏิทินปลายทางครั้งแรก (โค้ดเต็ม)</h3>
+<p>เครื่องมีหลายปฏิทิน (หลายบัญชี + local) จึงควรให้ผู้ใช้เลือกปลายทางครั้งแรก แล้วจำไว้ —
+ทำ 4 ขั้น: (1) query ปฏิทินที่เขียนได้ → (2) โชว์ dialog ให้เลือก → (3) เก็บค่าที่เลือก →
+(4) ตอนจะเขียน event แปลงกลับเป็น CALENDAR_ID ของเครื่องนี้</p>
+
+<h4>ขั้น 1 — query ปฏิทินที่ "เขียนได้" ในเครื่อง</h4>
+<pre><code><span class="kw">import</span> android.content.ContentResolver
+<span class="kw">import</span> android.provider.CalendarContract
+
+<span class="com">// ข้อมูล 1 ปฏิทินที่จะเอาไปโชว์ให้ผู้ใช้เลือก</span>
+<span class="kw">data class</span> CalendarOption(
+    <span class="kw">val</span> id: Long,            <span class="com">// CALENDAR_ID (เลขเฉพาะเครื่อง — ใช้ตอน insert)</span>
+    <span class="kw">val</span> accountName: String, <span class="com">// เช่น a@gmail.com (คงที่ข้ามเครื่อง → ใช้เก็บ)</span>
+    <span class="kw">val</span> displayName: String, <span class="com">// ชื่อที่โชว์ให้ผู้ใช้เห็น</span>
+    <span class="kw">val</span> isPrimary: Boolean    <span class="com">// เป็นปฏิทินหลักของบัญชีไหม (ไว้ตั้ง default)</span>
+)
+
+<span class="kw">fun</span> <span class="fn">loadWritableCalendars</span>(resolver: ContentResolver): List&lt;CalendarOption&gt; {
+    <span class="com">// คอลัมน์ที่ขอ</span>
+    <span class="kw">val</span> projection = arrayOf(
+        CalendarContract.Calendars._ID,
+        CalendarContract.Calendars.ACCOUNT_NAME,
+        CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
+        CalendarContract.Calendars.IS_PRIMARY,
+        CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL
+    )
+    <span class="com">// กรองเฉพาะปฏิทินที่มีสิทธิ์ "เขียน" (ตั้งแต่ระดับ CONTRIBUTOR ขึ้นไป)</span>
+    <span class="com">// เพื่อไม่ให้โชว์ปฏิทินอ่านอย่างเดียว (เช่น วันหยุด) ที่ insert ไม่ได้</span>
+    <span class="kw">val</span> selection = <span class="str">"${CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL} >= ?"</span>
+    <span class="kw">val</span> args = arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString())
+
+    <span class="kw">val</span> result = mutableListOf&lt;CalendarOption&gt;()
+    resolver.query(
+        CalendarContract.Calendars.CONTENT_URI, projection, selection, args, <span class="kw">null</span>
+    )?.use { c -&gt;
+        <span class="com">// หา index ของแต่ละคอลัมน์ (กันตำแหน่งสลับ)</span>
+        <span class="kw">val</span> idIdx = c.getColumnIndexOrThrow(CalendarContract.Calendars._ID)
+        <span class="kw">val</span> accIdx = c.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME)
+        <span class="kw">val</span> nameIdx = c.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME)
+        <span class="kw">val</span> primIdx = c.getColumnIndexOrThrow(CalendarContract.Calendars.IS_PRIMARY)
+
+        <span class="kw">while</span> (c.moveToNext()) {
+            result += CalendarOption(
+                id = c.getLong(idIdx),
+                accountName = c.getString(accIdx) ?: <span class="str">""</span>,
+                displayName = c.getString(nameIdx) ?: <span class="str">""</span>,
+                isPrimary = c.getInt(primIdx) == <span class="num">1</span>
+            )
+        }
+    }
+    <span class="kw">return</span> result
+}</code></pre>
+
+<h4>ขั้น 2 — โชว์ dialog ให้ผู้ใช้เลือก (พร้อมตั้ง default อัจฉริยะ)</h4>
+<pre><code><span class="kw">import</span> android.app.AlertDialog
+
+<span class="kw">fun</span> <span class="fn">showCalendarPicker</span>(activity: Activity, appEmail: String?) {
+    <span class="kw">val</span> calendars = loadWritableCalendars(activity.contentResolver)
+
+    <span class="com">// ไม่มีปฏิทินให้เขียนเลย → แจ้งผู้ใช้ (อาจต้องสร้าง local calendar เอง)</span>
+    <span class="kw">if</span> (calendars.isEmpty()) { showNoCalendarError(); <span class="kw">return</span> }
+
+    <span class="com">// เลือกตัวตั้งต้น (default) ให้ฉลาด:</span>
+    <span class="com">// 1) ปฏิทินที่ตรงกับอีเมลที่ล็อกอินแอป → 2) ปฏิทินหลัก (primary) → 3) อันแรก</span>
+    <span class="kw">val</span> defaultIndex = calendars.indexOfFirst { it.accountName == appEmail }
+        .takeIf { it &gt;= <span class="num">0</span> }
+        ?: calendars.indexOfFirst { it.isPrimary }.takeIf { it &gt;= <span class="num">0</span> }
+        ?: <span class="num">0</span>
+
+    <span class="com">// ถ้ามีปฏิทินเดียว ไม่ต้องถาม ใช้เลย</span>
+    <span class="kw">if</span> (calendars.size == <span class="num">1</span>) { saveSelectedCalendar(calendars[<span class="num">0</span>]); <span class="kw">return</span> }
+
+    <span class="com">// ข้อความแต่ละแถวในรายการเลือก</span>
+    <span class="kw">val</span> labels = calendars.map { <span class="str">"${it.displayName}\n${it.accountName}"</span> }.toTypedArray()
+    <span class="kw">var</span> chosen = defaultIndex
+
+    AlertDialog.Builder(activity)
+        .setTitle(<span class="str">"เลือกปฏิทินสำหรับบันทึกนัดหมาย"</span>)
+        .setSingleChoiceItems(labels, defaultIndex) { _, which -&gt; chosen = which }
+        .setPositiveButton(<span class="str">"ตกลง"</span>) { _, _ -&gt;
+            saveSelectedCalendar(calendars[chosen])   <span class="com">// เก็บค่าที่เลือก</span>
+        }
+        .setNegativeButton(<span class="str">"ยกเลิก"</span>, <span class="kw">null</span>)
+        .show()
+}</code></pre>
+
+<h4>ขั้น 3 — เก็บค่าที่เลือก (แนะนำเก็บ accountName)</h4>
+<pre><code><span class="com">// เก็บ "accountName" ไม่ใช่ CALENDAR_ID เพราะ id เป็นเลขเฉพาะเครื่อง</span>
+<span class="com">// (เครื่องอื่นจะได้ id คนละค่า) — ส่วน accountName คงที่ข้ามเครื่อง</span>
+<span class="com">// ในแอปจริงควรเก็บที่ backend ผูกกับ appUserId เพื่อให้ทุกเครื่องใช้ปลายทางเดียวกัน</span>
+<span class="kw">fun</span> <span class="fn">saveSelectedCalendar</span>(option: CalendarOption) {
+    prefs.edit()
+        .putString(<span class="str">"calendar_account"</span>, option.accountName)
+        .apply()
+    <span class="com">// (ทางเลือก) backend.saveCalendarTarget(appUserId, option.accountName)</span>
+}</code></pre>
+
+<h4>ขั้น 4 — ตอนจะเขียน event: แปลง accountName → CALENDAR_ID ของเครื่องนี้</h4>
+<pre><code><span class="com">// อ่าน accountName ที่เก็บไว้ แล้วหา CALENDAR_ID จริงบนเครื่องปัจจุบัน</span>
+<span class="com">// (ต้องหาใหม่ทุกเครื่อง เพราะ id ไม่เหมือนกัน)</span>
+<span class="kw">fun</span> <span class="fn">resolveTargetCalendarId</span>(resolver: ContentResolver): Long? {
+    <span class="kw">val</span> account = prefs.getString(<span class="str">"calendar_account"</span>, <span class="kw">null</span>) ?: <span class="kw">return null</span>
+    <span class="kw">return</span> loadWritableCalendars(resolver)
+        .firstOrNull { it.accountName == account }   <span class="com">// match ด้วย accountName</span>
+        ?.id                                          <span class="com">// ได้ CALENDAR_ID ไปใช้ insert</span>
+}
+
+<span class="com">// ใช้งานจริง</span>
+<span class="kw">val</span> calendarId = resolveTargetCalendarId(resolver)
+<span class="kw">if</span> (calendarId == <span class="kw">null</span>) {
+    <span class="com">// ยังไม่เคยเลือก หรือปฏิทินที่เลือกหายไปจากเครื่อง → ให้เลือกใหม่</span>
+    showCalendarPicker(activity, appEmail)
+} <span class="kw">else</span> {
+    insertEvent(resolver, calendarId)   <span class="com">// เขียน event (หัวข้อ 2.4)</span>
+}</code></pre>
+<div class="note">สรุป flow: <b>query ปฏิทินที่เขียนได้ → ให้ผู้ใช้เลือก (ตั้ง default จาก
+อีเมลแอป/primary) → เก็บ accountName → ตอนเขียนค่อยแปลงเป็น CALENDAR_ID ของเครื่องนั้น</b>
+• เก็บ accountName ไม่ใช่ id เพราะ id ต่างกันในแต่ละเครื่อง</div>
+
 <h3>2.4 เขียน event (โค้ดเต็ม)</h3>
 <pre><code><span class="kw">fun</span> <span class="fn">insertEvent</span>(resolver: ContentResolver, calendarId: Long): Uri? {
     <span class="kw">val</span> start = Calendar.getInstance().apply { add(Calendar.HOUR_OF_DAY, <span class="num">2</span>) }

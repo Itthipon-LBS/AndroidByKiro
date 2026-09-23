@@ -1031,6 +1031,16 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   backend server-authoritative + UNIQUE(appUserId,orderId); B: วิธี 2 + backend + mapping
   local) พร้อม reconciliation และตารางสรุปเลือกสถาปัตยกรรม + ลิงก์สารบัญ
 
+## 113. เพิ่มโค้ดเลือกปฏิทินปลายทางครั้งแรก (วิธี 2) ในเอกสาร Google Calendar
+
+**Added**
+- ใน `docs/google-calendar-integration.html` เพิ่มหัวข้อ 2.3.1 "เลือกปฏิทินปลายทางครั้งแรก
+  (โค้ดเต็ม)" ในวิธีที่ 2 พร้อม comment อธิบายทีละบรรทัด 4 ขั้น: (1) `loadWritableCalendars`
+  query ปฏิทินที่เขียนได้ (กรอง CAL_ACCESS_CONTRIBUTOR), (2) `showCalendarPicker` แสดง
+  AlertDialog แบบ single-choice + ตั้ง default อัจฉริยะ (match อีเมลแอป → primary → อันแรก)
+  + ข้ามถ้ามีปฏิทินเดียว, (3) `saveSelectedCalendar` เก็บ accountName (ไม่ใช่ id), (4)
+  `resolveTargetCalendarId` แปลง accountName → CALENDAR_ID ของเครื่องปัจจุบันตอนเขียน
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR
