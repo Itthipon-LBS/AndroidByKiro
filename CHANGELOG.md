@@ -1092,6 +1092,15 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
 - ใน `docs/android-for-programmers.md` (B4) และ `docs/android-architecture.html` เพิ่มลิงก์
   ไปเอกสาร Clean Architecture
 
+## 118. ทำการเปรียบเทียบ Clean vs Google Guide ให้เห็นภาพง่ายขึ้น
+
+**Added**
+- ใน `docs/android-clean-architecture.html` (หัวข้อ 12) เพิ่มส่วนอธิบายเข้าใจง่าย: อุปมา
+  "การจัดบ้าน" (3 โซน vs 4 ชั้น), ตาราง "แก่นความต่างจริง ๆ มีแค่ 3 อย่าง" (กี่ชั้น/Use Case
+  บังคับ/ความเข้ม) + กล่องว่านอกนั้นเหมือนกันหมด, diagram สเปกตรัมความเข้ม (Google Guide →
+  +Domain/UseCase → Clean = "อันเดียวกันคนละความเข้ม"), การจับคู่ชั้น และกฎเลือกใช้ง่าย ๆ
+  โดยคงตารางเทียบละเอียดเดิมไว้ด้านล่าง
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

@@ -330,6 +330,50 @@ Rule ให้เอง (import Android ไม่ได้) • แอปเล�
 <h2>12. เทียบกับ "สถาปัตยกรรมที่ Google แนะนำ" (Google Guide)</h2>
 <p>ทั้งสองมีเป้าหมายเดียวกัน (แยกชั้น ทดสอบง่าย ขยายได้) แต่ต่างกันที่ระดับความเข้มงวดและ
 ขอบเขต</p>
+
+<h3>เข้าใจง่ายที่สุด: อุปมา "การจัดบ้าน"</h3>
+<table>
+  <tr><th></th><th>Google Guide</th><th>Clean Architecture</th></tr>
+  <tr><td>เปรียบเป็น</td><td>จัดบ้านเป็น <b>3 โซน</b> (นั่งเล่น/ครัว/เก็บของ)</td><td>จัดบ้านเป็น <b>4 ชั้นซ้อน</b> มีกฎเข้มว่าของแต่ละชั้นห้ามปนกัน</td></tr>
+  <tr><td>ความรู้สึก</td><td>พอใช้ เข้าใจง่าย จัดเร็ว</td><td>เป็นระเบียบมาก แต่ต้องขยันจัด</td></tr>
+</table>
+
+<h3>แก่นความต่างจริง ๆ มีแค่ 3 อย่าง</h3>
+<table>
+  <tr><th>ประเด็น</th><th>Google Guide</th><th>Clean Architecture</th></tr>
+  <tr><td><b>กี่ชั้น</b></td><td>3 (UI / Domain / Data)</td><td>4 (Entities / UseCases / Adapters / Frameworks)</td></tr>
+  <tr><td><b>Use Case บังคับไหม</b></td><td>ไม่ (ใส่เมื่ออยากใส่)</td><td>ใช่ (ต้องมี)</td></tr>
+  <tr><td><b>เข้มแค่ไหน</b></td><td>ยืดหยุ่น ปรับได้</td><td>เคร่ง มีกฎตายตัว</td></tr>
+</table>
+<div class="ok"><b>นอกนั้นเหมือนกันหมด</b> — ทั้งคู่: แยก UI/logic/data, UI ไม่มี business
+logic, ทดสอบง่าย, ข้อมูลไหลทางเดียว (UDF), พึ่ง interface</div>
+
+<h3>จริง ๆ มันคือ "อันเดียวกันคนละความเข้ม"</h3>
+<div class="diagram">เบา ──────────────────────────────────────────► เข้ม
+
+Google Guide          Google Guide             Clean
+(ไม่มี Domain)   →    + Domain layer      →    Architecture
+                       + Use Case                (4 ชั้น + กฎเข้ม)</div>
+<div class="note"><b>เข้าใจง่าย ๆ:</b> Google Guide ถ้าคุณ <b>ใส่ Domain layer + Use Case +
+แยก module domain</b> → มันก็กลายเป็น Clean Architecture • พูดสั้น ๆ:
+<b>Clean = Google Guide ที่จัดเต็ม</b></div>
+
+<h3>จับคู่ชั้นให้เห็นภาพ</h3>
+<div class="diagram">Clean Architecture        Google Guide
+─────────────────────────────────────────
+Entities            ≈    domain model
+Use Cases           ≈    Domain layer
+Interface Adapters  ≈    ViewModel + Repository
+Frameworks          ≈    UI + Retrofit/Room</div>
+
+<h3>เลือกยังไง (กฎง่าย ๆ)</h3>
+<ul>
+  <li>แอป <b>เล็ก/กลาง</b> → <b>Google Guide</b> (เบา พอแล้ว ไม่ต้องมี Use Case ทุกอัน)</li>
+  <li>แอป <b>ใหญ่/ซับซ้อน/แชร์ข้าม iOS (KMP)</b> → <b>Clean Architecture</b> (คุ้มกับความเข้ม)</li>
+  <li>ไม่แน่ใจ → เริ่ม Google Guide ก่อน แล้วค่อยเพิ่มความเข้มเมื่อโตขึ้น</li>
+</ul>
+
+<h3>ตารางเทียบละเอียด (ครบทุกประเด็น)</h3>
 <table>
   <tr><th>ประเด็น</th><th>Clean Architecture</th><th>Google Guide (Recommended)</th></tr>
   <tr><td>ที่มา</td><td>Robert C. Martin (ทั่วไป)</td><td>Google (เฉพาะ Android)</td></tr>
