@@ -1174,6 +1174,21 @@ _(ยังไม่ได้รันเทสต์บนเครื่อง
   location (ขอ 2 สเต็ป), special permission (เช็คเมธอดเฉพาะ + Settings intent + ตารางแต่ละตัว),
   ไฟล์/รูป (Photo Picker ไม่ต้องขอ), POST_NOTIFICATIONS (เช็ค API 33+) + ตารางสรุปว่าต่างตรงไหน
 
+## 125. สร้างเอกสาร HTML เรื่อง Secure Coding เชิงลึก
+
+**Added**
+- สร้าง `docs/android-secure-coding.html` เอกสาร standalone HTML ครบ 17 หัวข้อ เน้นความ
+  ปลอดภัยเชิงการเขียนโค้ด พร้อมโค้ด ผิด/ถูก ทุกหัวข้อ: secure coding คืออะไร, โมเดลภัยคุกคาม
+  (attack surface), input validation & injection (SQL/path traversal), WebView security,
+  Intent security (redirection/explicit), deep link & App Links, IPC/Broadcast/Provider,
+  PendingIntent (IMMUTABLE), secret & API key management, เก็บข้อมูล & backup rules, logging
+  & debuggable/R8, anti-tamper/root (Play Integrity), dependency/supply chain,
+  clipboard/screenshot/FLAG_SECURE, security checklist ก่อนปล่อย production, แนวโน้ม และ glossary
+
+**Changed**
+- ใน `docs/android-permissions-security.html` และ `docs/android-for-programmers.md` (B8)
+  เพิ่มลิงก์ชี้ไปเอกสาร secure coding
+
 ## สิ่งที่ยังค้าง / แผนถัดไป (Backlog)
 
 - GitHub Actions (CI) build + test + validate Gradle wrapper อัตโนมัติทุก PR

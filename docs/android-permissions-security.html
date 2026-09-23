@@ -283,6 +283,9 @@ securePrefs.edit().putString(<span class="str">"token"</span>, token).apply()   
   <li><b>ไม่ log ข้อมูลอ่อนไหว</b> — token/รหัสผ่านห้ามอยู่ใน Logcat</li>
   <li><b>Clipboard/Screenshot</b> — ป้องกันหน้าจอที่มีข้อมูลลับ (FLAG_SECURE)</li>
 </ul>
+<div class="note"><b>เจาะลึกความปลอดภัยเชิงการเขียนโค้ด</b> (injection, WebView, Intent/deep
+link, IPC, secret management, anti-tamper, dependency พร้อมโค้ด ผิด/ถูก): ดู
+<code>docs/android-secure-coding.html</code></div>
 </section>
 
 <section id="versions">
